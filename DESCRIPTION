@@ -17,5 +17,5 @@ Imports: stats
 SystemRequirements: GNU GSL, GNU make, C++11
 BugReports: https://github.com/jun-yan/wdnet/issues
 URL: https://github.com/jun-yan/wdnet
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 NeedsCompilation: no
