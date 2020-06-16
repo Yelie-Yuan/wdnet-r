@@ -1,48 +1,71 @@
-#' Degree centrality
+#' Degree-based centrality
 #'
-#' Compute the degree centrality measure for a given weighted
-#' directed network represented by its adjacency matrix. This is an
-#' alternative to "degree_w" funciton in "tnet" package. Function
-#' "degree_c" is matrix friendly, but "degree_w" function in "tnet"
-#' package requires weight lists.
+#' Compute the degree centrality measure for a weighted and directed 
+#' network represented through its adjacency matrix.
 #'
 #' @usage
-#' degree_c(adj, alpha = 1, type = "out")
+#' degree_c(adj, alpha = 1, mode = "out")
 #'
-#' @param adj Adjacency matrix of an weighted directed network
-#' @param alpha tuning parameter; possible values
-#' @param type which type to compute: "out" or "in"
+#' @param adj is an adjacency matrix of an weighted and directed network
+#' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
+#' alpha takes values from 0 to 1 (default).
+#' @param mode which mode to compute: "out" (default) or "in"? For undirected networks, this
+#' setting is irrelavent.
 #'
-#' @return a scalar measure of centrality
+#' @return a list of node names and associated degree centrality measures
 #'
 #' @references
-#' Zhang, P. and Yan, J. (2020+) A review of centrality measure for
+#' \begin{enumerate}
+#' \item  Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 
+#' in weighted networks: Generalizing degree and shortest paths. 
+#' \emph{Social Networks}, \textbf{32}, 245--251.
+#' \item Zhang, P., Zhao, J. and Yan, J. (2020+) A review of centrality measure for
 #'     weighted directed networks
+#' \end{enumerate}
+#'
+#' @note 
+#' Function \code{deg_c} is an extension of function \code{strength} 
+#' in package \code{igraph} and an altertanive of function \code{degree_w} in 
+#' package \code{tnet}. Function \code{deg_c} uses an adjacency matrix as
+#' input.
 #'
 #' @examples
-#' ## need to define adj_test first for the check to work
-#' system.time(mydegree <- degree_c(adj_test, alpha = 0.8, type = "in"))
+#' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
+#' and parameter p = 0.3
+#' edge_ER <- rbinom(400,1,0.3)
+#' weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
+#' adj_ER <- matrix(weight_ER,20,20)
+#' system.time(mydegree <- deg_c(adj_ER, alpha = 0.8, mode = "in"))
 #' 
 #' @export
 
-degree_c <- function(adj, alpha = 1, type = "out") {
+deg_c <- function(adj, alpha = 1, mode = "out"){
   if (alpha < 0){
     stop("The tuning parameter alpha must be nonnegative!")
   }
-  if (dim(adj)[1]!=dim(adj)[2]) {
+  if (dim(adj)[1]!=dim(adj)[2]){
     stop("The adjacency matrix must be a square matrix!")
   }
   else{
+    if (isSymmetric(adj) == TRUE){
+      warnings("The analyzed network is undirected!")
+    }
     deg_c_output <- matrix(NA, nrow = dim(adj)[1], ncol = 2)
-    deg_c_output[,1] <- c(1:dim(adj)[1])
-    colnames(deg_c_output) <- c("vertex","degree_centrality")
+    adj_name <- colnames(adj)
+    if (is.null(adj_name) == FALSE){
+      deg_c_output <- adj_name
+    }
+    else{
+      deg_c_output[,1] <- c(1:dim(adj)[1])
+    }
+    colnames(deg_c_output) <- c("name","deg_c")
     adj_deg <- adj
     adj_deg[which(adj_deg > 0)] <- 1
-    if (type == "in"){
-      deg_c_output[,2] <- rowSums(adj)^alpha + rowSums(adj_deg)^(1 - alpha)
-    }
-    if (type == "out"){
+    if (mode == "in"){
       deg_c_output[,2] <- colSums(adj)^alpha + colSums(adj_deg)^(1 - alpha)
+    }
+    if (mode == "out"){
+      deg_c_output[,2] <- rowSums(adj)^alpha + rowSums(adj_deg)^(1 - alpha)
     }
     return(deg_c_output)
   }
@@ -108,7 +131,6 @@ closeness_c <- function(adj, alpha = 1, type = "out",
       }
     }
     return(closeness_c_output)
-    ## options(warn) = -1 # wrong place
   }
 }
 
@@ -120,7 +142,6 @@ closeness_c <- function(adj, alpha = 1, type = "out",
 
 
 betweenness_c <- function(adj, alpha = 1, directed = TRUE){
-  require(tnet)
   if (alpha < 0){
     stop("The tuning parameter alpha must be nonnegative!")
   }
@@ -141,13 +162,13 @@ betweenness_c <- function(adj, alpha = 1, directed = TRUE){
   temp_edgelist <- cbind(v.from, v.to, v.weight)
   if (directed == TRUE){
     suppressWarnings(tnet_edgelist <- as.tnet(temp_edgelist, type = "weighted one-mode tnet")) 
-    myres <- betweenness_w(tnet_edgelist, directed = TRUE, alpha)
+    myres <- tnet::betweenness_w(tnet_edgelist, directed = TRUE, alpha)
     colnames(myres) <- c("vertex","betweenness")
     return(myres)
   }
   if (directed == FALSE){
     suppressWarnings(tnet_edgelist <- as.tnet(temp_edgelist, type = "weighted one-mode tnet")) 
-    myres <- betweenness_w(tnet_edgelist, directed = FALSE, alpha)
+    myres <- tnet::betweenness_w(tnet_edgelist, directed = FALSE, alpha)
     colnames(myres) <- c("vertex","betweenness")
     return(myres)
   }
