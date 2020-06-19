@@ -19,7 +19,7 @@ setting is irrelavent.}
 a list of node names and associated degree centrality measures
 }
 \description{
-Compute the degree centrality measures of the vertices in a weighted and directed 
+Compute the degree centrality measures of the vertices in a weighted and directed
 network represented through its adjacency matrix.
 }
 \note{
@@ -30,9 +30,9 @@ input.
 }
 \examples{
 ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-and parameter p = 0.3
+## and parameter p = 0.3
 edge_ER <- rbinom(400,1,0.3)
-weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
+weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 adj_ER <- matrix(weight_ER,20,20)
 system.time(mydegree <- degree_c(adj_ER, alpha = 0.8, mode = "in"))
 
@@ -41,7 +41,7 @@ system.time(mydegree <- degree_c(adj_ER, alpha = 0.8, mode = "in"))
 \itemize{
 \item Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 
 in weighted networks: Generalizing degree and shortest paths. 
-\emph{Social Networks}, \textbf{32}, 245--251.
+\emph{Social Networks}, 32, 245--251.
 \item Zhang, P., Zhao, J. and Yan, J. (2020+) Centrality measures of 
 networks with application to world input-output tables
 }

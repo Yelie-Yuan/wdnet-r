@@ -2,3 +2,5 @@
 
 export(closeness_c)
 export(degree_c)
+importFrom(igraph,distances)
+importFrom(igraph,graph_from_adjacency_matrix)

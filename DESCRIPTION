@@ -13,9 +13,9 @@ Depends: R (>= 3.6.3)
 License: GPL (>= 3.0)
 Encoding: UTF-8
 LazyData: true
-Imports: stats
+Imports: igraph
 SystemRequirements: GNU GSL, GNU make, C++11
 BugReports: https://github.com/jun-yan/wdnet/issues
 URL: https://github.com/jun-yan/wdnet
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.0.9000
 NeedsCompilation: no

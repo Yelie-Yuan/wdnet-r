@@ -28,10 +28,8 @@ install: $(tar)
 
 
 $(tar): $(objects)
-#	@rm -rf src/RcppExports.cpp R/RcppExports.R
-	@Rscript -e "library(methods);" \
-#	-e "Rcpp::compileAttributes()" \
-	-e "devtools::document();";
+	@rm -rf src/RcppExports.cpp R/RcppExports.R
+	@Rscript -e "devtools::document();"
 	@$(MAKE) updateTimestamp
 	R CMD build .
 

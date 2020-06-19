@@ -4,7 +4,8 @@
 \alias{closeness_c}
 \title{Closeness centrality}
 \usage{
-closeness_c(dj, alpha = 1, mode = "out", method = "harmonic")
+closeness_c(adj, alpha = 1, type = "out", method = "harmonic",
+            distance = FALSE)
 }
 \arguments{
 \item{adj}{is an adjacency matrix of an weighted and directed network}
@@ -12,13 +13,13 @@ closeness_c(dj, alpha = 1, mode = "out", method = "harmonic")
 \item{alpha}{is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
 alpha takes a value from 0 to 1 (default).}
 
+\item{type}{which type to compute: "out" (default) or "in"? For undirected networks, this
+setting is irrelavent.}
+
 \item{method}{which method to use: "harmonic" (default) or "standard"?}
 
 \item{distance}{whether to consider the entries in the adjacency matrix as distances or
 strong connections. The default setting is \code{FALSE}.}
-
-\item{mode}{which mode to compute: "out" (default) or "in"? For undirected networks, this
-setting is irrelavent.}
 }
 \value{
 a list of node names and associated degree centrality measures
@@ -34,20 +35,20 @@ package \code{tnet}.
 }
 \examples{
 ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-and parameter p = 0.3
+## and parameter p = 0.3
 edge_ER <- rbinom(400,1,0.3)
 weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
 adj_ER <- matrix(weight_ER,20,20)
-system.time(myclose <- closeness_c(adj_ER, alpha = 0.8, mode = "out"))
+system.time(myclose <- closeness_c(adj_ER, alpha = 0.8, type = "out"))
 
 }
 \references{
 \itemize{
 \item Newman, M.E.J. (2003). The structure and function of complex
-networks. \emph{SIAM review}, \textbf{45}(2), 167--256.
+networks. \emph{SIAM review}, 45(2), 167--256.
 \item Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 
 in weighted networks: Generalizing degree and shortest paths. 
-\emph{Social Networks}, \textbf{32}, 245--251.
+\emph{Social Networks}, 32, 245--251.
 \item Zhang, P., Zhao, J. and Yan, J. (2020+) Centrality measures of 
 networks with application to world input-output tables
 }

@@ -1,6 +1,9 @@
+#' @importFrom igraph distances graph_from_adjacency_matrix
+NULL
+
 #' Degree-based centrality
 #'
-#' Compute the degree centrality measures of the vertices in a weighted and directed 
+#' Compute the degree centrality measures of the vertices in a weighted and directed
 #' network represented through its adjacency matrix.
 #'
 #' @usage
@@ -18,7 +21,7 @@
 #' \itemize{
 #' \item Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 
 #' in weighted networks: Generalizing degree and shortest paths. 
-#' \emph{Social Networks}, \textbf{32}, 245--251.
+#' \emph{Social Networks}, 32, 245--251.
 #' \item Zhang, P., Zhao, J. and Yan, J. (2020+) Centrality measures of 
 #' networks with application to world input-output tables
 #' }
@@ -31,9 +34,9 @@
 #'
 #' @examples
 #' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-#' and parameter p = 0.3
+#' ## and parameter p = 0.3
 #' edge_ER <- rbinom(400,1,0.3)
-#' weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
+#' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 #' adj_ER <- matrix(weight_ER,20,20)
 #' system.time(mydegree <- degree_c(adj_ER, alpha = 0.8, mode = "in"))
 #' 
@@ -77,12 +80,13 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' network represented through its adjacency matrix.
 #' 
 #' @usage
-#' closeness_c(dj, alpha = 1, mode = "out", method = "harmonic")
+#' closeness_c(adj, alpha = 1, type = "out", method = "harmonic",
+#'             distance = FALSE)
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network
 #' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
 #' alpha takes a value from 0 to 1 (default).
-#' @param mode which mode to compute: "out" (default) or "in"? For undirected networks, this
+#' @param type which type to compute: "out" (default) or "in"? For undirected networks, this
 #' setting is irrelavent.
 #' @param method which method to use: "harmonic" (default) or "standard"?
 #' @param distance whether to consider the entries in the adjacency matrix as distances or
@@ -93,10 +97,10 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' @references
 #' \itemize{
 #' \item Newman, M.E.J. (2003). The structure and function of complex
-#' networks. \emph{SIAM review}, \textbf{45}(2), 167--256.
+#' networks. \emph{SIAM review}, 45(2), 167--256.
 #' \item Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 
 #' in weighted networks: Generalizing degree and shortest paths. 
-#' \emph{Social Networks}, \textbf{32}, 245--251.
+#' \emph{Social Networks}, 32, 245--251.
 #' \item Zhang, P., Zhao, J. and Yan, J. (2020+) Centrality measures of 
 #' networks with application to world input-output tables
 #' }
@@ -108,16 +112,16 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #'
 #' @examples
 #' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-#' and parameter p = 0.3
+#' ## and parameter p = 0.3
 #' edge_ER <- rbinom(400,1,0.3)
 #' weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
 #' adj_ER <- matrix(weight_ER,20,20)
-#' system.time(myclose <- closeness_c(adj_ER, alpha = 0.8, mode = "out"))
+#' system.time(myclose <- closeness_c(adj_ER, alpha = 0.8, type = "out"))
 #' 
 #' @export
 
-closeness_c <- function(adj, alpha = 1, type = "out", method = "harmonic", distance = FALSE){
-  require(igraph)
+closeness_c <- function(adj, alpha = 1, type = "out",
+                        method = "harmonic", distance = FALSE){
   if (alpha < 0){
     stop("The tuning parameter alpha must be nonnegative!")
   }
@@ -132,12 +136,12 @@ closeness_c <- function(adj, alpha = 1, type = "out", method = "harmonic", dista
     } else if (distance == TRUE){
       adj <- adj^alpha
     }
-    temp_g <- graph_from_adjacency_matrix(adj, mode = "directed", weighted = TRUE)
+    temp_g <- igraph::graph_from_adjacency_matrix(adj, mode = "directed", weighted = TRUE)
     closeness_c_output <- matrix(NA, nrow = dim(adj)[1], ncol = 2)
     closeness_c_output[,1] <- c(1:dim(adj)[1])
     colnames(closeness_c_output) <- c("vertex","closeness")
     if (method == "harmonic"){
-      temp_d <- 1/distances(temp_g, mode = type, algorithm = "dijkstra")
+      temp_d <- 1/igraph::distances(temp_g, mode = type, algorithm = "dijkstra")
       temp_d[temp_d == Inf] <- 0
       if (type == "in"){
         closeness_c_output[,2] <- rowSums(temp_d)
@@ -147,7 +151,7 @@ closeness_c <- function(adj, alpha = 1, type = "out", method = "harmonic", dista
       }
     }
     if (method == "standard"){
-      temp_d <- distances(temp_g, mode = type, algorithm = "dijkstra")
+      temp_d <- igraph::distances(temp_g, mode = type, algorithm = "dijkstra")
       temp_d[temp_d == Inf] <- 0
       if (type == "in"){
         closeness_c_output[,2] <- 1/rowSums(temp_d)
@@ -157,7 +161,9 @@ closeness_c <- function(adj, alpha = 1, type = "out", method = "harmonic", dista
       }
     }
     return(closeness_c_output)
-    options(warn) = -1
+    ## options(warn) = -1 # this line would not be exectuted anyway
   }
 }
+
+
 
