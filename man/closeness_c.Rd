@@ -4,7 +4,7 @@
 \alias{closeness_c}
 \title{Closeness centrality}
 \usage{
-closeness_c(adj, alpha = 1, type = "out", method = "harmonic",
+closeness_c(adj, alpha = 1, mode = "out", method = "harmonic",
             distance = FALSE)
 }
 \arguments{
@@ -13,7 +13,7 @@ closeness_c(adj, alpha = 1, type = "out", method = "harmonic",
 \item{alpha}{is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
 alpha takes a value from 0 to 1 (default).}
 
-\item{type}{which type to compute: "out" (default) or "in"? For undirected networks, this
+\item{mode}{which mode to compute: "out" (default) or "in"? For undirected networks, this
 setting is irrelavent.}
 
 \item{method}{which method to use: "harmonic" (default) or "standard"?}
@@ -22,7 +22,7 @@ setting is irrelavent.}
 strong connections. The default setting is \code{FALSE}.}
 }
 \value{
-a list of node names and associated degree centrality measures
+a list of node names and associated closeness centrality measures
 }
 \description{
 Compute the closeness centrality measures of the vertices in a weighted and directed 
@@ -31,7 +31,8 @@ network represented through its adjacency matrix.
 \note{
 Function \code{closeness_c} is an extension of function \code{closeness} 
 in package \code{igraph} and function \code{closeness_w} in 
-package \code{tnet}.
+package \code{tnet}. The method of computing distances between verticies
+is the \emph{Dijkstra's algorithm}.
 }
 \examples{
 ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
@@ -39,11 +40,15 @@ package \code{tnet}.
 edge_ER <- rbinom(400,1,0.3)
 weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
 adj_ER <- matrix(weight_ER,20,20)
-system.time(myclose <- closeness_c(adj_ER, alpha = 0.8, type = "out"))
+myclose <- closeness_c(adj_ER, alpha = 0.8, mode = "out",
+method = "harmonic", distance = FALSE)
+system.time(myclose)
 
 }
 \references{
 \itemize{
+\item Dijkstra, E.W. (1959). A note on two problems in connexion with 
+graphs. \emph{Numerische Mathematik}, 1, 269--271.
 \item Newman, M.E.J. (2003). The structure and function of complex
 networks. \emph{SIAM review}, 45(2), 167--256.
 \item Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 

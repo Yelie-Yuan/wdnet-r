@@ -34,7 +34,8 @@ input.
 edge_ER <- rbinom(400,1,0.3)
 weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 adj_ER <- matrix(weight_ER,20,20)
-system.time(mydegree <- degree_c(adj_ER, alpha = 0.8, mode = "in"))
+mydegree <- degree_c(adj_ER, alpha = 0.8, mode = "in")
+system.time(mydegree)
 
 }
 \references{

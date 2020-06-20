@@ -38,7 +38,8 @@ NULL
 #' edge_ER <- rbinom(400,1,0.3)
 #' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 #' adj_ER <- matrix(weight_ER,20,20)
-#' system.time(mydegree <- degree_c(adj_ER, alpha = 0.8, mode = "in"))
+#' mydegree <- degree_c(adj_ER, alpha = 0.8, mode = "in")
+#' system.time(mydegree)
 #' 
 #' @export
 
@@ -80,22 +81,24 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' network represented through its adjacency matrix.
 #' 
 #' @usage
-#' closeness_c(adj, alpha = 1, type = "out", method = "harmonic",
+#' closeness_c(adj, alpha = 1, mode = "out", method = "harmonic",
 #'             distance = FALSE)
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network
 #' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
 #' alpha takes a value from 0 to 1 (default).
-#' @param type which type to compute: "out" (default) or "in"? For undirected networks, this
+#' @param mode which mode to compute: "out" (default) or "in"? For undirected networks, this
 #' setting is irrelavent.
 #' @param method which method to use: "harmonic" (default) or "standard"?
 #' @param distance whether to consider the entries in the adjacency matrix as distances or
 #' strong connections. The default setting is \code{FALSE}.
 #' 
-#' @return a list of node names and associated degree centrality measures
+#' @return a list of node names and associated closeness centrality measures
 #'
 #' @references
 #' \itemize{
+#' \item Dijkstra, E.W. (1959). A note on two problems in connexion with 
+#' graphs. \emph{Numerische Mathematik}, 1, 269--271.
 #' \item Newman, M.E.J. (2003). The structure and function of complex
 #' networks. \emph{SIAM review}, 45(2), 167--256.
 #' \item Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 
@@ -108,7 +111,8 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' @note 
 #' Function \code{closeness_c} is an extension of function \code{closeness} 
 #' in package \code{igraph} and function \code{closeness_w} in 
-#' package \code{tnet}. 
+#' package \code{tnet}. The method of computing distances between verticies
+#' is the \emph{Dijkstra's algorithm}.
 #'
 #' @examples
 #' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
@@ -116,11 +120,13 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' edge_ER <- rbinom(400,1,0.3)
 #' weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
 #' adj_ER <- matrix(weight_ER,20,20)
-#' system.time(myclose <- closeness_c(adj_ER, alpha = 0.8, type = "out"))
+#' myclose <- closeness_c(adj_ER, alpha = 0.8, mode = "out",
+#' method = "harmonic", distance = FALSE)
+#' system.time(myclose)
 #' 
 #' @export
 
-closeness_c <- function(adj, alpha = 1, type = "out",
+closeness_c <- function(adj, alpha = 1, mode = "out",
                         method = "harmonic", distance = FALSE){
   if (alpha < 0){
     stop("The tuning parameter alpha must be nonnegative!")
@@ -129,39 +135,43 @@ closeness_c <- function(adj, alpha = 1, type = "out",
     stop("The adjacency matrix must be a square matrix!")
   }
   else{
+    closeness_c_output <- matrix(NA, nrow = dim(adj)[1], ncol = 2)
+    adj_name <- colnames(adj)
+    if (is.null(adj_name) == FALSE){
+      closeness_c_output[,1] <- adj_name
+    }
+    else{
+      closeness_c_output[,1] <- c(1:dim(adj)[1])
+    }
+    colnames(closeness_c_output) <- c("name","closeness_c")
     if (distance == FALSE){
-      adj <- 1/adj
-      adj[is.infinite(adj)] <- 0
-      adj <- adj^alpha
+      adj <- (1/adj)^alpha
     } else if (distance == TRUE){
       adj <- adj^alpha
     }
     temp_g <- igraph::graph_from_adjacency_matrix(adj, mode = "directed", weighted = TRUE)
-    closeness_c_output <- matrix(NA, nrow = dim(adj)[1], ncol = 2)
-    closeness_c_output[,1] <- c(1:dim(adj)[1])
-    colnames(closeness_c_output) <- c("vertex","closeness")
     if (method == "harmonic"){
-      temp_d <- 1/igraph::distances(temp_g, mode = type, algorithm = "dijkstra")
-      temp_d[temp_d == Inf] <- 0
-      if (type == "in"){
-        closeness_c_output[,2] <- rowSums(temp_d)
+      temp_d <- 1/igraph::distances(temp_g, mode = mode, algorithm = "dijkstra")
+      ## Not consider the distance of a vertex to itself
+      diag(temp_d) <- NA
+      if (mode == "in"){
+        closeness_c_output[,2] <- rowSums(temp_d, na.rm = TRUE)
       }
-      if (type == "out"){
-        closeness_c_output[,2] <- rowSums(temp_d)
+      if (mode == "out"){
+        closeness_c_output[,2] <- rowSums(temp_d, na.rm = TRUE)
       }
     }
     if (method == "standard"){
-      temp_d <- igraph::distances(temp_g, mode = type, algorithm = "dijkstra")
-      temp_d[temp_d == Inf] <- 0
-      if (type == "in"){
-        closeness_c_output[,2] <- 1/rowSums(temp_d)
+      temp_d <- igraph::distances(temp_g, mode = mode, algorithm = "dijkstra")
+      diag(temp_d) <- NA
+      if (mode == "in"){
+        closeness_c_output[,2] <- 1/rowSums(temp_d, na.rm = TRUE)
       }
-      if (type == "out"){
-        closeness_c_output[,2] <- 1/rowSums(temp_d)
+      if (mode == "out"){
+        closeness_c_output[,2] <- 1/rowSums(temp_d, na.rm = TRUE)
       }
     }
     return(closeness_c_output)
-    ## options(warn) = -1 # this line would not be exectuted anyway
   }
 }
 
