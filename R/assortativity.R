@@ -1,4 +1,4 @@
-#' @importFrom stats cor
+#' @importFrom stats weighted.mean
 NULL
 
 #' Directed assortativity coefficient
@@ -48,6 +48,7 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
   number_to <- apply(adj, 2, function(x){length(which(x > 0) == TRUE)})
   temp_to <- cbind(seq(1:dim(adj)[1]),number_to)
   vert_to <- rep(temp_to[,1],temp_to[,2])
+  weight <- adj[which(adj > 0)]
   type  <- match.arg(type)
   if (type == "out-in") {
       x <- out_str[vert_from]
@@ -59,8 +60,16 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
       x <- out_str[vert_from]
       y <- out_str[vert_to]
   } else if(type == "in-out") {
-      x <- out_str[vert_from]
-      y <- in_str[vert_to]
+      x <- in_str[vert_from]
+      y <- out_str[vert_to]
   } 
-  return(stats::cor(x,y))
+  weighted.cor <- function(x, y, w) {
+    mean_x <- stats::weighted.mean(x, w)
+    mean_y <- stats::weighted.mean(y, w)
+    var_x <- sum((x - mean_x)^2 * w)
+    var_y <- sum((y - mean_y)^2 * w)
+    return(sum(w * (x - mean_x) * (y - mean_y)) / 
+             sqrt(var_x * var_y))
+  }
+  return(weighted.cor(x, y, weight))
 }
