@@ -1,0 +1,75 @@
+#' Directed assortativity coefficient
+#' 
+#' Compute the assortativity coefficient of a weighted and directed network.
+#'
+#' @usage
+#' dw_assort(adj, type = "out-in")
+#'
+#' @param adj is an adjacency matrix of an weighted and directed network.
+#' @param type which type of assortativity coefficient to compute: "out-in" (default), 
+#' "in-in", "out-out" or "in-out"? For undirected networks, consider function
+#' \code{uw_assort}
+#'
+#' @return a scalar of assortativity coefficient
+#'
+#' @references
+#' \itemize{
+#' \item Foster, J.G., Foster, D.V., Grassberger, P. and Paczuski, M. (2010). Edge direction 
+#' and the structure of networks. \emph{Proceedings of the National Academy of Sciences of the
+#' United States}, 107(24), 10815--10820.
+#' \item Yuan, Y. Zhang, P. and Yan, J. (2020+). Assortativity coefficients for 
+#' weighted and directed networks
+#' }
+#'
+#' @note 
+#' When the adjacency matrix is binary (i.e., directed but unweighted networks), \code{dw_assort}
+#' returns the assortativity coefficient proposed in Foster et al. (2010).
+#'
+#' @examples
+#' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
+#' ## and parameter p = 0.3
+#' edge_ER <- rbinom(400,1,0.3)
+#' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
+#' adj_ER <- matrix(weight_ER,20,20)
+#' myassort <- dw_assort(adj_ER, type = "out-in")
+#' system.time(myassort)
+#' 
+#' @export
+
+dw_assort <- function(adj, type = ""){
+  if (dim(adj)[1]!=dim(adj)[2]){
+    stop("The adjacency matrix must be a square matrix!")
+  }
+  else{
+    ## determine the location of edges in the network
+    in_str <- colSums(adj)
+    out_str <- rowSums(adj)
+    vert_from <- unlist(apply(adj, 2, function(x){which(x > 0)}))
+    number_to <- apply(adj, 2, function(x){length(which(x > 0) == TRUE)})
+    temp_to <- cbind(seq(1:dim(adj)[1]),number_to)
+    vert_to <- rep(temp_to[,1],temp_to[,2])
+    if(missing(type)){
+      type = "out-in"
+      warning('Warning in type: type is undefined; the function returns "out-in" assortativity')
+    }
+    if(type == "out-in"){
+      x <- out_str[vert_from]
+      y <- in_str[vert_to]
+      return(cor(x,y))
+    }else if(type == "in-in"){
+      x <- in_str[vert_from]
+      y <- in_str[vert_to]
+      return(cor(x,y))
+    }else if(type == "out-out"){
+      x <- out_str[vert_from]
+      y <- out_str[vert_to]
+      return(cor(x,y))
+    }else if(type == "in-out"){
+      x <- out_str[vert_from]
+      y <- in_str[vert_to]
+      return(cor(x,y))
+    }else{
+      stop('Error in type: choose a correct type')
+    } 
+  }
+}
