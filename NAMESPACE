@@ -2,5 +2,7 @@
 
 export(closeness_c)
 export(degree_c)
+export(dw_assort)
 importFrom(igraph,distances)
 importFrom(igraph,graph_from_adjacency_matrix)
+importFrom(stats,cor)
