@@ -1,9 +1,12 @@
+#' @importFrom stats cor
+NULL
+
 #' Directed assortativity coefficient
 #' 
 #' Compute the assortativity coefficient of a weighted and directed network.
 #'
 #' @usage
-#' dw_assort(adj, type = "out-in")
+#' dw_assort(adj, type = c("out-in", "in-in", "out-out", "in-out"))
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
 #' @param type which type of assortativity coefficient to compute: "out-in" (default), 
@@ -36,40 +39,28 @@
 #' 
 #' @export
 
-dw_assort <- function(adj, type = ""){
-  if (dim(adj)[1]!=dim(adj)[2]){
-    stop("The adjacency matrix must be a square matrix!")
-  }
-  else{
-    ## determine the location of edges in the network
-    in_str <- colSums(adj)
-    out_str <- rowSums(adj)
-    vert_from <- unlist(apply(adj, 2, function(x){which(x > 0)}))
-    number_to <- apply(adj, 2, function(x){length(which(x > 0) == TRUE)})
-    temp_to <- cbind(seq(1:dim(adj)[1]),number_to)
-    vert_to <- rep(temp_to[,1],temp_to[,2])
-    if(missing(type)){
-      type = "out-in"
-      warning('Warning in type: type is undefined; the function returns "out-in" assortativity')
-    }
-    if(type == "out-in"){
+dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
+  stopifnot(dim(adj)[1] == dim(adj)[2])
+  ## determine the location of edges in the network
+  in_str <- colSums(adj)
+  out_str <- rowSums(adj)
+  vert_from <- unlist(apply(adj, 2, function(x){which(x > 0)}))
+  number_to <- apply(adj, 2, function(x){length(which(x > 0) == TRUE)})
+  temp_to <- cbind(seq(1:dim(adj)[1]),number_to)
+  vert_to <- rep(temp_to[,1],temp_to[,2])
+  type  <- match.arg(type)
+  if (type == "out-in") {
       x <- out_str[vert_from]
       y <- in_str[vert_to]
-      return(cor(x,y))
-    }else if(type == "in-in"){
+  } else if (type == "in-in") {
       x <- in_str[vert_from]
       y <- in_str[vert_to]
-      return(cor(x,y))
-    }else if(type == "out-out"){
+  } else if (type == "out-out") {
       x <- out_str[vert_from]
       y <- out_str[vert_to]
-      return(cor(x,y))
-    }else if(type == "in-out"){
+  } else if(type == "in-out") {
       x <- out_str[vert_from]
       y <- in_str[vert_to]
-      return(cor(x,y))
-    }else{
-      stop('Error in type: choose a correct type')
-    } 
-  }
+  } 
+  return(stats::cor(x,y))
 }
