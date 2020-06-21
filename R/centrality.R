@@ -1,4 +1,4 @@
-#' @importFrom \code{igraph}
+#' @importFrom igraph distances graph_from_adjacency_matrix
 NULL
 
 #' Degree-based centrality
