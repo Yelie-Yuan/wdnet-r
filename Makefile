@@ -29,7 +29,7 @@ install: $(tar)
 
 $(tar): $(objects)
 	@rm -rf src/RcppExports.cpp R/RcppExports.R
-	@Rscript -e "devtools::document();"
+	Rscript -e "devtools::document();"
 	@$(MAKE) updateTimestamp
 	R CMD build .
 
@@ -45,13 +45,13 @@ check-as-cran: $(tar)
 
 .PHONY: pkgdown
 pkgdown:
-	@Rscript -e "library(methods); pkgdown::build_site();"
+	Rscript -e "library(methods); pkgdown::build_site();"
 
 
 ## update copyright year in HEADER, R script and date in DESCRIPTION
 .PHONY: updateTimestamp
 updateTimestamp:
-	@bash misc/update_timestamp.sh
+	bash misc/update_timestamp.sh
 
 ## make tags
 .PHONY: TAGS
@@ -62,4 +62,5 @@ TAGS:
 ## do some cleaning
 .PHONY: clean
 clean:
-	@$(RM) -rf *~ */*~ *.Rhistroy src/{*.o,*.so} *.tar.gz *.Rcheck/ .\#*
+	$(RM) -rf *~ */*~ *.Rhistroy src/{*.o,*.so} *.tar.gz *.Rcheck/ .\#* \
+	NAMESPACE
