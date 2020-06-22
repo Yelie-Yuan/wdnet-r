@@ -34,8 +34,8 @@ NULL
 #' edge_ER <- rbinom(400,1,0.3)
 #' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 #' adj_ER <- matrix(weight_ER,20,20)
-#' myassort <- dw_assort(adj_ER, type = "out-in")
-#' system.time(myassort)
+#' system.time(myassort <- dw_assort(adj_ER, type = "out-in"))
+#' myassort
 #' 
 #' @export
 
@@ -50,19 +50,9 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
   vert_to <- rep(temp_to[,1],temp_to[,2])
   weight <- adj[which(adj > 0)]
   type  <- match.arg(type)
-  if (type == "out-in") {
-      x <- out_str[vert_from]
-      y <- in_str[vert_to]
-  } else if (type == "in-in") {
-      x <- in_str[vert_from]
-      y <- in_str[vert_to]
-  } else if (type == "out-out") {
-      x <- out_str[vert_from]
-      y <- out_str[vert_to]
-  } else if(type == "in-out") {
-      x <- in_str[vert_from]
-      y <- out_str[vert_to]
-  } 
+  .type <- unlist(strsplit(type, "-"))
+  x <- switch(.type[1], "out" = out_str, "in" = in_str)[vert_from]
+  y <- switch(.type[2], "out" = out_str, "in" = in_str)[vert_to]
   weighted.cor <- function(x, y, w) {
     mean_x <- stats::weighted.mean(x, w)
     mean_y <- stats::weighted.mean(y, w)
