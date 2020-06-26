@@ -10,8 +10,7 @@ NULL
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
 #' @param type which type of assortativity coefficient to compute: "out-in" (default), 
-#' "in-in", "out-out" or "in-out"? For undirected networks, consider function
-#' \code{uw_assort}
+#' "in-in", "out-out" or "in-out"?
 #'
 #' @return a scalar of assortativity coefficient
 #'
