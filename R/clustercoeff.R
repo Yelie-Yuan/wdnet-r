@@ -94,5 +94,33 @@ dw_clustcoeff <- function(adj, method = c("Clemente","Fagiolo"),
       global_cc <- mean(local_cc)
     }
   }
+  if (method == "Fagiolo"){
+    adjhat <- (adj/max(adj))^(1/3)
+    if (mode == "total"){
+      local_cc <- diag(matrixcalc::matrix.power(adjhat + t(adjhat), 3))/
+        2/(d_tot*(d_tot - 1) - 2*d_bil)
+      global_cc <- mean(local_cc)
+    }
+    if (mode == "in"){
+      local_cc <- diag(t(adjhat) %*% matrixcalc::matrix.power(adjhat, 2))/
+        (d_in*(d_in - 1))
+      global_cc <- mean(local_cc)
+    }
+    if (mode == "out"){
+      local_cc <- diag(matrixcalc::matrix.power(adjhat, 2) %*% t(adjhat))/
+        (d_out*(d_out - 1))
+      global_cc <- mean(local_cc)
+    }
+    if (mode == "middle"){
+      local_cc <- diag(adjhat %*% t(adjhat) %*% adjhat)/
+        (d_in*d_out - d_bil)
+      global_cc <- mean(local_cc)
+    }
+    if (mode == "cycle"){
+      local_cc <- diag(matrixcalc::matrix.power(adjhat, 3))/
+        (d_in*d_out - d_bil)
+      global_cc <- mean(local_cc)
+    }
+  }
   return(list(localcc = local_cc, globalcc = global_cc))
 }
