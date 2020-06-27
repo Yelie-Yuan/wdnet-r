@@ -10,8 +10,7 @@ dw_assort(adj, type = c("out-in", "in-in", "out-out", "in-out"))
 \item{adj}{is an adjacency matrix of an weighted and directed network.}
 
 \item{type}{which type of assortativity coefficient to compute: "out-in" (default), 
-"in-in", "out-out" or "in-out"? For undirected networks, consider function
-\code{uw_assort}}
+"in-in", "out-out" or "in-out"?}
 }
 \value{
 a scalar of assortativity coefficient
@@ -29,8 +28,8 @@ returns the assortativity coefficient proposed in Foster et al. (2010).
 edge_ER <- rbinom(400,1,0.3)
 weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 adj_ER <- matrix(weight_ER,20,20)
-myassort <- dw_assort(adj_ER, type = "out-in")
-system.time(myassort)
+system.time(myassort <- dw_assort(adj_ER, type = "out-in"))
+myassort
 
 }
 \references{

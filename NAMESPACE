@@ -3,6 +3,8 @@
 export(closeness_c)
 export(degree_c)
 export(dw_assort)
+export(dw_clustcoeff)
 importFrom(igraph,distances)
 importFrom(igraph,graph_from_adjacency_matrix)
+importFrom(matrixcalc,matrix.power)
 importFrom(stats,weighted.mean)

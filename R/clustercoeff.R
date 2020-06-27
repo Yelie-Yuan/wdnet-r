@@ -49,7 +49,7 @@ dw_clustcoeff <- function(adj, method = c("Clemente","Fagiolo"),
                           mode = c("total","in","out","middle","cycle")){
   stopifnot(dim(adj)[1] == dim(adj)[2])
   ## Force to remove self-loops.
-  if (all(diag(adj_ER) == 0) == FALSE){
+  if (all(diag(adj) == 0) == FALSE){
     n <- dim(adj)[1]
     adj <- adj - diag(diag(adj),n)
   }
