@@ -70,28 +70,28 @@ dw_clustcoeff <- function(adj, method = c("Clemente","Fagiolo"),
     if (mode == "total"){
       local_cc <- diag((adj + t(adj)) %*% matrixcalc::matrix.power((uw_adj + t(uw_adj)), 2))/
         2/(s_tot*(d_tot - 1) - 2*s_bil)
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "in"){
       local_cc <- diag(t(adj) %*% (uw_adj + t(uw_adj)) %*% uw_adj)/
         2/(s_in*(d_in - 1))
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "out"){
       local_cc <- diag(adj %*% (uw_adj + t(uw_adj)) %*% t(uw_adj))/
         2/(s_out*(d_out - 1))
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "middle"){
       local_cc <- diag(t(adj) %*% uw_adj %*% t(uw_adj) + adj %*% t(uw_adj) %*% uw_adj)/
         2/((s_in*d_out + s_out*d_in)/2 - s_bil)
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "cycle"){
       local_cc <- diag(adj %*% matrixcalc::matrix.power(uw_adj, 2) 
                        + t(adj) %*% matrixcalc::matrix.power(t(uw_adj), 2))/
         2/((s_in*d_out + s_out*d_in)/2 - s_bil)
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
   }
   if (method == "Fagiolo"){
@@ -99,27 +99,27 @@ dw_clustcoeff <- function(adj, method = c("Clemente","Fagiolo"),
     if (mode == "total"){
       local_cc <- diag(matrixcalc::matrix.power(adjhat + t(adjhat), 3))/
         2/(d_tot*(d_tot - 1) - 2*d_bil)
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "in"){
       local_cc <- diag(t(adjhat) %*% matrixcalc::matrix.power(adjhat, 2))/
         (d_in*(d_in - 1))
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "out"){
       local_cc <- diag(matrixcalc::matrix.power(adjhat, 2) %*% t(adjhat))/
         (d_out*(d_out - 1))
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "middle"){
       local_cc <- diag(adjhat %*% t(adjhat) %*% adjhat)/
         (d_in*d_out - d_bil)
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
     if (mode == "cycle"){
       local_cc <- diag(matrixcalc::matrix.power(adjhat, 3))/
         (d_in*d_out - d_bil)
-      global_cc <- mean(local_cc)
+      global_cc <- mean(na.omit(local_cc))
     }
   }
   return(list(localcc = local_cc, globalcc = global_cc))
