@@ -1,4 +1,5 @@
 #' @importFrom matrixcalc matrix.power
+#' @importFrom stats na.omit
 NULL
 
 #' Directed clustering coefficient
@@ -70,7 +71,7 @@ dw_clustcoeff <- function(adj, method = c("Clemente","Fagiolo"),
     if (mode == "total"){
       local_cc <- diag((adj + t(adj)) %*% matrixcalc::matrix.power((uw_adj + t(uw_adj)), 2))/
         2/(s_tot*(d_tot - 1) - 2*s_bil)
-      global_cc <- mean(na.omit(local_cc))
+      global_cc <- mean(stats::na.omit(local_cc))
     }
     if (mode == "in"){
       local_cc <- diag(t(adj) %*% (uw_adj + t(uw_adj)) %*% uw_adj)/
