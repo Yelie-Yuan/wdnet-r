@@ -16,7 +16,7 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom stats weighted.mean
+#' @importFrom stats weighted.mean aggregate
 NULL
 
 #' Directed assortativity coefficient
@@ -109,12 +109,11 @@ edge_assort <- function(netmat, directed = TRUE, weighted = TRUE) {
   outs <- ins <- rep(0, numnode)
   dataf <- data.frame(netmat)
   colnames(dataf) <- c('x', 'y', 'w')
-  touts <- aggregate(w ~ x, data = dataf, FUN = 'sum')
-  tins <- aggregate(w ~ y, data = dataf, FUN = 'sum')
+  touts <- stats::aggregate(w ~ x, data = dataf, FUN = 'sum')
+  tins <- stats::aggregate(w ~ y, data = dataf, FUN = 'sum')
   outs[touts[, 1]] <- touts[, 2]
   ins[tins[, 1]] <- tins[, 2]
   w <- netmat[, 3]
-  require(wdm)
   if (! directed) return(wdm(x = outs[netmat[, 1]], y = outs[netmat[, 2]], weights = w, method = 'pearson'))
   result <- list('out-out' = wdm(x = outs[netmat[, 1]], y = outs[netmat[, 2]],
                                  weights = w, method = 'pearson'), 

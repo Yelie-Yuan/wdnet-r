@@ -34,10 +34,11 @@
 #' @param mpar Additional parameters passed on to mdist.
 #' @param wdist Dsitribution function for edge weights.
 #' @param wpar Additional parameters passed on to wdist.
-#' @param ...
+#' @param ... Additional arguments
 #' 
 #' @return List of parameters.
 #' @export
+#' @importFrom stats runif
 
 panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5,
                            delta_out = 0.1, delta_in = 0.1, 
@@ -59,7 +60,7 @@ panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5,
 #' @param nsteps Number of steps when generate a network.
 #' @param directed Logical. Whether to generate a directed graph.
 #' @param control A list of parameters to be used when generate network.
-#' @param ...
+#' @param ... Additional arguments
 #'
 #' @return A three column matrix represents the generated network with given
 #'   parameters. The first two columns represent the source and target node,
@@ -95,7 +96,7 @@ rpanet <- function(nsteps, directed = TRUE,
       w  <- do.call(control$wdist, c(m, control$wpar))
       v1 <- v2 <- rep(NA, m)
       for (j in 1:m) {
-        u <- runif(1, min = 0, max = 1)
+        u <- stats::runif(1, min = 0, max = 1)
         if (u < control$alpha) {
           v1[j] <- numnode + 1
           v2[j] <- sample(tnumnode, 1, prob = ins + control$delta_in)
