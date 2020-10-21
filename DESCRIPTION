@@ -1,10 +1,12 @@
 Package: wdnet
 Title: Weighted Directed Network
-Version: 0.0-2
+Version: 0.0-3
 Date: 2020-10-21
 Authors@R: c(
     person("Jun", "Yan", email = "jun.yan@uconn.edu",
            role = c("aut", "cre")),
+    person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
+           role = c("aut")),
     person("Panpan", "Zhang", email = "panpan.zhang@pennmedicine.upenn.edu",
            role = "aut"))
 Description: Assortativitity and centrality measures for weighted directed
