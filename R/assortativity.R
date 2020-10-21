@@ -62,3 +62,49 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
   }
   return(weighted.cor(x, y, weight))
 }
+
+#' @importFrom wdm wdm
+NULL
+
+#' Return four directed, weighted assortativity coefficient with a given
+#' network.
+#'
+#' @param netmat A three column matrix to use for assortativity calculation.
+#' @param directed Logical. Whether the edges will be considered as directed. If
+#'   FALSE, the input network will be considered as undirected.
+#' @param weighted Logical. Whether the edges will be considered as weighted. If
+#'   FALSE, values of the third column will be considered as 1.
+#'
+#' @return Assortativity coefficient for undirected network, or four directed
+#'   assortativity coefficients for directed network.
+#' @export
+#'
+#' @examples
+#' net <- rpanet(10^3)
+#' result <- edge_assort(net, directed = TRUE)
+#' net <- rpanet(10^3, directed = FALSE)
+#' result <- edge_assort(net, directed = FALSE)
+edge_assort <- function(netmat, directed = TRUE, weighted = TRUE) {
+  if (! directed) netmat <- rbind(netmat, netmat[, c(2, 1, 3)])
+  if (! weighted) netmat[, 3] <- 1
+  numnode <- max(netmat[, c(1, 2)])
+  outs <- ins <- rep(0, numnode)
+  dataf <- data.frame(netmat)
+  colnames(dataf) <- c('x', 'y', 'w')
+  touts <- aggregate(w ~ x, data = dataf, FUN = 'sum')
+  tins <- aggregate(w ~ y, data = dataf, FUN = 'sum')
+  outs[touts[, 1]] <- touts[, 2]
+  ins[tins[, 1]] <- tins[, 2]
+  w <- netmat[, 3]
+  require(wdm)
+  if (! directed) return(wdm(x = outs[netmat[, 1]], y = outs[netmat[, 2]], weights = w, method = 'pearson'))
+  result <- list('out-out' = wdm(x = outs[netmat[, 1]], y = outs[netmat[, 2]],
+                                 weights = w, method = 'pearson'), 
+                 'out-in' = wdm(x = outs[netmat[, 1]], y = ins[netmat[, 2]], 
+                                weights = w, method = 'pearson'), 
+                 'in-out' = wdm(x = ins[netmat[, 1]], y = outs[netmat[, 2]],
+                                weights = w, method = 'pearson'),
+                 'in-in' = wdm(x = ins[netmat[, 1]], y = ins[netmat[, 2]],
+                               weights = w, method = 'pearson'))
+  return(result)
+}
