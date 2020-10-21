@@ -1,3 +1,21 @@
+##
+## wdnet: Weighted directed network
+## Copyright (C) 2020  Panpan Zhang and Jun Yan
+## Jun Yan <jun.yan@uconn.edu>
+##
+## This file is part of the R package wdnet.
+##
+## The R package wdnet is free software: You can redistribute it and/or
+## modify it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or any later
+## version (at your option). See the GNU General Public License at
+## <https://www.gnu.org/licenses/> for details.
+##
+## The R package wdnet is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+##
+
 #' Parameter settings for function rpanet.
 #'
 #' @param alpha The probability of adding an edge from the new node to an
@@ -19,6 +37,7 @@
 #' @param ...
 #' 
 #' @return List of parameters.
+#' @export
 
 panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5,
                            delta_out = 0.1, delta_in = 0.1, 
@@ -51,10 +70,10 @@ panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5,
 #'
 #' @examples
 #' net <- rpanet(10^3, directed = FALSE,
-#'        control = panet.control(alpha = 0.4, beta = 0, gamma = 0.2))
+#'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.2))
 #' net <- rpanet(10^3, control = panet.control(mdist = stats::rbinom,
-#'        mpar = list(size = 5, prob = 0.2),
-#'        wdist = stats::runif, wpar = list(min = 1, max = 10)))
+#'       mpar = list(size = 5, prob = 0.2),
+#'       wdist = stats::runif, wpar = list(min = 1, max = 10)))
 
 rpanet <- function(nsteps, directed = TRUE, 
                    control = panet.control(), # input
