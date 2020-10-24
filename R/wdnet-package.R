@@ -38,7 +38,7 @@
 ##'
 ##' @docType package
 ##' @name wdnet
-##' @useDynLib wdnet
+##' @useDynLib wdnet, .registration = TRUE
 ##' @importFrom Rcpp sourceCpp
 ##' @importFrom Rcpp evalCpp
 
