@@ -28,14 +28,3 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-
-static const R_CallMethodDef CallEntries[] = {
-    {"_wdnet_hello_world", (DL_FUNC) &_wdnet_hello_world, 0},
-    {"_wdnet_fx", (DL_FUNC) &_wdnet_fx, 3},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_wdnet(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
-}

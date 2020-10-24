@@ -36,9 +36,10 @@
 ##' package that uses the C++ interface is available at
 ##' <https://github.com/wenjie2wang/example-pkg-Rcpp-splines2>.
 ##'
-##' @importFrom Rcpp sourceCpp
-##' @useDynLib wdnet
-##'
 ##' @docType package
 ##' @name wdnet
+##' @useDynLib wdnet
+##' @importFrom Rcpp sourceCpp
+##' @importFrom Rcpp evalCpp
+
 NULL
