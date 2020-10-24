@@ -20,10 +20,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 hello_world <- function() {
-    invisible(.Call('_wdnet_hello_world', PACKAGE = 'wdnet'))
+    invisible(.Call(`_wdnet_hello_world`))
 }
 
 fx <- function(x, Y, z) {
-    .Call('_wdnet_fx', PACKAGE = 'wdnet', x, Y, z)
+    .Call(`_wdnet_fx`, x, Y, z)
 }
 
