@@ -25,12 +25,15 @@ NULL
 #' Compute the clustering coefficient of a weighted and directed network.
 #'
 #' @usage
-#' dw_clustcoeff(adj, method = c("Clemente","Fagiolo"), mode = c("total","in","out","middle","cycle"))
+#' dw_clustcoeff(adj, method = c("Clemente","Fagiolo"),
+#'               mode = c("total","in","out","middle","cycle"))
+#' 
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
-#' @param method which method used to compute clustering coefficients: Clemente and Grassi (2018) 
-#' or Fagiolo (2007)?
-#' @param mode what kind of triplets considered for computation: \code{total}, \code{in}, \code{out}, 
+#' @param method which method used to compute clustering coefficients:
+#' Clemente and Grassi (2018) or Fagiolo (2007)
+#' @param mode what kind of triplets considered for computation:
+#' \code{total}, \code{in}, \code{out}, 
 #' middleman (\code{middle}), or \code{cycle}?
 #'
 #' @return a list of local clustering coefficients (in terms of a vector) and global clustering

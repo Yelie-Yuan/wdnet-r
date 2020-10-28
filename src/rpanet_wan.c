@@ -77,7 +77,7 @@ void netSim(double* alpha_ptr,
             current_scenario = 1;
         }
         
-        else if (u > alpha & u <= alpha+beta)
+        else if ((u > alpha) & (u <= alpha+beta))
         {
             // Scenario beta
             // v = (double) ( rand() % 100000 / (double) 100000 )* (current_n_edges + current_n_nodes*delta_in);
@@ -106,7 +106,7 @@ void netSim(double* alpha_ptr,
             current_scenario = 2;
         }
         
-        else if (u > alpha+beta & u <= alpha+beta+gamma)
+        else if ((u > alpha+beta) & (u <= alpha+beta+gamma))
         {
             // Scenario gamma
             // w = (double) ( rand() % 100000 / (double) 100000 )* (current_n_edges + current_n_nodes*delta_out);
@@ -126,7 +126,7 @@ void netSim(double* alpha_ptr,
             current_n_nodes++;
             current_scenario = 3;
         }
-        else if (u > alpha+beta+gamma & u <= alpha+beta+gamma+xi)
+        else if ((u > alpha+beta+gamma) & (u <= alpha+beta+gamma+xi))
         {
             // Scenario xi
             this_edge_start = (int) current_n_nodes;

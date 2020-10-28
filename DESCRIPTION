@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted Directed Network
 Version: 0.0-3
-Date: 2020-10-24
+Date: 2020-10-28
 Authors@R: c(
     person("Jun", "Yan", email = "jun.yan@uconn.edu",
            role = c("aut", "cre")),
@@ -11,11 +11,11 @@ Authors@R: c(
            role = "aut"))
 Description: Assortativitity and centrality measures for weighted directed
     network, most of which are not covered by other R packages.
-Depends: R (>= 4.0.1)
+Depends: R (>= 4.0.3)
 License: GPL (>= 3.0)
 Encoding: UTF-8
 Imports: stats, igraph, matrixcalc, wdm, Rcpp
 LinkingTo: Rcpp, RcppArmadillo
-BugReports: https://gitlab.com/wdnetwork/issues
+BugReports: https://gitlab.com/wdnetwork/wdnet/issues
 URL: https://githlab.com/wdnetwork/wdnet
 RoxygenNote: 7.1.1
