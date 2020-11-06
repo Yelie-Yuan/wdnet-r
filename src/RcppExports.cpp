@@ -28,3 +28,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rpanet_cpp
+Rcpp::List rpanet_cpp(int nsteps, arma::vec control, const bool directed, arma::vec m, arma::vec w, arma::vec outstrength, arma::vec instrength, int nnode, int tnode);
+RcppExport SEXP _wdnet_rpanet_cpp(SEXP nstepsSEXP, SEXP controlSEXP, SEXP directedSEXP, SEXP mSEXP, SEXP wSEXP, SEXP outstrengthSEXP, SEXP instrengthSEXP, SEXP nnodeSEXP, SEXP tnodeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type nsteps(nstepsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< const bool >::type directed(directedSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type m(mSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type outstrength(outstrengthSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type instrength(instrengthSEXP);
+    Rcpp::traits::input_parameter< int >::type nnode(nnodeSEXP);
+    Rcpp::traits::input_parameter< int >::type tnode(tnodeSEXP);
+    rcpp_result_gen = Rcpp::wrap(rpanet_cpp(nsteps, control, directed, m, w, outstrength, instrength, nnode, tnode));
+    return rcpp_result_gen;
+END_RCPP
+}

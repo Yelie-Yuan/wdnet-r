@@ -16,6 +16,10 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
+#' @importFrom stats runif rpois
+#' @importFrom igraph graph_from_edgelist degree
+NULL
+
 #' Parameter settings for function rpanet.
 #'
 #' @param alpha The probability of adding an edge from the new node to an
@@ -24,6 +28,7 @@
 #' @param gamma The probability of adding an edge from an existing node to a
 #'   new node. 1 - alpha - beta - gamma then represents the probability of
 #'   adding an edge between two newly added node.
+#' @param xi The probability of adding an edge between two new nodes.
 #' @param delta_out is a tuning parameter related to growth rate. Probability of
 #'   choosing an existing node as the source node of the newly added edge is
 #'   proportional to nodes outstrength + outdelta.
@@ -38,9 +43,9 @@
 #' 
 #' @return List of parameters.
 #' @export
-#' @importFrom stats runif
 
-panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5,
+
+panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5, xi = 0, 
                            delta_out = 0.1, delta_in = 0.1, 
                            mdist = stats::rpois, 
                            mpar = list(lambda = 1), 
@@ -48,15 +53,19 @@ panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5,
                            wpar = list(min = 1, max = 1), ...) {
   ## set default value here
   ## how to set m as poisson(lambda) + 1 and m > 0.
-  list(alpha = alpha, beta = beta, gamma = gamma, 
+  list(alpha = alpha, beta = beta, gamma = gamma, xi = xi,
        delta_out = delta_out, delta_in = delta_in, 
        mdist = mdist, mpar = mpar, 
        wdist = wdist, wpar = wpar, 
        batsize = round(mean(do.call(mdist, c(100, mpar)))), ...)
 }
 
+
+
 #' Generate a growing network with preferential attachment.
 #'
+#' @param edgelist A two column matrix represents the starting graph.
+#' @param edgeweight A vector represents the weight of each edges in edgelist.
 #' @param nsteps Number of steps when generate a network.
 #' @param directed Logical. Whether to generate a directed graph.
 #' @param control A list of parameters to be used when generate network.
@@ -70,75 +79,45 @@ panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5,
 #' @export
 #'
 #' @examples
-#' net <- rpanet(10^3, directed = FALSE,
-#'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.2))
-#' net <- rpanet(10^3, control = panet.control(mdist = stats::rbinom,
+#' net <- rpanet(nsteps = 100, directed = FALSE,
+#'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.6))
+#' net <- rpanet(edgelist = matrix(c(1:8), ncol = 2), nsteps = 100, 
+#'       control = panet.control(mdist = stats::rbinom,
 #'       mpar = list(size = 5, prob = 0.2),
 #'       wdist = stats::runif, wpar = list(min = 1, max = 10)))
 
-rpanet <- function(nsteps, directed = TRUE, 
-                   control = panet.control(), # input
-                   ...) {
-  if (control$alpha + control$beta + control$gamma > 1) {
-    stop("Alpha + beta + bamma must be less or equal to 1.")
+
+rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
+                   edgeweight = NA, directed = TRUE, 
+                   control = panet.control(), ...) {
+  stopifnot(nsteps > 0)
+  if (control$alpha + control$beta + control$gamma + control$xi> 1) {
+    stop("Alpha + beta + bamma + xi must be less or equal to 1.")
   }
-  ## set output container
-  outmat <- matrix(NA, nrow = nsteps * control$batsize, ncol = 3) ## to be changed
-  outmat <- matrix(NA, nrow = 2, ncol = 3)
-  outmat[1, ] <- 1
-  numrow <- 1
-  numnode <- tnumnode <- 1
-  outs <- ins <- 1
-  if (! directed) outs <- ins <- outs + ins
-  for (i in 1:nsteps) {
-    m  <- do.call(control$mdist, c(1, control$mpar))
-    if (m > 0) {
-      w  <- do.call(control$wdist, c(m, control$wpar))
-      v1 <- v2 <- rep(NA, m)
-      for (j in 1:m) {
-        u <- stats::runif(1, min = 0, max = 1)
-        if (u < control$alpha) {
-          v1[j] <- numnode + 1
-          v2[j] <- sample(tnumnode, 1, prob = ins + control$delta_in)
-          numnode <- numnode + 1
-        }
-        else if (u < control$alpha + control$beta) {
-          v1[j] <- sample(tnumnode, 1, prob = outs + control$delta_out)
-          v2[j] <- sample(tnumnode, 1, prob = ins + control$delta_in)
-        }
-        else if (u < control$alpha + control$beta + control$gamma) {
-          v1[j] <- sample(tnumnode, 1, prob = outs + control$delta_out)
-          v2[j] <- numnode + 1
-          numnode <- numnode + 1
-        }
-        else {
-          v1[j] <- numnode + 1
-          v2[j] <- numnode + 2
-          numnode <- numnode + 2
-        }
-        numrow <- numrow + 1
-      }
-      outs[is.na(outs[1:numnode])] <- 0
-      ins[is.na(ins[1:numnode])] <- 0
-      for (j in 1:m) {
-        outs[v1[j]] <- outs[v1[j]] + w[j]
-        ins[v2[j]] <- ins[v2[j]] + w[j]
-      }
-      if (! directed) {
-        for (j in 1:m) {
-          outs[v2[j]] <- outs[v2[j]] + w[j]
-          ins[v1[j]] <- ins[v1[j]] + w[j]
-        }
-      }
-      ## check if outmat is full
-      ## increase size if full
-      if (numrow > dim(outmat)[1]) {
-        outmat <- rbind(outmat, matrix(NA, nrow = nsteps * control$batsize, ncol = 3))
-      }
-      ## fill
-      outmat[(numrow - m + 1):numrow, ] <- cbind(v1, v2, w)
-      tnumnode <- numnode
-    }
-  }
-  outmat[1:numrow, ]
+  if (is.na(edgeweight[1])) edgeweight[1:dim(edgelist)[1]] <- 1
+  
+  if (! directed) stopifnot(control$delta_in == control$delta_out)
+  
+  nnode <- tnode <- max(c(edgelist))
+  m <- do.call(control$mdist, c(nsteps, control$mpar)) + 1
+  temp_m <- sum(m)
+  w <- do.call(control$wdist, c(temp_m, control$wpar))
+
+  g <- igraph::graph_from_edgelist(edgelist, directed = directed)
+  outstrength <- rep(0, 2 * temp_m + nnode) + control$delta_out
+  instrength <- rep(0, 2 *temp_m + nnode) + control$delta_in
+  outstrength[1:nnode] <- outstrength[1:nnode] + igraph::degree(g, mode = 'out')
+  instrength[1:nnode] <- instrength[1:nnode] + igraph::degree(g, mode = 'in')
+  
+  control_cpp <- c(control$alpha, control$beta, control$gamma)
+  ret <- rpanet_cpp(nsteps,
+                    control_cpp, directed, m, w,
+                    outstrength, instrength,
+                    nnode, tnode)
+  ret2 <- list()
+  ret2$edgelist <- rbind(edgelist, cbind(ret$startnode, ret$endnode))
+  ret2$edgeweight <- c(edgeweight, w)
+  ret2$outstrength <- ret$outstrength - control$delta_out
+  ret2$instrength <- ret$instrength - control$delta_in
+  return(ret2)
 }

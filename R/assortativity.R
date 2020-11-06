@@ -17,6 +17,7 @@
 ##
 
 #' @importFrom stats weighted.mean aggregate
+#' @importFrom wdm wdm
 NULL
 
 #' Directed assortativity coefficient
@@ -81,47 +82,50 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
   return(weighted.cor(x, y, weight))
 }
 
-#' @importFrom wdm wdm
-NULL
-
 #' Return four directed, weighted assortativity coefficient with a given
 #' network.
 #'
-#' @param netmat A three column matrix to use for assortativity calculation.
+#' @param edgelist A two column matrix represents edges.
 #' @param directed Logical. Whether the edges will be considered as directed. If
 #'   FALSE, the input network will be considered as undirected.
 #' @param weighted Logical. Whether the edges will be considered as weighted. If
 #'   FALSE, values of the third column will be considered as 1.
+#' @param edgeweight A vector represents the weight of edges in edgelist.
 #'
 #' @return Assortativity coefficient for undirected network, or four directed
 #'   assortativity coefficients for directed network.
 #' @export
 #'
 #' @examples
-#' net <- rpanet(10^3)
-#' result <- edge_assort(net, directed = TRUE)
-#' net <- rpanet(10^3, directed = FALSE)
-#' result <- edge_assort(net, directed = FALSE)
-edge_assort <- function(netmat, directed = TRUE, weighted = TRUE) {
-  if (! directed) netmat <- rbind(netmat, netmat[, c(2, 1, 3)])
-  if (! weighted) netmat[, 3] <- 1
-  numnode <- max(netmat[, c(1, 2)])
+#' net <- rpanet(nsteps = 10^3)
+#' result <- edge_assort(net$edgelist, directed = TRUE)
+#' net <- rpanet(nsteps = 10^3, directed = FALSE)
+#' result <- edge_assort(net$edgelist, net$edgeweight, directed = FALSE)
+edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE, weighted = TRUE) {
+  if (! directed) {
+    edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
+    edgeweight <- c(edgeweight, edgeweight)
+  }
+  if ((! weighted) | is.na(edgeweight[1])) {
+    edgeweight[1:dim(edgelist)[1]] <- 1
+  } 
+  numnode <- max(edgelist[, c(1, 2)])
   outs <- ins <- rep(0, numnode)
-  dataf <- data.frame(netmat)
+  dataf <- data.frame(edgelist, edgeweight)
   colnames(dataf) <- c('x', 'y', 'w')
   touts <- stats::aggregate(w ~ x, data = dataf, FUN = 'sum')
   tins <- stats::aggregate(w ~ y, data = dataf, FUN = 'sum')
   outs[touts[, 1]] <- touts[, 2]
   ins[tins[, 1]] <- tins[, 2]
-  w <- netmat[, 3]
-  if (! directed) return(wdm(x = outs[netmat[, 1]], y = outs[netmat[, 2]], weights = w, method = 'pearson'))
-  result <- list('out-out' = wdm(x = outs[netmat[, 1]], y = outs[netmat[, 2]],
-                                 weights = w, method = 'pearson'), 
-                 'out-in' = wdm(x = outs[netmat[, 1]], y = ins[netmat[, 2]], 
-                                weights = w, method = 'pearson'), 
-                 'in-out' = wdm(x = ins[netmat[, 1]], y = outs[netmat[, 2]],
-                                weights = w, method = 'pearson'),
-                 'in-in' = wdm(x = ins[netmat[, 1]], y = ins[netmat[, 2]],
-                               weights = w, method = 'pearson'))
+  if (! directed) return(wdm(x = outs[edgelist[, 1]], y = outs[edgelist[, 2]], 
+                             weights = edgeweight, method = 'pearson'))
+  result <- list('out-out' = wdm(x = outs[edgelist[, 1]], y = outs[edgelist[, 2]],
+                                 weights = edgeweight, method = 'pearson'), 
+                 'out-in' = wdm(x = outs[edgelist[, 1]], y = ins[edgelist[, 2]], 
+                                weights = edgeweight, method = 'pearson'), 
+                 'in-out' = wdm(x = ins[edgelist[, 1]], y = outs[edgelist[, 2]],
+                                weights = edgeweight, method = 'pearson'),
+                 'in-in' = wdm(x = ins[edgelist[, 1]], y = ins[edgelist[, 2]],
+                               weights = edgeweight, method = 'pearson'))
   return(result)
 }
