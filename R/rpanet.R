@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2020  Panpan Zhang and Jun Yan
+## Copyright (C) 2021  Panpan Zhang and Jun Yan
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -24,11 +24,11 @@ NULL
 #'
 #' @param alpha The probability of adding an edge from the new node to an
 #'   existing node.
-#' @param beta The probability of adding an edge between two existing nodes.
-#' @param gamma The probability of adding an edge from an existing node to a
-#'   new node. 1 - alpha - beta - gamma then represents the probability of
-#'   adding an edge between two newly added node.
+#' @param beta The probability of adding an edge between existing nodes.
+#' @param gamma The probability of adding an edge from an existing node to a new
+#'   node.
 #' @param xi The probability of adding an edge between two new nodes.
+#' @param rho The probability of introducing a new node with a self looped edge.
 #' @param delta_out is a tuning parameter related to growth rate. Probability of
 #'   choosing an existing node as the source node of the newly added edge is
 #'   proportional to nodes outstrength + outdelta.
@@ -40,12 +40,12 @@ NULL
 #' @param wdist Dsitribution function for edge weights.
 #' @param wpar Additional parameters passed on to wdist.
 #' @param ... Additional arguments
-#' 
+#'
 #' @return List of parameters.
 #' @export
 
 
-panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5, xi = 0, 
+panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5, xi = 0, rho = 0,
                            delta_out = 0.1, delta_in = 0.1, 
                            mdist = stats::rpois, 
                            mpar = list(lambda = 1), 
@@ -53,7 +53,7 @@ panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5, xi = 0,
                            wpar = list(min = 1, max = 1), ...) {
   ## set default value here
   ## how to set m as poisson(lambda) + 1 and m > 0.
-  list(alpha = alpha, beta = beta, gamma = gamma, xi = xi,
+  list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
        delta_out = delta_out, delta_in = delta_in, 
        mdist = mdist, mpar = mpar, 
        wdist = wdist, wpar = wpar, 
@@ -64,8 +64,10 @@ panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5, xi = 0,
 
 #' Generate a growing network with preferential attachment.
 #'
-#' @param edgelist A two column matrix represents the starting graph.
-#' @param edgeweight A vector represents the weight of each edges in edgelist.
+#' @param edgelist A two column matrix represents the seed graph.
+#' @param edgeweight A vector represents the weight of edges of the seed graph.
+#'   Its length equals the number of edges of the seed graph. If NA, all the
+#'   edges of the seed graph have weight 1.
 #' @param nsteps Number of steps when generate a network.
 #' @param directed Logical. Whether to generate a directed graph.
 #' @param control A list of parameters to be used when generate network.
@@ -81,7 +83,7 @@ panet.control  <- function(alpha = 0.5, beta = 0, gamma = 0.5, xi = 0,
 #' @examples
 #' net <- rpanet(nsteps = 100, directed = FALSE,
 #'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.6))
-#' net <- rpanet(edgelist = matrix(c(1:8), ncol = 2), nsteps = 100, 
+#' net <- rpanet(edgelist = matrix(c(1:8), ncol = 2), nsteps = 100,
 #'       control = panet.control(mdist = stats::rbinom,
 #'       mpar = list(size = 5, prob = 0.2),
 #'       wdist = stats::runif, wpar = list(min = 1, max = 10)))
@@ -91,11 +93,12 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                    edgeweight = NA, directed = TRUE, 
                    control = panet.control(), ...) {
   stopifnot(nsteps > 0)
-  if (control$alpha + control$beta + control$gamma + control$xi> 1) {
-    stop("Alpha + beta + bamma + xi must be less or equal to 1.")
+  if (control$alpha + control$beta + control$gamma + 
+      control$xi + control$rho > 1) {
+    stop("alpha + beta + bamma + xi + rho must be less or equal to 1.")
   }
-  if (is.na(edgeweight[1])) edgeweight[1:dim(edgelist)[1]] <- 1
-  
+  if (is.na(edgeweight[1])) edgeweight[1:nrow(edgelist)] <- 1
+  stopifnot(length(edgeweight) == nrow(edgelist))
   if (! directed) stopifnot(control$delta_in == control$delta_out)
   
   nnode <- tnode <- max(c(edgelist))
@@ -109,7 +112,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   outstrength[1:nnode] <- outstrength[1:nnode] + igraph::degree(g, mode = 'out')
   instrength[1:nnode] <- instrength[1:nnode] + igraph::degree(g, mode = 'in')
   
-  control_cpp <- c(control$alpha, control$beta, control$gamma)
+  control_cpp <- c(control$alpha, control$beta, control$gamma, control$xi)
   ret <- rpanet_cpp(nsteps,
                     control_cpp, directed, m, w,
                     outstrength, instrength,

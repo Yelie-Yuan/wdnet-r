@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2020  Panpan Zhang and Jun Yan
+## Copyright (C) 2021  Panpan Zhang and Jun Yan
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.

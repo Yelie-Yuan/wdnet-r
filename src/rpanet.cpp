@@ -12,7 +12,7 @@ Rcpp::List rpanet_cpp(int       nsteps,
 	                   arma::vec  instrength, 
 	                   int        nnode,
 	                   int        tnode) {
-  double alpha = control[0], beta   = control[1], gamma = control[2];
+  double alpha = control[0], beta = control[1], gamma = control[2], xi = control[3];
   double u;
   int v1, v2, count = 0;
   arma::vec nodes = arma::linspace<arma::vec>(1, outstrength.size(), outstrength.size());
@@ -39,10 +39,14 @@ Rcpp::List rpanet_cpp(int       nsteps,
       	v1 = Rcpp::RcppArmadillo::sample(subnode, 1L, true, suboutstrength)[0];
       	v2 = nnode + 1;
       	nnode++;
-      } else {
+      } else if (u < alpha + beta + gamma + xi) {
       	v1 = nnode + 1;
       	v2 = nnode + 2;
       	nnode = nnode + 2;
+      } else {
+        v1 = nnode + 1;
+        v2 = nnode + 1;
+        nnode = nnode + 1;
       }
       startnode[count] = v1;
       endnode[count] = v2;
