@@ -116,8 +116,8 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   stopifnot("Edge weight must be greater than 0." = w > 0)
   u <- runif(temp_m, min = 0, max = 1)
   g <- igraph::graph_from_edgelist(edgelist, directed = directed)
-  outstrength <- rep(0, 2 * temp_m + nnode) + control$delta_out
-  instrength <- rep(0, 2 *temp_m + nnode) + control$delta_in
+  outstrength <- rep(0, 2 * temp_m + nnode)
+  instrength <- rep(0, 2 *temp_m + nnode)
   outstrength[1:nnode] <- outstrength[1:nnode] + igraph::degree(g, mode = 'out')
   instrength[1:nnode] <- instrength[1:nnode] + igraph::degree(g, mode = 'in')
   s_outstrength <- sum(outstrength[1:nnode])
@@ -131,11 +131,11 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   ret2$edgelist <- rbind(edgelist, cbind(ret$startnode, ret$endnode))
   ret2$edgeweight <- c(edgeweight, w)
   if (directed) {
-    ret2$"out-strength" <- ret$outstrength - control$delta_out
-    ret2$"in-strength" <- ret$instrength - control$delta_in
+    ret2$"out-strength" <- ret$outstrength
+    ret2$"in-strength" <- ret$instrength
   }
   else {
-    ret2$strength <- ret$outstrength - control$delta_out
+    ret2$strength <- ret$outstrength
   }
   ret2$m <- m
   return(ret2)

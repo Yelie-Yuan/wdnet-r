@@ -1,11 +1,11 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
-int my_sample(int tnode, double s_strength, arma::vec strength) {
+int my_sample(int tnode, double s_strength, arma::vec strength, double delta) {
   int i;
   double j = 0, rT;
-  rT = unif_rand() * s_strength;
+  rT = unif_rand() * (s_strength + tnode * delta);
   for (i = 0; i < tnode; i++) {
-    j += strength[i];
+    j = j + strength[i] + delta;
     if (j >= rT)
       break;
   }
@@ -36,39 +36,30 @@ Rcpp::List rpanet_cpp(int       nsteps,
       u2 = u[count];
       if (u2 < alpha) {
         v1 = nnode + 1;
-        v2 = my_sample(tnode, s_instrength, instrength);
-        s_outstrength = s_outstrength + w[count] + delta_out;
-        s_instrength = s_instrength + w[count] + delta_in;
+        v2 = my_sample(tnode, s_instrength, instrength, delta_in);
         nnode++;
       } else if (u2 < alpha + beta) {
-        v1 = my_sample(tnode, s_outstrength, outstrength);
-        v2 = my_sample(tnode, s_instrength, instrength);
-        s_outstrength += w[count];
-        s_instrength += w[count];
+        v1 = my_sample(tnode, s_outstrength, outstrength, delta_out);
+        v2 = my_sample(tnode, s_instrength, instrength, delta_in);
       } else if (u2 < alpha + beta + gamma) {
-        v1 = my_sample(tnode, s_outstrength, outstrength);
+        v1 = my_sample(tnode, s_outstrength, outstrength, delta_out);
         v2 = nnode + 1;
-        s_outstrength = s_outstrength + w[count] + delta_out;
-        s_instrength = s_instrength + w[count] + delta_in;
         nnode++;
       } else if (u2 < alpha + beta + gamma + xi) {
         v1 = nnode + 1;
         v2 = nnode + 2;
-        s_outstrength = s_outstrength + w[count] + 2 * delta_out;
-        s_instrength = s_instrength + w[count] + 2 * delta_in;
-        nnode = nnode + 2;
+        nnode += 2;
       } else {
         v1 = nnode + 1;
         v2 = nnode + 1;
-        s_outstrength = s_outstrength + w[count] + delta_out;
-        s_instrength = s_instrength + w[count] + delta_in;
-        nnode = nnode + 1;
+        nnode++;
       }
-      
       startnode[count] = v1;
       endnode[count] = v2;
       outstrength[v1 - 1] += w[count];
       instrength[v2 - 1] += w[count];
+      s_outstrength += w[count];
+      s_instrength += w[count];
       if (! directed) {
         outstrength[v2 - 1] += w[count];
         instrength[v1 - 1] += w[count];
