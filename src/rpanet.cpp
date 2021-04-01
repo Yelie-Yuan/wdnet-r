@@ -12,6 +12,13 @@ int my_sample(int tnode, double s_strength, arma::vec strength, double delta) {
   return i + 1;
 }
 
+/*
++ Consider findInterval;
++ u could be done in cpp
++ use GetRNGState() and PutRNGState();
++ need better documentation for the arguments 
+*/
+
 // [[Rcpp::export]]
 Rcpp::List rpanet_cpp(int       nsteps,
                       arma::vec  control,
