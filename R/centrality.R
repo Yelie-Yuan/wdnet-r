@@ -17,15 +17,13 @@
 ##
 
 #' @importFrom igraph distances graph_from_adjacency_matrix
+#' @importFrom rARPACK eigs
 NULL
 
 #' Degree-based centrality
 #'
 #' Compute the degree centrality measures of the vertices in a weighted and directed
 #' network represented through its adjacency matrix.
-#'
-#' @usage
-#' degree_c(adj, alpha = 1, mode = "out")
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network
 #' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
@@ -98,10 +96,6 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' Compute the closeness centrality measures of the vertices in a weighted and directed 
 #' network represented through its adjacency matrix.
 #' 
-#' @usage
-#' closeness_c(adj, alpha = 1, mode = "out", method = "harmonic",
-#'             distance = FALSE)
-#'
 #' @param adj is an adjacency matrix of an weighted and directed network
 #' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
 #' alpha takes a value from 0 to 1 (default).
@@ -197,9 +191,6 @@ closeness_c <- function(adj, alpha = 1, mode = "out",
 #'
 #' Compute the weighted PageRank centrality measures of the vertices in a weighted and directed 
 #' network represented through its adjacency matrix.
-#' 
-#' @usage
-#' wpr <- function(adj, gamma = 0.85, theta = 1, prior.info = NULL)
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network
 #' @param gamma is the damping factor; it takes 0.85 (default) if not given.

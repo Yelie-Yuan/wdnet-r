@@ -4,8 +4,13 @@
 \alias{closeness_c}
 \title{Closeness centrality}
 \usage{
-closeness_c(adj, alpha = 1, mode = "out", method = "harmonic",
-            distance = FALSE)
+closeness_c(
+  adj,
+  alpha = 1,
+  mode = "out",
+  method = "harmonic",
+  distance = FALSE
+)
 }
 \arguments{
 \item{adj}{is an adjacency matrix of an weighted and directed network}

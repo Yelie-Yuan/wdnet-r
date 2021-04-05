@@ -2,7 +2,7 @@
 % Please edit documentation in R/assortativity.R
 \name{dw_assort}
 \alias{dw_assort}
-\title{Directed assortativity coefficient}
+\title{Compute the assortativity coefficient of a weighted and directed network.}
 \usage{
 dw_assort(adj, type = c("out-in", "in-in", "out-out", "in-out"))
 }

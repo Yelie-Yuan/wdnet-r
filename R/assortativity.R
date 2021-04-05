@@ -20,12 +20,9 @@
 #' @importFrom wdm wdm
 NULL
 
-#' Directed assortativity coefficient
-#' 
+## Directed assortativity coefficient
+ 
 #' Compute the assortativity coefficient of a weighted and directed network.
-#'
-#' @usage
-#' dw_assort(adj, type = c("out-in", "in-in", "out-out", "in-out"))
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
 #' @param type which type of assortativity coefficient to compute: "out-in" (default), 
