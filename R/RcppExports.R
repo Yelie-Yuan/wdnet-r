@@ -9,7 +9,7 @@ fx <- function(x, Y, z) {
     .Call(`_wdnet_fx`, x, Y, z)
 }
 
-rpanet_cpp <- function(nsteps, control, directed, m, w, outstrength, instrength, nnode, tnode) {
-    .Call(`_wdnet_rpanet_cpp`, nsteps, control, directed, m, w, outstrength, instrength, nnode, tnode)
+rpanet_cpp <- function(nsteps, control, directed, m, w, u, outstrength, instrength, s_outstrength, s_instrength, nnode, tnode) {
+    .Call(`_wdnet_rpanet_cpp`, nsteps, control, directed, m, w, u, outstrength, instrength, s_outstrength, s_instrength, nnode, tnode)
 }
 
