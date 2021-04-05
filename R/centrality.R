@@ -193,5 +193,102 @@ closeness_c <- function(adj, alpha = 1, mode = "out",
   }
 }
 
+#' Weighted PageRank centrality
+#'
+#' Compute the weighted PageRank centrality measures of the vertices in a weighted and directed 
+#' network represented through its adjacency matrix.
+#' 
+#' @usage
+#' wpr <- function(adj, gamma = 0.85, theta = 1, prior.info = NULL)
+#'
+#' @param adj is an adjacency matrix of an weighted and directed network
+#' @param gamma is the damping factor; it takes 0.85 (default) if not given.
+#' @param theta is a tuning parameter leveraging node degree and strength; theta = 0 does not consider
+#' edge weight; theta = 1 (default) fully considers edge weight.
+#' @param prior.info vertex-specific prior information for restarting when arriving at a sink. When
+#' it is not given (\code{NULL}), a random restart is implemented.
+#' 
+#' @return a list of vertices with corresponding weighted PageRank scores
+#'
+#' @references
+#' \itemize{
+#' \item Zhang, P., Wang, T. and Yan, J. (2021+) PageRank centrality and algorithms for 
+#' weighted, directed networks with applications to World Input-Output Tables
+#' }
+#'
+#' @note 
+#' Function \code{wpr} is an extension of function \code{page_rank} 
+#' in package \code{igraph}.
+#'
+#' @examples
+#' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
+#' ## and parameter p = 0.3
+#' edge_ER <- rbinom(400,1,0.3)
+#' weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
+#' adj_ER <- matrix(weight_ER,20,20)
+#' mywpr <- wpr(adj_ER, gamma = 0.85, theta = 0.75)
+#' system.time(mywpr)
+#' 
+#' @export
 
+wpr <- function(adj, gamma = 0.85, theta = 1, prior.info = NULL){
+  
+  ## regularity conditions
+  if (dim(adj)[1]!=dim(adj)[2]){
+    stop("The adjacency matrix is not a square matrix!")
+  }
+  if ((gamma < 0) | (gamma > 1)){
+    stop("The damping factor is not between 0 and 1!")
+  }
+  if ((theta < 0) | (theta > 1)){
+    stop("The tuning parameter is not between 0 and 1!")
+  } 
+  if (prior.info == NULL){
+    prior.info = rep(1/dim(adj)[1],dim(adj)[1]
+  }
+  if (length(prior.info) != dim(adj)[1]){
+    stop("The dimension of the prior information is incorrect!")
+  }
+  if ((sum(prior.info) == 0) | any(prior.info < 0)){
+    stop("The prior information is invalid!")
+  }
+  if (sum(prior.info) != 1){
+    prior.info <- prior.info/sum(prior.info)
+    warning("The prior information is not normalized!")
+  }
+  
+  ## get the unweighted adjacency matrix
+  unweight.adj <- adj
+  unweight.adj[unweight.adj > 0] <- 1
+  
+  ## construct M and M.star matrix
+  n <- dim(adj)[1]
+  sink.node <- which(rowSums(adj) == 0)
+  M <- theta*t(adj/rowSums(adj)) + (1 - theta)*t(unweight.adj/(rowSums(unweight.adj)))
+  M[, sink.node] <- prior.info
+  B <- matrix(rep(prior.info, n), nrow = n, ncol = n)
+  M.star <- gamma*M + (1 - gamma)*B
+  
+  ## rARPACK cannot solve solve matrices of 2-by-2
+  if (dim(adj)[1] == 2){
+    eig_sol <- eigen(M.star)
+    eigen_v <- eig_sol$vectors[,1]
+    eigen_vstd <- abs(eigen_v)/sum(abs(eigen_v))
+    name_v <- c(1:n)
+    myres <- cbind(name_v, eigen_vstd)
+    colnames(myres) <- c("vertex","WPR")
+    return(myres)
+  }
+  
+  ## use rARPACK to solve large-scale matrix
+  if (dim(adj)[1] > 2){
+    eig_sol <-eigs(M.star, k = 1, which = "LM", mattype = "matrix")
+    eigen_v <- Re(eig_sol$vectors)
+    eigen_vstd <- abs(eigen_v) / sum(abs(eigen_v))
+    name_v <- c(1:n)
+    myres <- cbind(name_v, eigen_vstd)
+    colnames(myres) <- c("vertex","WPR")
+    return(myres)
+  }
+}
 
