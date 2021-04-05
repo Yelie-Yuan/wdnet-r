@@ -231,7 +231,7 @@ closeness_c <- function(adj, alpha = 1, mode = "out",
 #' 
 #' @export
 
-wpr <- function(adj, gamma = 0.85, theta = 1, prior.info = NULL){
+wpr <- function(adj, gamma = 0.85, theta = 1, prior.info){
   
   ## regularity conditions
   if (dim(adj)[1]!=dim(adj)[2]){
@@ -243,8 +243,9 @@ wpr <- function(adj, gamma = 0.85, theta = 1, prior.info = NULL){
   if ((theta < 0) | (theta > 1)){
     stop("The tuning parameter is not between 0 and 1!")
   } 
-  if (prior.info == NULL){
-    prior.info = rep(1/dim(adj)[1],dim(adj)[1]
+  if (missing(prior.info)){
+    prior.info = rep(1/dim(adj)[1],dim(adj)[1])
+    warning("No prior information is given; A uniform prior is in use!")
   }
   if (length(prior.info) != dim(adj)[1]){
     stop("The dimension of the prior information is incorrect!")
@@ -282,7 +283,7 @@ wpr <- function(adj, gamma = 0.85, theta = 1, prior.info = NULL){
   
   ## use rARPACK to solve large-scale matrix
   if (dim(adj)[1] > 2){
-    eig_sol <-eigs(M.star, k = 1, which = "LM", mattype = "matrix")
+    eig_sol <-rARPACK::eigs(M.star, k = 1, which = "LM", mattype = "matrix")
     eigen_v <- Re(eig_sol$vectors)
     eigen_vstd <- abs(eigen_v) / sum(abs(eigen_v))
     name_v <- c(1:n)
