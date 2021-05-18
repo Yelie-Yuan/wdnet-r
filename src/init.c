@@ -13,7 +13,8 @@ extern void netSim(void *, void *, void *, void *, void *, void *, void *, void 
 /* .Call calls */
 extern SEXP _wdnet_fx(SEXP, SEXP, SEXP);
 extern SEXP _wdnet_hello_world();
-extern SEXP _wdnet_rpanet_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _wdnet_nodes_cpp(SEXP, SEXP, SEXP);
+extern SEXP _wdnet_strength_cpp(SEXP, SEXP, SEXP);
 
 static const R_CMethodDef CEntries[] = {
     {"netSim", (DL_FUNC) &netSim, 12},
@@ -21,9 +22,10 @@ static const R_CMethodDef CEntries[] = {
 };
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_wdnet_fx",          (DL_FUNC) &_wdnet_fx,           3},
-    {"_wdnet_hello_world", (DL_FUNC) &_wdnet_hello_world,  0},
-    {"_wdnet_rpanet_cpp",  (DL_FUNC) &_wdnet_rpanet_cpp,  12},
+    {"_wdnet_fx",           (DL_FUNC) &_wdnet_fx,           3},
+    {"_wdnet_hello_world",  (DL_FUNC) &_wdnet_hello_world,  0},
+    {"_wdnet_nodes_cpp",    (DL_FUNC) &_wdnet_nodes_cpp,    3},
+    {"_wdnet_strength_cpp", (DL_FUNC) &_wdnet_strength_cpp, 3},
     {NULL, NULL, 0}
 };
 

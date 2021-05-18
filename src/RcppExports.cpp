@@ -6,11 +6,6 @@
 
 using namespace Rcpp;
 
-#ifdef RCPP_USE_GLOBAL_ROSTREAM
-Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
-Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
-#endif
-
 // hello_world
 void hello_world();
 RcppExport SEXP _wdnet_hello_world() {
@@ -33,25 +28,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rpanet_cpp
-Rcpp::List rpanet_cpp(int nsteps, arma::vec control, const bool directed, arma::vec m, arma::vec w, arma::vec u, arma::vec outstrength, arma::vec instrength, double s_outstrength, double s_instrength, int nnode, int tnode);
-RcppExport SEXP _wdnet_rpanet_cpp(SEXP nstepsSEXP, SEXP controlSEXP, SEXP directedSEXP, SEXP mSEXP, SEXP wSEXP, SEXP uSEXP, SEXP outstrengthSEXP, SEXP instrengthSEXP, SEXP s_outstrengthSEXP, SEXP s_instrengthSEXP, SEXP nnodeSEXP, SEXP tnodeSEXP) {
+// nodes_cpp
+arma::vec nodes_cpp(arma::vec nodes, arma::vec edges, arma::vec index);
+RcppExport SEXP _wdnet_nodes_cpp(SEXP nodesSEXP, SEXP edgesSEXP, SEXP indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type nsteps(nstepsSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type control(controlSEXP);
-    Rcpp::traits::input_parameter< const bool >::type directed(directedSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type m(mSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type w(wSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type u(uSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type outstrength(outstrengthSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type instrength(instrengthSEXP);
-    Rcpp::traits::input_parameter< double >::type s_outstrength(s_outstrengthSEXP);
-    Rcpp::traits::input_parameter< double >::type s_instrength(s_instrengthSEXP);
-    Rcpp::traits::input_parameter< int >::type nnode(nnodeSEXP);
-    Rcpp::traits::input_parameter< int >::type tnode(tnodeSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_cpp(nsteps, control, directed, m, w, u, outstrength, instrength, s_outstrength, s_instrength, nnode, tnode));
+    Rcpp::traits::input_parameter< arma::vec >::type nodes(nodesSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type edges(edgesSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type index(indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(nodes_cpp(nodes, edges, index));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strength_cpp
+arma::vec strength_cpp(arma::vec node, arma::vec weight, int nNodes);
+RcppExport SEXP _wdnet_strength_cpp(SEXP nodeSEXP, SEXP weightSEXP, SEXP nNodesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type node(nodeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type weight(weightSEXP);
+    Rcpp::traits::input_parameter< int >::type nNodes(nNodesSEXP);
+    rcpp_result_gen = Rcpp::wrap(strength_cpp(node, weight, nNodes));
     return rcpp_result_gen;
 END_RCPP
 }

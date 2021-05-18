@@ -17,7 +17,6 @@
 ##
 
 #' @importFrom stats runif rpois
-#' @importFrom igraph graph_from_edgelist degree
 NULL
 
 #' Parameter settings for function rpanet.
@@ -72,25 +71,24 @@ panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0
 #'   Its length equals the number of edges of the seed graph. If NA, all the
 #'   edges of the seed graph have weight 1.
 #' @param nsteps Number of steps when generate a network.
-#' @param directed Logical. Whether to generate a directed graph.
 #' @param control A list of parameters to be used when generate network.
 #'
 #' @return A list with the following components: edgelist, edgeweight, out- and
-#'   in-strength (or strength if the network is undirected), number of
-#'   edges per step.
+#'   in-strength, number of edges per step (m), scenario of each new edge
+#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho).
 #' @export
 #'
 #' @examples
-#' net <- rpanet(nsteps = 100, directed = FALSE,
+#' net <- rpanet(nsteps = 100, 
 #'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.6))
-#' net <- rpanet(edgelist = matrix(c(1:8), ncol = 2), nsteps = 100,
+#' net <- rpanet(edgelist = matrix(c(1:8), ncol = 2), nsteps = 10^5,
 #'       control = panet.control(mdist = stats::rpois,
 #'       mpar = list(lambda = 1), m_c = 1,
 #'       wdist = stats::runif, wpar = list(min = 1, max = 10), w_c = 0))
 
 
 rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
-                   edgeweight = NA, directed = TRUE, 
+                   edgeweight = NA,
                    control = panet.control()) {
   stopifnot("nsteps must be greater than 0." = nsteps > 0)
   stopifnot("alpha + beta + bamma + xi + rho must be less or equal to 1." = 
@@ -98,45 +96,78 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
               control$xi + control$rho <= 1)
   if (is.na(edgeweight[1])) edgeweight[1:nrow(edgelist)] <- 1
   stopifnot(length(edgeweight) == nrow(edgelist))
-  if (! directed) stopifnot("For undirected network, delta_out = delta_in." = 
-                              control$delta_in == control$delta_out)
-  
-  nnode <- tnode <- max(c(edgelist))
   if (! is.numeric(control$mdist)) {
     m <- do.call(control$mdist, c(nsteps, control$mpar)) + control$m_c
   }
-  else m <- rep(control$mdist + control$m_c, nsteps)
+  else {
+    m <- rep(control$mdist + control$m_c, nsteps)
+  }
   stopifnot("Number of new edges per step must be positive integers." = m %% 1 == 0)
   stopifnot("Number of new edges per step must be positive integers." = m > 0)
-  temp_m <- sum(m)
+  sum_m <- sum(m)
   if (! is.numeric(control$wdist)) {
-    w <- do.call(control$wdist, c(temp_m, control$wpar)) + control$w_c
-  }
-  else w <- rep(control$wdist + control$w_c, temp_m)
-  stopifnot("Edge weight must be greater than 0." = w > 0)
-  u <- runif(temp_m, min = 0, max = 1)
-  g <- igraph::graph_from_edgelist(edgelist, directed = directed)
-  outstrength <- rep(0, 2 * temp_m + nnode)
-  instrength <- rep(0, 2 *temp_m + nnode)
-  outstrength[1:nnode] <- outstrength[1:nnode] + igraph::degree(g, mode = 'out')
-  instrength[1:nnode] <- instrength[1:nnode] + igraph::degree(g, mode = 'in')
-  s_outstrength <- sum(outstrength[1:nnode])
-  s_instrength <- sum(instrength[1:nnode])
-  control_cpp <- c(control$alpha, control$beta, control$gamma, control$xi, 
-                   control$delta_out, control$delta_in)
-  ret <- rpanet_cpp(nsteps, control_cpp, directed, m, w, u,
-                    outstrength, instrength, s_outstrength, s_instrength,
-                    nnode, tnode)
-  ret2 <- list()
-  ret2$edgelist <- rbind(edgelist, cbind(ret$startnode, ret$endnode))
-  ret2$edgeweight <- c(edgeweight, w)
-  if (directed) {
-    ret2$"out-strength" <- ret$outstrength
-    ret2$"in-strength" <- ret$instrength
+    w <- do.call(control$wdist, c(sum_m, control$wpar)) + control$w_c
   }
   else {
-    ret2$strength <- ret$outstrength
+    w <- rep(control$wdist + control$w_c, sum_m)
   }
-  ret2$m <- m
-  return(ret2)
+  stopifnot("Edge weight must be greater than 0." = w > 0)
+  
+  exNodes <- max(c(edgelist))
+  exEdges <- nrow(edgelist)
+  exWeight <- sum(edgeweight)
+  nEdges <- sum_m + exEdges
+  
+  scenario <- sample(1:5, size = sum_m, replace = TRUE,
+                     prob = c(control$alpha, control$beta,
+                              control$gamma, control$xi,
+                              control$rho))
+  scenario1 <- scenario == 1
+  scenario4 <- scenario == 4
+  
+  noNewStart <- !((scenario > 3) | scenario1)
+  noNewEnd <- scenario < 3
+  totalNode <- endNode <- cumsum(c((scenario != 2) + scenario4)) + exNodes
+  startNode <- totalNode - scenario4
+  endNode[noNewEnd] <- 0
+  startNode[noNewStart] <- 0
+  nNodes <- totalNode[length(totalNode)]
+  edgeweight <- c(edgeweight, w)
+  weightIntv <- cumsum(c(0, edgeweight))
+  
+  temp_m <- cumsum(m[-nsteps])
+  temp <- c(exWeight, weightIntv[temp_m + exEdges + 1])
+  totalWeight <- rep(temp, m)
+  temp <- c(exNodes, totalNode[temp_m])
+  totalNode <- rep(temp, m)
+  
+  randOut <- runif(sum(noNewStart)) * (totalWeight + control$delta_out * totalNode)[noNewStart]
+  randIn <- runif(sum(noNewEnd)) * (totalWeight + control$delta_in * totalNode)[noNewEnd]
+  
+  temp <- randOut < totalWeight[noNewStart]
+  startEdge <- findInterval(randOut[temp], weightIntv, left.open = TRUE)
+  if (! all(temp)) startNode[noNewStart][! temp] <- sapply(totalNode[noNewStart][! temp], 
+                                                           function(i) sample(i, size = 1))
+  startNode <- c(edgelist[, 1], startNode)
+  temp <- which(startNode == 0)
+  startNode <- nodes_cpp(startNode, startEdge, temp)
+  
+  temp <- randIn < totalWeight[noNewEnd]
+  endEdge <- findInterval(randIn[temp], weightIntv, left.open = TRUE)
+  if (! all(temp)) endNode[noNewEnd][! temp] <- sapply(totalNode[noNewEnd][!temp], 
+                                                       function(i) sample(i, size = 1))
+  endNode <- c(edgelist[, 2], endNode)
+  temp <- which(endNode == 0)
+  endNode <- nodes_cpp(endNode, endEdge, temp)
+  
+  outstrength <- strength_cpp(startNode, edgeweight, nNodes)
+  instrength <- strength_cpp(endNode, edgeweight, nNodes)
+  
+  ret <- list(edgelist = cbind(startNode, endNode),
+              edgeweight = edgeweight,
+              outstrength = c(outstrength),
+              instrength = c(instrength),
+              scenario = scenario,
+              m = m)
+  return(ret)
 }

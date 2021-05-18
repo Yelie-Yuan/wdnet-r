@@ -27,7 +27,23 @@ fx <- function(x, Y, z) {
     .Call(`_wdnet_fx`, x, Y, z)
 }
 
-rpanet_cpp <- function(nsteps, control, directed, m, w, u, outstrength, instrength, s_outstrength, s_instrength, nnode, tnode) {
-    .Call(`_wdnet_rpanet_cpp`, nsteps, control, directed, m, w, u, outstrength, instrength, s_outstrength, s_instrength, nnode, tnode)
+#' Fill missing values in node sequence.
+#'
+#' @param nodes Sequence of source/target node of edges, missing values are denoted as 0.
+#' @param edges Edges sampled according to preferential attachment.
+#' @param index Index of missing values in nodes.
+#' @return Sequence of source/target node of edges.
+nodes_cpp <- function(nodes, edges, index) {
+    .Call(`_wdnet_nodes_cpp`, nodes, edges, index)
+}
+
+#' Aggregate edgeweight into nodes' strength.
+#'
+#' @param node Sequence of source/target node of edges.
+#' @param weight Sequence of edgeweight.
+#' @param nNodes Number of nodes of sampled network.
+#' @return Sequence of outstrength/instrength.
+strength_cpp <- function(node, weight, nNodes) {
+    .Call(`_wdnet_strength_cpp`, node, weight, nNodes)
 }
 

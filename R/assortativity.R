@@ -96,8 +96,6 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
 #' @examples
 #' net <- rpanet(nsteps = 10^3)
 #' result <- edge_assort(net$edgelist, directed = TRUE)
-#' net <- rpanet(nsteps = 10^3, directed = FALSE)
-#' result <- edge_assort(net$edgelist, net$edgeweight, directed = FALSE)
 edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE, weighted = TRUE) {
   if (! directed) {
     edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
