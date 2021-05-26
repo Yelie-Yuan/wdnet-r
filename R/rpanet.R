@@ -91,15 +91,20 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                    edgeweight = NA,
                    control = panet.control()) {
   stopifnot("nsteps must be greater than 0." = nsteps > 0)
-  stopifnot("alpha + beta + bamma + xi + rho must be less or equal to 1." = 
-              control$alpha + control$beta + control$gamma + 
-              control$xi + control$rho <= 1)
-  if (is.na(edgeweight[1])) edgeweight[1:nrow(edgelist)] <- 1
-  stopifnot(length(edgeweight) == nrow(edgelist))
+  stopifnot("alpha + beta + bamma + xi + rho must equals to 1." =
+              round(control$alpha + control$beta + control$gamma +
+              control$xi + control$rho, 2) == 1)
+  temp <- c(edgelist)
+  exNodes <- max(temp)
+  stopifnot("Nodes' index should be consecutive natural numbers start from 1." =
+              sum(! duplicated(temp)) == exNodes)
+  exEdges <- nrow(edgelist)
+  if (is.na(edgeweight[1])) edgeweight[1:exEdges] <- 1
+  stopifnot(length(edgeweight) == exEdges)
+  exWeight <- sum(edgeweight)
   if (! is.numeric(control$mdist)) {
     m <- do.call(control$mdist, c(nsteps, control$mpar)) + control$m_c
-  }
-  else {
+  } else {
     m <- rep(control$mdist + control$m_c, nsteps)
   }
   stopifnot("Number of new edges per step must be positive integers." = m %% 1 == 0)
@@ -107,21 +112,38 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   sum_m <- sum(m)
   if (! is.numeric(control$wdist)) {
     w <- do.call(control$wdist, c(sum_m, control$wpar)) + control$w_c
-  }
-  else {
+  } else {
     w <- rep(control$wdist + control$w_c, sum_m)
   }
   stopifnot("Edge weight must be greater than 0." = w > 0)
   
-  exNodes <- max(c(edgelist))
-  exEdges <- nrow(edgelist)
-  exWeight <- sum(edgeweight)
-  nEdges <- sum_m + exEdges
-  
+  edgeweight <- c(edgeweight, w)
   scenario <- sample(1:5, size = sum_m, replace = TRUE,
                      prob = c(control$alpha, control$beta,
                               control$gamma, control$xi,
                               control$rho))
+  
+  if (all(edgeweight == edgeweight[1]) & all(m == 1)) {
+    control$delta_out <- control$delta_out / edgeweight[1]
+    control$delta_in <- control$delta_in / edgeweight[1]
+    startNode <- c(edgelist[, 1], rep(0, sum_m))
+    endNode <- c(edgelist[, 2], rep(0, sum_m))
+    ret <- rpanet_cpp(startNode, endNode, 
+                      scenario, 
+                      exNodes, exEdges,
+                      control$delta_out, control$delta_in)
+    edgelist <- cbind(ret$startNode, ret$endNode)
+    strength <- nodeStrength_cpp(ret$startNode, ret$endNode, 
+                                 edgeweight, ret$nNodes)
+    ret <- list(edgelist = edgelist,
+                edgeweight = edgeweight,
+                outstrength = c(strength$outstrength),
+                instrength = c(strength$instrength),
+                scenario = scenario,
+                m = m)
+    return(ret)
+  }
+  
   scenario1 <- scenario == 1
   scenario4 <- scenario == 4
   
@@ -132,41 +154,51 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   endNode[noNewEnd] <- 0
   startNode[noNewStart] <- 0
   nNodes <- totalNode[length(totalNode)]
-  edgeweight <- c(edgeweight, w)
-  weightIntv <- cumsum(c(0, edgeweight))
   
+  weightIntv <- cumsum(c(0, edgeweight))
   temp_m <- cumsum(m[-nsteps])
   temp <- c(exWeight, weightIntv[temp_m + exEdges + 1])
   totalWeight <- rep(temp, m)
   temp <- c(exNodes, totalNode[temp_m])
+  rm(temp_m)
   totalNode <- rep(temp, m)
   
   randOut <- runif(sum(noNewStart)) * (totalWeight + control$delta_out * totalNode)[noNewStart]
   randIn <- runif(sum(noNewEnd)) * (totalWeight + control$delta_in * totalNode)[noNewEnd]
   
   temp <- randOut < totalWeight[noNewStart]
-  startEdge <- findInterval(randOut[temp], weightIntv, left.open = TRUE)
-  if (! all(temp)) startNode[noNewStart][! temp] <- sapply(totalNode[noNewStart][! temp], 
-                                                           function(i) sample(i, size = 1))
+  if (any(temp)) {
+    startEdge <- findInterval(randOut[temp], weightIntv, left.open = TRUE)
+  }
+  if (! all(temp)) {
+    startNode[noNewStart][! temp] <- sampleNode_cpp(totalNode[noNewStart][! temp])
+  }
   startNode <- c(edgelist[, 1], startNode)
   temp <- which(startNode == 0)
-  startNode <- nodes_cpp(startNode, startEdge, temp)
+  if (length(temp) != 0) {
+    startNode <- findNode_cpp(startNode, startEdge, temp)
+  }
   
   temp <- randIn < totalWeight[noNewEnd]
-  endEdge <- findInterval(randIn[temp], weightIntv, left.open = TRUE)
-  if (! all(temp)) endNode[noNewEnd][! temp] <- sapply(totalNode[noNewEnd][!temp], 
-                                                       function(i) sample(i, size = 1))
+  if (any(temp)) {
+    endEdge <- findInterval(randIn[temp], weightIntv, left.open = TRUE)
+  }
+  if (! all(temp)) {
+    endNode[noNewEnd][! temp] <- sampleNode_cpp(totalNode[noNewEnd][!temp])
+  }
   endNode <- c(edgelist[, 2], endNode)
   temp <- which(endNode == 0)
-  endNode <- nodes_cpp(endNode, endEdge, temp)
+  if (length(temp) != 0) {
+    endNode <- findNode_cpp(endNode, endEdge, temp)
+  }
   
-  outstrength <- strength_cpp(startNode, edgeweight, nNodes)
-  instrength <- strength_cpp(endNode, edgeweight, nNodes)
+  strength <- nodeStrength_cpp(startNode, endNode, 
+                               edgeweight, nNodes)
   
-  ret <- list(edgelist = cbind(startNode, endNode),
+  ret <- list(edgelist = edgelist,
               edgeweight = edgeweight,
-              outstrength = c(outstrength),
-              instrength = c(instrength),
+              outstrength = c(strength$outstrength),
+              instrength = c(strength$instrength),
               scenario = scenario,
               m = m)
   return(ret)

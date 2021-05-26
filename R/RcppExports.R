@@ -33,17 +33,43 @@ fx <- function(x, Y, z) {
 #' @param edges Edges sampled according to preferential attachment.
 #' @param index Index of missing values in nodes.
 #' @return Sequence of source/target node of edges.
-nodes_cpp <- function(nodes, edges, index) {
-    .Call(`_wdnet_nodes_cpp`, nodes, edges, index)
+findNode_cpp <- function(nodes, edges, index) {
+    .Call(`_wdnet_findNode_cpp`, nodes, edges, index)
 }
 
 #' Aggregate edgeweight into nodes' strength.
 #'
-#' @param node Sequence of source/target node of edges.
+#' @param startNode Sequence of source nodes.
+#' @param endNode Sequence of target nodes.
 #' @param weight Sequence of edgeweight.
 #' @param nNodes Number of nodes of sampled network.
 #' @return Sequence of outstrength/instrength.
-strength_cpp <- function(node, weight, nNodes) {
-    .Call(`_wdnet_strength_cpp`, node, weight, nNodes)
+nodeStrength_cpp <- function(startNode, endNode, weight, nNodes) {
+    .Call(`_wdnet_nodeStrength_cpp`, startNode, endNode, weight, nNodes)
+}
+
+#' Sample nodes with respect to the number of nodes at each step.
+#'
+#' @param totalNode Number of nodes at each step.
+#' @return Sequence of sampled nodes.
+sampleNode_cpp <- function(totalNode) {
+    .Call(`_wdnet_sampleNode_cpp`, totalNode)
+}
+
+#' Preferential attachment algorithm for simple situations, 
+#' e.g., edge weights are constant, 
+#' number of new edges per step is 1.
+#'
+#' @param startNode Sequence of source nodes.
+#' @param endNode Sequence of target nodes.
+#' @param scenario Sequence of alpha, beta, gamma, xi, rho scenarios.
+#' @param nNodes Number of nodes at current step.
+#' @param nEdges Number of edges at current step.
+#' @param delta_out Tuning parameter.
+#' @param delta_in Tuning parameter.
+#' @return Number of nodes, sequences of source and target nodes.
+#' 
+rpanet_cpp <- function(startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in) {
+    .Call(`_wdnet_rpanet_cpp`, startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in)
 }
 
