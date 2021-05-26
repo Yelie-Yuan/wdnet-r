@@ -191,7 +191,8 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   if (length(temp) != 0) {
     endNode <- findNode_cpp(endNode, endEdge, temp)
   }
-  
+  edgelist <- cbind(startNode, endNode)
+  colnames(edgelist) <- NULL
   strength <- nodeStrength_cpp(startNode, endNode, 
                                edgeweight, nNodes)
   
