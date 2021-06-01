@@ -42,8 +42,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // nodeStrength_cpp
-Rcpp::List nodeStrength_cpp(arma::vec startNode, arma::vec endNode, arma::vec weight, int nNodes);
-RcppExport SEXP _wdnet_nodeStrength_cpp(SEXP startNodeSEXP, SEXP endNodeSEXP, SEXP weightSEXP, SEXP nNodesSEXP) {
+Rcpp::List nodeStrength_cpp(arma::vec startNode, arma::vec endNode, arma::vec weight, int nNodes, bool weighted);
+RcppExport SEXP _wdnet_nodeStrength_cpp(SEXP startNodeSEXP, SEXP endNodeSEXP, SEXP weightSEXP, SEXP nNodesSEXP, SEXP weightedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -51,7 +51,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type endNode(endNodeSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< int >::type nNodes(nNodesSEXP);
-    rcpp_result_gen = Rcpp::wrap(nodeStrength_cpp(startNode, endNode, weight, nNodes));
+    Rcpp::traits::input_parameter< bool >::type weighted(weightedSEXP);
+    rcpp_result_gen = Rcpp::wrap(nodeStrength_cpp(startNode, endNode, weight, nNodes, weighted));
     return rcpp_result_gen;
 END_RCPP
 }

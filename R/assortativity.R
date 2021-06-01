@@ -16,7 +16,7 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom stats weighted.mean aggregate
+#' @importFrom stats weighted.mean
 #' @importFrom wdm wdm
 NULL
 
@@ -85,9 +85,7 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
 #' @param edgelist A two column matrix represents edges.
 #' @param directed Logical. Whether the edges will be considered as directed. If
 #'   FALSE, the input network will be considered as undirected.
-#' @param weighted Logical. Whether the edges will be considered as weighted. If
-#'   FALSE, values of the third column will be considered as 1.
-#' @param edgeweight A vector represents the weight of edges in edgelist.
+#' @param edgeweight A vector represents the weight of edges.
 #'
 #' @return Assortativity coefficient for undirected network, or four directed
 #'   assortativity coefficients for directed network.
@@ -96,31 +94,46 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
 #' @examples
 #' net <- rpanet(nsteps = 10^3)
 #' result <- edge_assort(net$edgelist, directed = TRUE)
-edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE, weighted = TRUE) {
+edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE) {
   if (! directed) {
     edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
     edgeweight <- c(edgeweight, edgeweight)
   }
-  if ((! weighted) | is.na(edgeweight[1])) {
-    edgeweight[1:dim(edgelist)[1]] <- 1
-  } 
-  numnode <- max(edgelist[, c(1, 2)])
-  outs <- ins <- rep(0, numnode)
-  dataf <- data.frame(edgelist, edgeweight)
-  colnames(dataf) <- c('x', 'y', 'w')
-  touts <- stats::aggregate(w ~ x, data = dataf, FUN = 'sum')
-  tins <- stats::aggregate(w ~ y, data = dataf, FUN = 'sum')
-  outs[touts[, 1]] <- touts[, 2]
-  ins[tins[, 1]] <- tins[, 2]
-  if (! directed) return(wdm(x = outs[edgelist[, 1]], y = outs[edgelist[, 2]], 
-                             weights = edgeweight, method = 'pearson'))
-  result <- list('out-out' = wdm(x = outs[edgelist[, 1]], y = outs[edgelist[, 2]],
-                                 weights = edgeweight, method = 'pearson'), 
-                 'out-in' = wdm(x = outs[edgelist[, 1]], y = ins[edgelist[, 2]], 
-                                weights = edgeweight, method = 'pearson'), 
-                 'in-out' = wdm(x = ins[edgelist[, 1]], y = outs[edgelist[, 2]],
-                                weights = edgeweight, method = 'pearson'),
-                 'in-in' = wdm(x = ins[edgelist[, 1]], y = ins[edgelist[, 2]],
-                               weights = edgeweight, method = 'pearson'))
-  return(result)
+  temp <- range(c(edgelist))
+  stopifnot("Node index should start from 1." = temp[1] == 1)
+  nnode <- temp[2]
+  sourceNode <- edgelist[, 1]
+  targetNode <- edgelist[, 2]
+  if (is.na(edgeweight[1])) {
+    temp <- nodeStrength_cpp(startNode = sourceNode, 
+                             endNode = targetNode, 
+                             nNodes = nnode, 
+                             weight = 1,
+                             weighted = FALSE)
+    edgeweight <- rep(1, length(sourceNode))
+  } else {
+    temp <- nodeStrength_cpp(startNode = sourceNode, 
+                             endNode = targetNode, 
+                             nNodes = nnode, 
+                             weight = edgeweight,
+                             weighted = TRUE)
+  }
+  outs <- temp$outstrength
+  ins <- temp$instrength
+  sourceOut <- outs[sourceNode]
+  targetIn <- ins[targetNode]
+  if (! directed) {
+    return(wdm(x = sourceOut, y = targetIn, 
+               weights = edgeweight, method = 'pearson'))
+  }
+  sourceIn <- ins[sourceNode]
+  targetOut <- outs[targetNode]
+  return(list('out-out' = wdm(x = sourceOut, y = targetOut,
+                              weights = edgeweight, method = 'pearson'), 
+              'out-in' = wdm(x = sourceOut, y = targetIn, 
+                             weights = edgeweight, method = 'pearson'), 
+              'in-out' = wdm(x = sourceIn, y = targetOut,
+                             weights = edgeweight, method = 'pearson'),
+              'in-in' = wdm(x = sourceIn, y = targetIn,
+                            weights = edgeweight, method = 'pearson')))
 }

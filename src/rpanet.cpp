@@ -24,19 +24,30 @@ arma::vec findNode_cpp(arma::vec nodes,
 //' @param endNode Sequence of target nodes.
 //' @param weight Sequence of edgeweight.
 //' @param nNodes Number of nodes of sampled network.
+//' @param weighted Logical, ture if the edges are weighted, 
+//'   false if not.
 //' @return Sequence of outstrength/instrength.
 // [[Rcpp::export]]
 Rcpp::List nodeStrength_cpp(arma::vec startNode, 
-                           arma::vec endNode,
-                           arma::vec weight, 
-                           int nNodes) {
+                            arma::vec endNode,
+                            arma::vec weight, 
+                            int nNodes, 
+                            bool weighted = true) {
   int n = startNode.size();
   arma::vec outstrength(nNodes, arma::fill::zeros);
   arma::vec instrength(nNodes, arma::fill::zeros);
-  for (int i = 0; i < n; i++) {
-    outstrength[startNode[i] - 1] += weight[i];
-    instrength[endNode[i] - 1] += weight[i];
+  if (weighted) {
+    for (int i = 0; i < n; i++) {
+      outstrength[startNode[i] - 1] += weight[i];
+      instrength[endNode[i] - 1] += weight[i];
+    }
+  } else {
+    for (int i = 0; i < n; i++) {
+      outstrength[startNode[i] - 1] += 1;
+      instrength[endNode[i] - 1] += 1;
+    }
   }
+  
   Rcpp::List ret;
   ret["outstrength"] = outstrength;
   ret["instrength"] = instrength;

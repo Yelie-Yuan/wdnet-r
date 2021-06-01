@@ -134,7 +134,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                       control$delta_out, control$delta_in)
     edgelist <- cbind(ret$startNode, ret$endNode)
     strength <- nodeStrength_cpp(ret$startNode, ret$endNode, 
-                                 edgeweight, ret$nNodes)
+                                 edgeweight, ret$nNodes, weighted = FALSE)
     ret <- list(edgelist = edgelist,
                 edgeweight = edgeweight,
                 outstrength = c(strength$outstrength),
@@ -194,7 +194,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   edgelist <- cbind(startNode, endNode)
   colnames(edgelist) <- NULL
   strength <- nodeStrength_cpp(startNode, endNode, 
-                               edgeweight, nNodes)
+                               edgeweight, nNodes, weighted = TRUE)
   
   ret <- list(edgelist = edgelist,
               edgeweight = edgeweight,

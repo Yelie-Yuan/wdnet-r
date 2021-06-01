@@ -43,9 +43,11 @@ findNode_cpp <- function(nodes, edges, index) {
 #' @param endNode Sequence of target nodes.
 #' @param weight Sequence of edgeweight.
 #' @param nNodes Number of nodes of sampled network.
+#' @param weighted Logical, ture if the edges are weighted, 
+#'   false if not.
 #' @return Sequence of outstrength/instrength.
-nodeStrength_cpp <- function(startNode, endNode, weight, nNodes) {
-    .Call(`_wdnet_nodeStrength_cpp`, startNode, endNode, weight, nNodes)
+nodeStrength_cpp <- function(startNode, endNode, weight, nNodes, weighted = TRUE) {
+    .Call(`_wdnet_nodeStrength_cpp`, startNode, endNode, weight, nNodes, weighted)
 }
 
 #' Sample nodes with respect to the number of nodes at each step.
