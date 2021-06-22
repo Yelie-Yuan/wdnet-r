@@ -16,45 +16,38 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom matrixcalc matrix.power
-#' @importFrom stats na.omit
+#' @importFrom Matrix Matrix t colSums rowSums diag
 NULL
 
 #' Directed clustering coefficient
-#' 
+#'
 #' Compute the clustering coefficient of a weighted and directed network.
 #'
-#' @usage
-#' dw_clustcoeff(adj, method = c("Clemente","Fagiolo"),
-#'               mode = c("total","in","out","middle","cycle"))
-#' 
+#' @usage dw_clustcoeff(adj, method = c("Clemente","Fagiolo"))
+#'
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
-#' @param method which method used to compute clustering coefficients:
-#' Clemente and Grassi (2018) or Fagiolo (2007)
-#' @param mode what kind of triplets considered for computation:
-#' \code{total}, \code{in}, \code{out}, 
-#' middleman (\code{middle}), or \code{cycle}?
+#' @param method which method used to compute clustering coefficients: Clemente
+#'   and Grassi (2018) or Fagiolo (2007).
 #'
-#' @return a list of local clustering coefficients (in terms of a vector) and global clustering
-#' coefficient (in terms of a scalar)
+#' @return lists of local clustering coefficients (in terms of a vector), global
+#'   clustering coefficient (in terms of a scalar) and number of actual weighted
+#'   directed triangles (in terms of a vector) base on \code{total}, \code{in},
+#'   \code{out}, middleman (\code{middle}), or \code{cycle} triplets.
 #'
-#' @references
-#' \itemize{
-#' \item Barrat, A., Barth\'{e}lemy, M., Pastor-Satorras, R. and Vespignani, A. (2004). The 
-#' architecture of complex weighted networks. \emph{Proceddings of National Academy of Sciences
-#' of the United States of America}, 101(11), 3747--3752. 
-#' \item Clemente, G.P. and Grassi, R. (2018). Directed clustering in weighted networks: 
-#' A new perspective. \emph{Chaos, Solitons & Fractals}, 107, 26--38.
-#' \item Fagiolo, G. (2007). Clustering in complex directed networks. \emph{Physical Review E},
-#' 76, 026107.
-#' }
+#' @references \itemize{ \item Barrat, A., Barth\'{e}lemy, M., Pastor-Satorras,
+#'   R. and Vespignani, A. (2004). The architecture of complex weighted
+#'   networks. \emph{Proceddings of National Academy of Sciences of the United
+#'   States of America}, 101(11), 3747--3752. \item Clemente, G.P. and Grassi,
+#'   R. (2018). Directed clustering in weighted networks: A new perspective.
+#'   \emph{Chaos, Solitons & Fractals}, 107, 26--38. \item Fagiolo, G. (2007).
+#'   Clustering in complex directed networks. \emph{Physical Review E}, 76,
+#'   026107. }
 #'
-#' @note 
-#' Self-loops (if exist) are removed prior to the computation of clustering oefficient.
-#' When the adjacency matrix is symmetric (i.e., undirected but possibly unweighted networks), 
-#' \code{dw_clustcoeff} returns local and global clustering coefficients proposedy by 
-#' Barrat et al. (2010).
+#' @note Self-loops (if exist) are removed prior to the computation of
+#'   clustering oefficient. When the adjacency matrix is symmetric (i.e.,
+#'   undirected but possibly unweighted networks), \code{dw_clustcoeff} returns
+#'   local and global clustering coefficients proposedy by Barrat et al. (2010).
 #'
 #' @examples
 #' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
@@ -62,87 +55,103 @@ NULL
 #' edge_ER <- rbinom(400,1,0.3)
 #' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 #' adj_ER <- matrix(weight_ER,20,20)
-#' mycc_total <- dw_clustcoeff(adj_ER, method = "Clemente", mode = "total")
-#' system.time(mycc_total)
-#' 
+#' mycc <- dw_clustcoeff(adj_ER, method = "Clemente")
+#' system.time(mycc)
+#'
 #' @export
 
-dw_clustcoeff <- function(adj, method = c("Clemente","Fagiolo"), 
-                          mode = c("total","in","out","middle","cycle")){
+dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo")) {
   stopifnot(dim(adj)[1] == dim(adj)[2])
+  method <- match.arg(method)
   ## Force to remove self-loops.
-  if (all(diag(adj) == 0) == FALSE){
-    n <- dim(adj)[1]
-    adj <- adj - diag(diag(adj),n)
-  }
+  diag(adj) <- 0
   ## Extract the unweighted adjacency matrix
-  uw_adj <- adj
-  uw_adj[uw_adj > 0] <- 1
+  if (sum(adj == 0) / nrow(adj)^2 > 0.3) {
+    adj <- Matrix::Matrix(adj, sparse = TRUE)
+    A <- Matrix::Matrix(adj > 0, sparse = TRUE)
+  } else {
+    A <- adj > 0
+  }
   ## Compute strength vector
-  s_in <- colSums(adj)
-  s_out <- rowSums(adj)
+  s_in <- Matrix::colSums(adj)
+  s_out <- Matrix::rowSums(adj)
   s_tot <- s_in + s_out
-  s_bil <- diag(adj %*% uw_adj + uw_adj %*% adj)/2
+  s_bil <- (Matrix::colSums(Matrix::t(adj) * A) + Matrix::colSums(Matrix::t(A) * adj)) / 2
   ## Compute degee vector
-  d_in <- colSums(uw_adj)
-  d_out <- rowSums(uw_adj)
+  d_in <- Matrix::colSums(A)
+  d_out <- Matrix::rowSums(A)
   d_tot <- d_in + d_out
-  d_bil <- diag(matrixcalc::matrix.power(uw_adj, 2))
-  if (method == "Clemente"){
-    if (mode == "total"){
-      local_cc <- diag((adj + t(adj)) %*% matrixcalc::matrix.power((uw_adj + t(uw_adj)), 2))/
-        2/(s_tot*(d_tot - 1) - 2*s_bil)
-      global_cc <- mean(stats::na.omit(local_cc))
-    }
-    if (mode == "in"){
-      local_cc <- diag(t(adj) %*% (uw_adj + t(uw_adj)) %*% uw_adj)/
-        2/(s_in*(d_in - 1))
-      global_cc <- mean(na.omit(local_cc))
-    }
-    if (mode == "out"){
-      local_cc <- diag(adj %*% (uw_adj + t(uw_adj)) %*% t(uw_adj))/
-        2/(s_out*(d_out - 1))
-      global_cc <- mean(na.omit(local_cc))
-    }
-    if (mode == "middle"){
-      local_cc <- diag(t(adj) %*% uw_adj %*% t(uw_adj) + adj %*% t(uw_adj) %*% uw_adj)/
-        2/((s_in*d_out + s_out*d_in)/2 - s_bil)
-      global_cc <- mean(na.omit(local_cc))
-    }
-    if (mode == "cycle"){
-      local_cc <- diag(adj %*% matrixcalc::matrix.power(uw_adj, 2) 
-                       + t(adj) %*% matrixcalc::matrix.power(t(uw_adj), 2))/
-        2/((s_in*d_out + s_out*d_in)/2 - s_bil)
-      global_cc <- mean(na.omit(local_cc))
-    }
+  A_A <- A %*% A
+  d_bil <- Matrix::diag(A_A)
+  if (method == "Clemente") {
+    A_At <- A %*% Matrix::t(A)
+    At_A <- Matrix::t(A) %*% A
+    W_A_A <- Matrix::colSums(Matrix::t(adj)* A_A)
+    W_A_At <- Matrix::colSums(Matrix::t(adj) * A_At)
+    W_At_At <- Matrix::colSums(Matrix::t(adj) * Matrix::t(A_A))
+    Wt_A_A <- Matrix::colSums(adj * A_A)
+    Wt_A_At <- Matrix::colSums(adj * A_At)
+    Wt_At_At <- Matrix::colSums(adj * Matrix::t(A_A))
+    Wt_At_A <- Matrix::colSums(adj * At_A)
+    W_At_A <- Matrix::colSums(Matrix::t(adj) * At_A)
+    
+    denomTotal <- s_tot * (d_tot - 1) - 2 * s_bil
+    denomIn <- s_in * (d_in - 1)
+    denomOut <- s_out * (d_out - 1)
+    denomMiddle <- (s_in * d_out + s_out * d_in) / 2 - s_bil
+    numTriangles <- list('total' = (W_A_A + W_A_At + W_At_A + W_At_At + 
+                                      Wt_A_A + Wt_A_At + Wt_At_A + Wt_At_At) / 2, 
+                         'in' = (Wt_A_A + Wt_At_A) / 2, 
+                         'out' = (W_A_At + W_At_At) / 2,
+                         'middle' = (Wt_A_At + W_At_A) / 2,
+                         'cycle' = (W_A_A + Wt_At_At) / 2)
   }
   if (method == "Fagiolo"){
-    adjhat <- (adj/max(adj))^(1/3)
-    if (mode == "total"){
-      local_cc <- diag(matrixcalc::matrix.power(adjhat + t(adjhat), 3))/
-        2/(d_tot*(d_tot - 1) - 2*d_bil)
-      global_cc <- mean(na.omit(local_cc))
-    }
-    if (mode == "in"){
-      local_cc <- diag(t(adjhat) %*% matrixcalc::matrix.power(adjhat, 2))/
-        (d_in*(d_in - 1))
-      global_cc <- mean(na.omit(local_cc))
-    }
-    if (mode == "out"){
-      local_cc <- diag(matrixcalc::matrix.power(adjhat, 2) %*% t(adjhat))/
-        (d_out*(d_out - 1))
-      global_cc <- mean(na.omit(local_cc))
-    }
-    if (mode == "middle"){
-      local_cc <- diag(adjhat %*% t(adjhat) %*% adjhat)/
-        (d_in*d_out - d_bil)
-      global_cc <- mean(na.omit(local_cc))
-    }
-    if (mode == "cycle"){
-      local_cc <- diag(matrixcalc::matrix.power(adjhat, 3))/
-        (d_in*d_out - d_bil)
-      global_cc <- mean(na.omit(local_cc))
-    }
+    # W is adjhat
+    W <- (adj / max(adj))^(1/3)
+    W_W <- W %*% W
+    W_W_W <- Matrix::colSums(Matrix::t(W) * W_W)
+    W_W_Wt <- Matrix::rowSums(W_W * W)
+    W_Wt_W <- Matrix::colSums(Matrix::t(W) * (Matrix::t(W) %*% W))
+    Wt_W_W <- Matrix::colSums(W * W_W)
+    
+    denomTotal <- d_tot * (d_tot - 1) - 2 * d_bil
+    denomIn <- d_in * (d_in - 1)
+    denomOut <- d_out * (d_out - 1)
+    denomMiddle <- d_in * d_out - d_bil
+    
+    numTriangles <- list('total' = (W_W_W + W_W_Wt + W_Wt_W + Wt_W_W), 
+                         'in' = Wt_W_W, 
+                         'out' = W_W_Wt,
+                         'middle' = W_Wt_W,
+                         'cycle' = W_W_W)
   }
-  return(list(localcc = local_cc, globalcc = global_cc))
+  
+  localcc <- list('total' = numTriangles$'total' / denomTotal, 
+                  'in' = numTriangles$'in' / denomIn, 
+                  'out' = numTriangles$'out' / denomOut, 
+                  'middle' = numTriangles$'middle' / denomMiddle, 
+                  'cycle' = numTriangles$'cycle' / denomMiddle)
+  localcc <- rapply(localcc, function(i) ifelse(is.na(i), 0, i), 
+                    how = 'replace')
+  globalcc <- list('total' = mean(localcc$'total'), 
+                   'in' = mean(localcc$'in'), 
+                   'out' = mean(localcc$'out'), 
+                   'middle' = mean(localcc$'middle'), 
+                   'cycle' = mean(localcc$'cycle'))
+  return(list('total' = list('localcc' = localcc$'total', 
+                             'globalcc' = globalcc$'total', 
+                             'numtriangles' = numTriangles$'total'), 
+              'out' = list('localcc' = localcc$'out', 
+                           'globalcc' = globalcc$'out', 
+                           'numtriangles' = numTriangles$'out'), 
+              'in' = list('localcc' = localcc$'in', 
+                          'globalcc' = globalcc$'in', 
+                          'numtriangles' = numTriangles$'in'), 
+              'middle' = list('localcc' = localcc$'middle', 
+                              'globalcc' = globalcc$'middle', 
+                              'numtriangles' = numTriangles$'middle'), 
+              'cycle' = list('localcc' = localcc$'cycle', 
+                             'globalcc' = globalcc$'cycle', 
+                             'numtriangles' = numTriangles$'cycle')))
 }

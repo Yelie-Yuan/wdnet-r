@@ -14,7 +14,7 @@ Description: Assortativitity and centrality measures for weighted directed
 Depends: R (>= 4.0.5)
 License: GPL (>= 3.0)
 Encoding: UTF-8
-Imports: stats, igraph, matrixcalc, wdm, Rcpp, rARPACK
+Imports: stats, igraph, matrixcalc, wdm, Rcpp, rARPACK, Matrix
 LinkingTo: Rcpp, RcppArmadillo
 BugReports: https://gitlab.com/wdnetwork/wdnet/issues
 URL: https://githlab.com/wdnetwork/wdnet

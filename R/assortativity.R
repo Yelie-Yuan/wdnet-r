@@ -21,7 +21,7 @@
 NULL
 
 ## Directed assortativity coefficient
- 
+
 #' Compute the assortativity coefficient of a weighted and directed network.
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
@@ -123,17 +123,17 @@ edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE) {
   sourceOut <- outs[sourceNode]
   targetIn <- ins[targetNode]
   if (! directed) {
-    return(wdm(x = sourceOut, y = targetIn, 
-               weights = edgeweight, method = 'pearson'))
+    return(wdm::wdm(x = sourceOut, y = targetIn, 
+                    weights = edgeweight, method = 'pearson'))
   }
   sourceIn <- ins[sourceNode]
   targetOut <- outs[targetNode]
-  return(list('out-out' = wdm(x = sourceOut, y = targetOut,
-                              weights = edgeweight, method = 'pearson'), 
-              'out-in' = wdm(x = sourceOut, y = targetIn, 
-                             weights = edgeweight, method = 'pearson'), 
-              'in-out' = wdm(x = sourceIn, y = targetOut,
-                             weights = edgeweight, method = 'pearson'),
-              'in-in' = wdm(x = sourceIn, y = targetIn,
-                            weights = edgeweight, method = 'pearson')))
+  return(list('out-out' = wdm::wdm(x = sourceOut, y = targetOut,
+                                   weights = edgeweight, method = 'pearson'), 
+              'out-in' = wdm::wdm(x = sourceOut, y = targetIn, 
+                                  weights = edgeweight, method = 'pearson'), 
+              'in-out' = wdm::wdm(x = sourceIn, y = targetOut,
+                                  weights = edgeweight, method = 'pearson'),
+              'in-in' = wdm::wdm(x = sourceIn, y = targetIn,
+                                 weights = edgeweight, method = 'pearson')))
 }
