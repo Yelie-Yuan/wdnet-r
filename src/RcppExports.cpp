@@ -28,6 +28,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rewire_cpp
+Rcpp::List rewire_cpp(arma::vec targetNode, arma::vec index_s, arma::vec index_t, int nattempts, arma::mat joint_e);
+RcppExport SEXP _wdnet_rewire_cpp(SEXP targetNodeSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP nattemptsSEXP, SEXP joint_eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type targetNode(targetNodeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type index_s(index_sSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type index_t(index_tSEXP);
+    Rcpp::traits::input_parameter< int >::type nattempts(nattemptsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type joint_e(joint_eSEXP);
+    rcpp_result_gen = Rcpp::wrap(rewire_cpp(targetNode, index_s, index_t, nattempts, joint_e));
+    return rcpp_result_gen;
+END_RCPP
+}
 // findNode_cpp
 arma::vec findNode_cpp(arma::vec nodes, arma::vec edges, arma::vec index);
 RcppExport SEXP _wdnet_findNode_cpp(SEXP nodesSEXP, SEXP edgesSEXP, SEXP indexSEXP) {
