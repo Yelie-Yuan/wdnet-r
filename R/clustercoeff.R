@@ -66,12 +66,8 @@ dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo")) {
   ## Force to remove self-loops.
   diag(adj) <- 0
   ## Extract the unweighted adjacency matrix
-  if (sum(adj == 0) / nrow(adj)^2 > 0.3) {
-    adj <- Matrix::Matrix(adj, sparse = TRUE)
-    A <- Matrix::Matrix(adj > 0, sparse = TRUE)
-  } else {
-    A <- adj > 0
-  }
+  adj <- Matrix::Matrix(adj, sparse = TRUE)
+  A <- Matrix::Matrix(adj > 0, sparse = TRUE)
   ## Compute strength vector
   s_in <- Matrix::colSums(adj)
   s_out <- Matrix::rowSums(adj)
