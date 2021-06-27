@@ -1,60 +1,28 @@
-#' @importFrom CVXR Variable sum_entries quad_form Minimize Maximize Problem solve
+#' @importFrom CVXR Variable sum_entries Minimize Maximize Problem solve
 NULL
 
-#' Minimum value of assortativity coefficient for undirected networks with given
-#' degree distribution p_k and support k.
-#'
-#' @param k A vector represents the support of degree distribution.
-#' @param p_k PMF of degree distribution.
-#'
-#' @return The minimum value of rho and the joint distribution e_jk.
-#' @export
-#'
-#' @examples
-#' k <- c(1:30)
-#' p_k <- k^(-2) / sum(k^(-2))
-#' min_rho(k, p_k)
-min_rho <- function(k, p_k) {
-  stopifnot(sum(p_k) == 1)
-  q_k <- k * p_k / sum(k * p_k)
-  sig2 <- sum(k ^2 * q_k) - (sum(k * q_k))^2
-  e_jk <- CVXR::Variable(length(k), length(k), nonneg = TRUE)
-  constrs <- list(CVXR::sum_entries(e_jk, 1) == q_k, e_jk == t(e_jk))
-  temp <- CVXR::quad_form(k, e_jk)
-  objective <- CVXR::Minimize(temp)
-  problem <- CVXR::Problem(objective, constrs)
-  result <- CVXR::solve(problem, solver = 'ECOS')
-  e_jk <- result$getValue(e_jk)
-  list(rho = as.numeric(t(k) %*% (e_jk - q_k %*% t(q_k)) %*% k / sig2), 
-       e_jk = e_jk)
-}
-
 #' Get the nodel-level joint distributions and some empirical distributions with
-#' given edgelist or node-level joint degree distribution.
+#' given edgelist.
 #'
 #' @param edgelist A two column matrix represents the directed edges of a
 #'   network.
-#' @param n_jk Matrix; represents the node level joint degree distribution, for
-#'   example, n_ab represents the proportion of nodes with out-degree a and
-#'   in-degree b. Rownames(colnames) of n_jk is the out-degree(in-degree)
-#'   sequence.
+#' @param directed Logical, whether the network is directed.
 #'
 #' @return A list of distributions and degree vectors.
 #'
-get_dist <- function(edgelist = NA, n_jk = NA) {
-  if (is.na(n_jk)[1]) {
-    edgelist <- as.matrix(edgelist)
-    temp <- nodeStrength_cpp(startNode = edgelist[, 1], 
-                             endNode = edgelist[, 2], 
-                             nNodes = max(edgelist), 
-                             weight = 1,
-                             weighted = FALSE)
-    outd <- temp$outstrength
-    ind <- temp$instrength
-    nedge <- nrow(edgelist)
-    n_jk <- data.frame('out_degree' = outd, 'in_degree' = ind)
-    n_jk <- table(n_jk) / length(outd)
-  }
+get_dist <- function(edgelist = NA, directed = TRUE) {
+  if (! directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
+  edgelist <- as.matrix(edgelist)
+  temp <- nodeStrength_cpp(startNode = edgelist[, 1], 
+                           endNode = edgelist[, 2], 
+                           nNodes = max(edgelist), 
+                           weight = 1,
+                           weighted = FALSE)
+  outd <- temp$outstrength
+  ind <- temp$instrength
+  nedge <- nrow(edgelist)
+  n_jk <- data.frame('out_degree' = outd, 'in_degree' = ind)
+  n_jk <- table(n_jk) / length(outd)
   d_out <- as.numeric(rownames(n_jk))
   d_in <- as.numeric(colnames(n_jk))
   p_out <- as.numeric(rowSums(n_jk))
@@ -75,15 +43,16 @@ get_dist <- function(edgelist = NA, n_jk = NA) {
        q_t_out = q_t_out, q_t_in = q_t_in)
 }
 
-#' Edge level distributions with respect to given assortativity level(s).
+#' Edge-level distributions for directed networks with respect to desired
+#' assortativity level(s).
 #'
 #' @param edgelist A two column matrix represents the directed edges of a
 #'   network.
 #' @param targetRho List, represents the predetermined assortativity
 #'   coefficients.
-#' @param whichRange The range of interested assortativity level provide other
-#'   predetermined assortativity level(s) are satisfied, "out-out", "out-in",
-#'   "in-out" or "in-in".
+#' @param whichRange Character, "out-out", "out-in", "in-out" or "in-in".
+#'   Represents the range of interested assortativity level provide other
+#'   predetermined assortativity level(s) are satisfied.
 #' @param abstol Numerical, passed to CVXR::solve(), represents the absolute
 #'   tolerance on the duality gap.
 #'
@@ -93,19 +62,19 @@ get_dist <- function(edgelist = NA, n_jk = NA) {
 #' @export
 #'
 #' @examples
-#' edgelist <- rpanet(30000, 
-#'     control = panet.control(alpha = 0.3, beta = 0.1, 
+#' edgelist <- rpanet(30000,
+#'     control = panet.control(alpha = 0.3, beta = 0.1,
 #'     gamma = 0.3, xi = 0.3, delta_out = 1, delta_in = 1))$edgelist
 #' edge_assort(edgelist)
 #' r <- list('out-out' = -0.1, 'out-in' = 0.5, in-out' = 0.4, 'in-in' = 0.4)
-#' ret <- joint_dist(edgelist, targetRho = r)
+#' ret <- directed_edge_level_dist(edgelist, targetRho = r)
 #' 
-joint_dist <- function(edgelist, 
-                       targetRho = list('out-out' = NULL, 'out-in' = NULL,
-                                        'in-out' = NULL, 'in-in' = NULL),
-                       whichRange = NA,
-                       abstol = 0.1) {
-  mydist <- get_dist(edgelist = edgelist)
+directed_edge_level_dist <- function(edgelist, 
+                                     targetRho = list('out-out' = NULL, 'out-in' = NULL,
+                                                      'in-out' = NULL, 'in-in' = NULL),
+                                     whichRange = NA,
+                                     abstol = 0.1) {
+  mydist <- get_dist(edgelist = edgelist, directed = TRUE)
   m <- length(mydist$d_out)
   n <- length(mydist$d_in)
   
@@ -115,9 +84,9 @@ joint_dist <- function(edgelist,
   t_outin <- t_outin / sum(t_outin)
   index_s <- s_outin != 0
   index_t <- t_outin != 0
-  eMat <- Variable(sum(index_s), sum(index_t), nonneg = TRUE)
-  constrs <- list(sum_entries(eMat, 1) == s_outin[index_s],
-                  sum_entries(eMat, 2) == t_outin[index_t])
+  eMat <- CVXR::Variable(sum(index_s), sum(index_t), nonneg = TRUE)
+  constrs <- list(CVXR::sum_entries(eMat, 1) == s_outin[index_s],
+                  CVXR::sum_entries(eMat, 2) == t_outin[index_t])
   rm(s_outin, t_outin)
   
   mat1 <- matrix(0, m, m*n)
@@ -163,16 +132,16 @@ joint_dist <- function(edgelist,
   # constrs$'inout' <- rho$`in-out` <= 1
   # constrs$'inin' <- rho$`in-in` <= 1
   if (! is.null(targetRho$`out-out`)) {
-    constrs$'outout' <- rho$`out-out` == targetRho$`out-out`
+    constrs$'out-out' <- rho$'out-out' == targetRho$'out-out'
   }
   if (! is.null(targetRho$`out-in`)) {
-    constrs$'outin' <- rho$`out-in` == targetRho$`out-in`
+    constrs$'out-in' <- rho$'out-in' == targetRho$'out-in'
   }
   if (! is.null(targetRho$`in-out`)) {
-    constrs$'inout' <- rho$"in-out" == targetRho$`in-out`
+    constrs$'in-out' <- rho$'in-out' == targetRho$'in-out'
   }
   if (! is.null(targetRho$`in-in`)) {
-    constrs$'inin' <- rho$"in-in" == targetRho$`in-in`
+    constrs$'in-in' <- rho$'in-in' == targetRho$'in-in'
   }
   
   getvalues <- function(object, result) {
@@ -200,8 +169,8 @@ joint_dist <- function(edgelist,
     eMat
   }
   if (is.na(whichRange)) {
-    problem <- Problem(Minimize(0), constrs)
-    result <- solve(problem, solver = 'ECOS', abstol = abstol)
+    problem <- CVXR::Problem(CVXR::Minimize(0), constrs)
+    result <- CVXR::solve(problem, solver = 'ECOS', abstol = abstol)
     if (result$status == 'solver_error') stop('SOLVER ERROR.')
     if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
@@ -213,13 +182,13 @@ joint_dist <- function(edgelist,
     whichRange <- switch (whichRange,
                           'out-out' = 1, 'out-in' = 2, 
                           'in-out' = 3, 'in-in' = 4)
-    problem1 <- Problem(Minimize(rho[[whichRange]]), constrs)
-    result1 <- solve(problem1, solver = 'ECOS', abstol = abstol)
+    problem1 <- CVXR::Problem(CVXR::Minimize(rho[[whichRange]]), constrs)
+    result1 <- CVXR::solve(problem1, solver = 'ECOS', abstol = abstol)
     if (result1$status == 'solver_error') stop('SOLVER ERROR.')
     if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
-    problem2 <- Problem(Maximize(rho[[whichRange]]), constrs)
-    result2 <- solve(problem2, solver = 'ECOS', abstol = abstol)
+    problem2 <- CVXR::Problem(CVXR::Maximize(rho[[whichRange]]), constrs)
+    result2 <- CVXR::solve(problem2, solver = 'ECOS', abstol = abstol)
     
     if (result2$status == 'solver_error') stop('SOLVER ERROR.')
     if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
@@ -232,5 +201,75 @@ joint_dist <- function(edgelist,
                 ubound = list(rho = getvalues(rho, result2),
                               e = getvalues(e, result2),
                               joint_e = name_eMat(result2$getValue(eMat)))))
+  }
+}
+
+#' Edge-level distribution for undirected networks with respect to desired
+#' assortativity level.
+#'
+#' @param edgelist A two column matrix represents the undirected edges of a
+#'   network.
+#' @param targetRho Numeric, represents the predetermined assortativity
+#'   coefficient. If NA, the range of assortativity coefficient and
+#'   corresponding edge-level distribution are returned.
+#' @param abstol Numerical, passed to CVXR::solve(), represents the absolute
+#'   tolerance on the duality gap.
+#'
+#' @return Assortativity level and corresponding edge level distribution.
+#' @export
+#'
+#' @examples
+#' set.seed(1234)
+#' edgelist <- matrix(sample(1:10, 500, replace = TRUE), ncol = 2)
+#' ret1 <- undirected_edge_level_dist(edgelist)
+#' ret2 <- undirected_edge_level_dist(edgelist, targetRho = 0.6)
+#' 
+undirected_edge_level_dist <- function(edgelist, targetRho = NA, 
+                                       abstol = 0.1) {
+  stopifnot((targetRho <= 1 & targetRho >= -1) | is.na(targetRho))
+  mydist <- get_dist(edgelist = edgelist, directed = FALSE)
+  k <- mydist$d_out
+  q_k <- mydist$q_s_out
+  rm(mydist)
+  name_eMat <- function(eMat, k) {
+    colnames(eMat) <- rownames(eMat) <- k
+    eMat
+  }
+  if ((! is.na(targetRho)) & targetRho == 0) {
+    return(list(rho = 0, 
+                e = name_eMat(q_k %*% t(q_k), k)))
+  }
+  n <- length(k)
+  sig2 <- sum(k^2 * q_k) - (sum(k * q_k))^2
+  eMat <- CVXR::Variable(n, n, nonneg = TRUE)
+  rho <- t(k) %*% (eMat - q_k %*% t(q_k)) %*% k / sig2
+  constrs <- list(CVXR::sum_entries(eMat, 1) == q_k, 
+                  eMat == t(eMat))
+  
+  if (! is.na(targetRho)) {
+    constrs$'rho' <- rho == targetRho
+    problem <- CVXR::Problem(CVXR::Minimize(0), constrs)
+    result <- CVXR::solve(problem, solver = 'ECOS', abstol = abstol)
+    if (result$status == 'solver_error') stop('SOLVER ERROR.')
+    if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    return(list(rho = result$getValue(rho),
+                e = name_eMat(result$getValue(eMat), k)))
+  } else {
+    constrs$'rho' <- rho <= 1
+    problem1 <- CVXR::Problem(CVXR::Minimize(rho), constrs)
+    result1 <- CVXR::solve(problem1, solver = 'ECOS', abstol = abstol)
+    if (result1$status == 'solver_error') stop('SOLVER ERROR.')
+    if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    
+    problem2 <- CVXR::Problem(CVXR::Maximize(rho), constrs)
+    result2 <- CVXR::solve(problem2, solver = 'ECOS', abstol = abstol)
+    if (result2$status == 'solver_error') stop('SOLVER ERROR.')
+    if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    
+    return(list(range = c(result1$getValue(rho), result2$getValue(rho)),
+                lbound = list(rho = result1$getValue(rho),
+                              e = name_eMat(result1$getValue(eMat), k)),
+                ubound = list(rho = result2$getValue(rho),
+                              e = name_eMat(result2$getValue(eMat), k))))
   }
 }
