@@ -18,13 +18,14 @@
 
 #' @importFrom stats weighted.mean
 #' @importFrom wdm wdm
+#' @importFrom igraph graph_from_adjacency_matrix as_edgelist
 NULL
 
 ## Directed assortativity coefficient
 
 #' Compute the assortativity coefficient of a weighted and directed network.
 #'
-#' @param adj is an adjacency matrix of an weighted and directed network.
+#' @param adj is an adjacency matrix of a weighted and directed network.
 #' @param type which type of assortativity coefficient to compute: "out-in" (default), 
 #' "in-in", "out-out" or "in-out"?
 #'
@@ -136,4 +137,75 @@ edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE) {
                                   weights = edgeweight, method = 'pearson'),
               'in-in' = wdm::wdm(x = sourceIn, y = targetIn,
                                  weights = edgeweight, method = 'pearson')))
+}
+
+#' Assortativity coefficients between features of a weighted and directed
+#' network.
+#'
+#' @param edgelist A two column matrix represents the directed edges. If
+#'   \code{edgelist} and \code{edgeweight} are \code{NA}, the adjacency matrix
+#'   \code{adj} will be used.
+#' @param edgeweight Vector, represents the weight of edges.
+#' @param adj The adjacency matrix of a weighted directed network. If \code{NA},
+#'   \code{edgelist} and \code{edgeweight} will be used.
+#' @param feature1 Vector, represents feature values of node 1, node 2, etc,.
+#'   Number of nodes \code{= length(feature1) = length(feautre2)}. If \code{NA},
+#'   out-strength will be used.
+#' @param feature2 Vector, represents feature values of node 1, node 2, etc,. If
+#'   \code{NA}, in-strength will be used.
+#'
+#' @return Directed weighted assortativity coefficients between source nodes'
+#'   \code{feature1} (or \code{feature2}) and target nodes' \code{feature2}(or
+#'   \code{feature1}).
+#' @export
+#'
+#' @examples
+#' adj <- matrix(rbinom(400, 1, 0.2) * sample(1:3, 400, replace = TRUE), 20, 20)
+#' feature1 <- runif(20)
+#' feature2 <- abs(rnorm(20))
+#' ret <- dw_feature_assort(adj = adj, feature1 = feature1, feature2 = feature2)
+#' 
+dw_feature_assort <- function(adj = NA, edgelist = NA, edgeweight = NA, 
+                              feature1 = NA, feature2 = NA) {
+  if (is.na(edgelist)[1] & is.na(edgeweight)[1]) {
+    temp_adj <- (adj > 0) * 1
+    g <- igraph::graph_from_adjacency_matrix(temp_adj)
+    rm(temp_adj)
+    edgelist <- igraph::as_edgelist(g)
+    adj <- t(adj)
+    edgeweight <- adj[adj > 0]
+  }
+  nNodes <- max(edgelist)
+  if (is.na(feature1)[1] | is.na(feature2)[1]) {
+    temp <- nodeStrength_cpp(startNode = edgelist[, 1], 
+                             endNode = edgelist[, 2], 
+                             weight = edgeweight, 
+                             nNodes = nNodes, 
+                             weighted = TRUE)
+  }
+  if (is.na(feature1)[1]) {
+    feature1 <- temp$outstrength
+  }
+  if (is.na(feature2)[1]) {
+    feature2 <- temp$instrength
+  }
+  stopifnot(length(feature1) == nNodes & length(feature2) == nNodes)
+  ret <- list()
+  ret[[paste('feature1', 'feature1', sep = '-')]] <- wdm::wdm(feature1[edgelist[, 1]],
+                                                              feature1[edgelist[, 2]],
+                                                              weights = edgeweight, 
+                                                              method = 'pearson')
+  ret[[paste('feature1', 'feature2', sep = '-')]] <- wdm::wdm(feature1[edgelist[, 1]],
+                                                              feature2[edgelist[, 2]],
+                                                              weights = edgeweight, 
+                                                              method = 'pearson')
+  ret[[paste('feature2', 'feature1', sep = '-')]] <- wdm::wdm(feature2[edgelist[, 1]],
+                                                              feature1[edgelist[, 2]],
+                                                              weights = edgeweight, 
+                                                              method = 'pearson')
+  ret[[paste('feature2', 'feature2', sep = '-')]] <- wdm::wdm(feature2[edgelist[, 1]],
+                                                              feature2[edgelist[, 2]],
+                                                              weights = edgeweight, 
+                                                              method = 'pearson')
+  return(ret)
 }
