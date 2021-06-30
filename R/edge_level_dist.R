@@ -50,28 +50,31 @@ get_dist <- function(edgelist = NA, directed = TRUE) {
 #'   network.
 #' @param targetRho List, represents the predetermined assortativity
 #'   coefficients.
+#' @param f The convex function of the joint edge-level distribution to be
+#'   minimized when \code{whichRange} is \code{NA}. Default is 0.
 #' @param whichRange Character, "out-out", "out-in", "in-out" or "in-in".
 #'   Represents the range of interested assortativity level provide other
 #'   predetermined assortativity level(s) are satisfied.
-#' @param abstol Numerical, passed to CVXR::solve(), represents the absolute
-#'   tolerance on the duality gap.
+#' @param abstol Numerical, passed to \code{CVXR::solve()}, represents the
+#'   absolute tolerance on the duality gap.
 #'
-#' @return Assortativity levels, edge level distributions and the joint
+#' @return Assortativity levels, edge-level distributions and the joint
 #'   distribution of source nodes' out- and in-degrees and target nodes' out-
 #'   and in-degrees.
 #' @export
 #'
 #' @examples
-#' edgelist <- rpanet(30000,
+#' edgelist <- rpanet(3000,
 #'     control = panet.control(alpha = 0.3, beta = 0.1,
 #'     gamma = 0.3, xi = 0.3, delta_out = 1, delta_in = 1))$edgelist
 #' edge_assort(edgelist)
-#' r <- list('out-out' = -0.1, 'out-in' = 0.5, in-out' = 0.4, 'in-in' = 0.4)
-#' ret <- directed_edge_level_dist(edgelist, targetRho = r)
+#' r <- list('out-out' = -0.1, 'out-in' = 0.5, 'in-out' = 0.4, 'in-in' = 0.4)
+#' ret <- directed_edge_level_dist(edgelist, targetRho = r, f = CVXR::norm2)
 #' 
 directed_edge_level_dist <- function(edgelist, 
                                      targetRho = list('out-out' = NULL, 'out-in' = NULL,
                                                       'in-out' = NULL, 'in-in' = NULL),
+                                     f = function(x) 0,
                                      whichRange = NA,
                                      abstol = 0.1) {
   mydist <- get_dist(edgelist = edgelist, directed = TRUE)
@@ -127,10 +130,10 @@ directed_edge_level_dist <- function(edgelist,
       (e$"in-in" - mydist$q_s_in %*% t(mydist$q_t_in)) %*% 
       mydist$d_in / sig$s_in / sig$t_in)
   
-  # constrs$'outout' <- rho$`out-out` <= 1
-  # constrs$'outin' <- rho$`out-in` <= 1
-  # constrs$'inout' <- rho$`in-out` <= 1
-  # constrs$'inin' <- rho$`in-in` <= 1
+  constrs$'out-out' <- rho$`out-out` <= 1
+  constrs$'out-in' <- rho$`out-in` <= 1
+  constrs$'in-out' <- rho$`in-out` <= 1
+  constrs$'in-in' <- rho$`in-in` <= 1
   if (! is.null(targetRho$`out-out`)) {
     constrs$'out-out' <- rho$'out-out' == targetRho$'out-out'
   }
@@ -169,7 +172,7 @@ directed_edge_level_dist <- function(edgelist,
     eMat
   }
   if (is.na(whichRange)) {
-    problem <- CVXR::Problem(CVXR::Minimize(0), constrs)
+    problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
     result <- CVXR::solve(problem, solver = 'ECOS', abstol = abstol)
     if (result$status == 'solver_error') stop('SOLVER ERROR.')
     if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
@@ -210,10 +213,12 @@ directed_edge_level_dist <- function(edgelist,
 #' @param edgelist A two column matrix represents the undirected edges of a
 #'   network.
 #' @param targetRho Numeric, represents the predetermined assortativity
-#'   coefficient. If NA, the range of assortativity coefficient and
+#'   coefficient. If \code{NA}, the range of assortativity coefficient and
 #'   corresponding edge-level distribution are returned.
-#' @param abstol Numerical, passed to CVXR::solve(), represents the absolute
-#'   tolerance on the duality gap.
+#' @param f The convex function of the edge-level distribution to be minimized
+#'   when \code{targetRho} is not \code{NA}. Default is 0.
+#' @param abstol Numerical, passed to \code{CVXR::solve()}, represents the
+#'   absolute tolerance on the duality gap.
 #'
 #' @return Assortativity level and corresponding edge level distribution.
 #' @export
@@ -221,10 +226,11 @@ directed_edge_level_dist <- function(edgelist,
 #' @examples
 #' set.seed(1234)
 #' edgelist <- matrix(sample(1:10, 500, replace = TRUE), ncol = 2)
-#' ret1 <- undirected_edge_level_dist(edgelist)
-#' ret2 <- undirected_edge_level_dist(edgelist, targetRho = 0.6)
+#' ret1 <- undirected_edge_level_dist(edgelist, f = CVXR::norm2)
+#' ret2 <- undirected_edge_level_dist(edgelist, targetRho = 0.6, f = CVXR::norm2)
 #' 
 undirected_edge_level_dist <- function(edgelist, targetRho = NA, 
+                                       f = function(x) 0,
                                        abstol = 0.1) {
   stopifnot((targetRho <= 1 & targetRho >= -1) | is.na(targetRho))
   mydist <- get_dist(edgelist = edgelist, directed = FALSE)
@@ -248,7 +254,7 @@ undirected_edge_level_dist <- function(edgelist, targetRho = NA,
   
   if (! is.na(targetRho)) {
     constrs$'rho' <- rho == targetRho
-    problem <- CVXR::Problem(CVXR::Minimize(0), constrs)
+    problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
     result <- CVXR::solve(problem, solver = 'ECOS', abstol = abstol)
     if (result$status == 'solver_error') stop('SOLVER ERROR.')
     if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
