@@ -7,10 +7,12 @@ NULL
 #' @param edgelist A two column matrix represents the directed edges of a
 #'   network.
 #' @param directed Logical, whether the network is directed.
+#' @param joint_dist Logical, whether to return edge-level distributions.
 #'
 #' @return A list of distributions and degree vectors.
-#'
-get_dist <- function(edgelist = NA, directed = TRUE) {
+#'   
+get_dist <- function(edgelist = NA, directed = TRUE, 
+                     joint_dist = FALSE) {
   if (! directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
   edgelist <- as.matrix(edgelist)
   temp <- nodeStrength_cpp(startNode = edgelist[, 1], 
@@ -21,7 +23,7 @@ get_dist <- function(edgelist = NA, directed = TRUE) {
   outd <- temp$outstrength
   ind <- temp$instrength
   nedge <- nrow(edgelist)
-  n_jk <- data.frame('out_degree' = outd, 'in_degree' = ind)
+  n_jk <- data.frame('outdegree' = outd, 'indegree' = ind)
   n_jk <- table(n_jk) / length(outd)
   d_out <- as.numeric(rownames(n_jk))
   d_in <- as.numeric(colnames(n_jk))
@@ -37,7 +39,25 @@ get_dist <- function(edgelist = NA, directed = TRUE) {
   q_s_in <- colSums(t1)
   # target-out
   q_t_out <- rowSums(t2)
-  list(n_jk  = n_jk, d_out = d_out, d_in = d_in, 
+  e <- joint_e <- NA
+  # other joint distributions
+  if (joint_dist) {
+    e <- list(
+      'out-out' = table(data.frame(
+        'source' = outd[edgelist[, 1]], 'target' = outd[edgelist[, 2]])) / nedge,
+      'out-in' = table(data.frame(
+        'source' = outd[edgelist[, 1]], 'target' = ind[edgelist[, 2]])) / nedge,
+      'in-out' = table(data.frame(
+        'source' = ind[edgelist[, 1]], 'target' = outd[edgelist[, 2]]))/ nedge,
+      'in-in' = table(data.frame(
+        'source' = ind[edgelist[, 1]], 'target' = ind[edgelist[, 2]])) / nedge)
+    joint_e <- table(data.frame(
+      'source' = paste(outd[edgelist[, 1]], ind[edgelist[, 1]], sep = '-'),
+      'target' = paste(outd[edgelist[, 2]], ind[edgelist[, 2]], sep = '-')
+    )) / nedge
+  }
+  list(n_jk  = n_jk, e = e, joint_e = joint_e,
+       d_out = d_out, d_in = d_in,
        p_out = p_out, p_in = p_in,
        q_s_out = q_s_out, q_s_in = q_s_in,
        q_t_out = q_t_out, q_t_in = q_t_in)
@@ -169,6 +189,7 @@ directed_edge_level_dist <- function(edgelist,
                    rep(b, length(a)), split = '')
     colnames(eMat) <- temp[index_b]
     rownames(eMat) <- temp[index_a]
+    names(attributes(eMat)$dimnames) <- c('source', 'target')
     eMat
   }
   if (is.na(whichRange)) {

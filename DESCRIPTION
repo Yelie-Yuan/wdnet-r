@@ -11,7 +11,7 @@ Authors@R: c(
            role = "aut"))
 Description: Assortativitity and centrality measures for weighted directed
     network, most of which are not covered by other R packages.
-Depends: R (>= 4.0.5)
+Depends: R (>= 4.1.0)
 License: GPL (>= 3.0)
 Encoding: UTF-8
 Imports: stats, igraph, matrixcalc, wdm, Rcpp, rARPACK, Matrix, CVXR
