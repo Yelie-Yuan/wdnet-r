@@ -63,6 +63,56 @@ get_dist <- function(edgelist = NA, directed = TRUE,
        q_t_out = q_t_out, q_t_in = q_t_in)
 }
 
+#' Parameters passed to CVXR::solver().
+#'
+#' @param solver (Optional) A string indicating the solver to use. Defaults to
+#'   "ECOS".
+#' @param ignore_dcp (Optional) A logical value indicating whether to override
+#'   the DCP check for a problem.
+#' @param warm_start (Optional) A logical value indicating whether the previous
+#'   solver result should be used to warm start.
+#' @param verbose (Optional) A logical value indicating whether to print
+#'   additional solver output.
+#' @param parallel (Optional) A logical value indicating whether to solve in
+#'   parallel if the problem is separable.
+#' @param gp (Optional) A logical value indicating whether the problem is a
+#'   geometric program. Defaults to FALSE.
+#' @param feastol The feasible tolerance on the primal and dual residual.
+#' @param reltol The relative tolerance on the duality gap.
+#' @param abstol The absolute tolerance on the duality gap.
+#' @param num_iter The maximum number of iterations.
+#' @param ... Additional options that will be passed to the specific solver. In
+#'   general, these options will override any default settings imposed by CVXR.
+#'
+#' @return A list containing the parameters.
+#' @export
+#'
+#' @examples
+#' control <- solver.control(solver = "OSQP", abstol = 1e-5)
+solver.control <- function(solver = "ECOS", 
+                           ignore_dcp = FALSE,
+                           warm_start = FALSE,
+                           verbose = FALSE,
+                           parallel = FALSE,
+                           gp = FALSE,
+                           feastol = NULL,
+                           reltol = NULL,
+                           abstol = NULL,
+                           num_iter = NULL,
+                           ...) {
+  return(list(solver = solver,
+              ignore_dcp = ignore_dcp,
+              warm_start = warm_start,
+              verbose = verbose,
+              parallel = parallel,
+              gp = gp,
+              feastol = feastol,
+              reltol = reltol,
+              abstol = abstol,
+              num_iter = num_iter, 
+              ...))
+}
+
 #' Edge-level distributions for directed networks with respect to desired
 #' assortativity level(s).
 #'
@@ -74,10 +124,8 @@ get_dist <- function(edgelist = NA, directed = TRUE,
 #'   minimized when \code{whichRange} is \code{NA}. Default is 0.
 #' @param whichRange Character, "out-out", "out-in", "in-out" or "in-in".
 #'   Represents the range of interested assortativity level provide other
+#' @param control A list of parameters passed to \code{CVXR::solve()}.
 #'   predetermined assortativity level(s) are satisfied.
-#' @param abstol Numerical, passed to \code{CVXR::solve()}, represents the
-#'   absolute tolerance on the duality gap.
-#'
 #' @return Assortativity levels, edge-level distributions and the joint
 #'   distribution of source nodes' out- and in-degrees and target nodes' out-
 #'   and in-degrees.
@@ -96,7 +144,7 @@ directed_edge_level_dist <- function(edgelist,
                                                       'in-out' = NULL, 'in-in' = NULL),
                                      f = function(x) 0,
                                      whichRange = NA,
-                                     abstol = 0.1) {
+                                     control = solver.control()) {
   mydist <- get_dist(edgelist = edgelist, directed = TRUE)
   m <- length(mydist$d_out)
   n <- length(mydist$d_in)
@@ -150,10 +198,10 @@ directed_edge_level_dist <- function(edgelist,
       (e$"in-in" - mydist$q_s_in %*% t(mydist$q_t_in)) %*% 
       mydist$d_in / sig$s_in / sig$t_in)
   
-  constrs$'out-out' <- rho$`out-out` <= 1
-  constrs$'out-in' <- rho$`out-in` <= 1
-  constrs$'in-out' <- rho$`in-out` <= 1
-  constrs$'in-in' <- rho$`in-in` <= 1
+  # constrs$'out-out' <- rho$`out-out` <= 1
+  # constrs$'out-in' <- rho$`out-in` <= 1
+  # constrs$'in-out' <- rho$`in-out` <= 1
+  # constrs$'in-in' <- rho$`in-in` <= 1
   if (! is.null(targetRho$`out-out`)) {
     constrs$'out-out' <- rho$'out-out' == targetRho$'out-out'
   }
@@ -194,7 +242,8 @@ directed_edge_level_dist <- function(edgelist,
   }
   if (is.na(whichRange)) {
     problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
-    result <- CVXR::solve(problem, solver = 'ECOS', abstol = abstol)
+    result <- do.call(CVXR::solve, c(list(problem), control))
+    # result <- CVXR::solve(problem, solver = solver, abstol = abstol)
     if (result$status == 'solver_error') stop('SOLVER ERROR.')
     if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
@@ -207,12 +256,14 @@ directed_edge_level_dist <- function(edgelist,
                           'out-out' = 1, 'out-in' = 2, 
                           'in-out' = 3, 'in-in' = 4)
     problem1 <- CVXR::Problem(CVXR::Minimize(rho[[whichRange]]), constrs)
-    result1 <- CVXR::solve(problem1, solver = 'ECOS', abstol = abstol)
+    result1 <- do.call(CVXR::solve, c(list(problem1), control))
+    # result1 <- CVXR::solve(problem1, solver = solver, abstol = abstol)
     if (result1$status == 'solver_error') stop('SOLVER ERROR.')
     if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
     problem2 <- CVXR::Problem(CVXR::Maximize(rho[[whichRange]]), constrs)
-    result2 <- CVXR::solve(problem2, solver = 'ECOS', abstol = abstol)
+    result2 <- do.call(CVXR::solve, c(list(problem2), control))
+    # result2 <- CVXR::solve(problem2, solver = solver, abstol = abstol)
     
     if (result2$status == 'solver_error') stop('SOLVER ERROR.')
     if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
@@ -238,8 +289,7 @@ directed_edge_level_dist <- function(edgelist,
 #'   corresponding edge-level distribution are returned.
 #' @param f The convex function of the edge-level distribution to be minimized
 #'   when \code{targetRho} is not \code{NA}. Default is 0.
-#' @param abstol Numerical, passed to \code{CVXR::solve()}, represents the
-#'   absolute tolerance on the duality gap.
+#' @param control A list of parameters passed to \code{CVXR::solve()}.
 #'
 #' @return Assortativity level and corresponding edge level distribution.
 #' @export
@@ -252,7 +302,7 @@ directed_edge_level_dist <- function(edgelist,
 #' 
 undirected_edge_level_dist <- function(edgelist, targetRho = NA, 
                                        f = function(x) 0,
-                                       abstol = 0.1) {
+                                       control = solver.control()) {
   stopifnot((targetRho <= 1 & targetRho >= -1) | is.na(targetRho))
   mydist <- get_dist(edgelist = edgelist, directed = FALSE)
   k <- mydist$d_out
@@ -276,7 +326,8 @@ undirected_edge_level_dist <- function(edgelist, targetRho = NA,
   if (! is.na(targetRho)) {
     constrs$'rho' <- rho == targetRho
     problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
-    result <- CVXR::solve(problem, solver = 'ECOS', abstol = abstol)
+    result <- do.call(CVXR::solve, c(list(problem), control))
+    # result <- CVXR::solve(problem, solver = solver, abstol = abstol)
     if (result$status == 'solver_error') stop('SOLVER ERROR.')
     if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     return(list(rho = result$getValue(rho),
@@ -284,12 +335,14 @@ undirected_edge_level_dist <- function(edgelist, targetRho = NA,
   } else {
     constrs$'rho' <- rho <= 1
     problem1 <- CVXR::Problem(CVXR::Minimize(rho), constrs)
-    result1 <- CVXR::solve(problem1, solver = 'ECOS', abstol = abstol)
+    result1 <- do.call(CVXR::solve, c(list(problem1), control))
+    # result1 <- CVXR::solve(problem1, solver = solver, abstol = abstol)
     if (result1$status == 'solver_error') stop('SOLVER ERROR.')
     if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
     problem2 <- CVXR::Problem(CVXR::Maximize(rho), constrs)
-    result2 <- CVXR::solve(problem2, solver = 'ECOS', abstol = abstol)
+    result2 <- do.call(CVXR::solve, c(list(problem2), control))
+    # result2 <- CVXR::solve(problem2, solver = solver, abstol = abstol)
     if (result2$status == 'solver_error') stop('SOLVER ERROR.')
     if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
