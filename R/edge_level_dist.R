@@ -63,6 +63,56 @@ get_dist <- function(edgelist = NA, directed = TRUE,
        q_t_out = q_t_out, q_t_in = q_t_in)
 }
 
+#' Get the constraints for the optimization problem. This function is defined
+#' for \code{directed_edge_level_dist}.
+#'
+#' @param constrs A list of constraints.
+#' @param targetRho A list of target assortativity levels.
+#' @param rho A list of variable objects.
+#'
+#' @return A list of constraints.
+#'
+get_constrs <- function(constrs, targetRho, rho) {
+  for (type in names(targetRho)) {
+    if (! is.null(targetRho[[type]])) {
+      if (length(targetRho[[type]]) == 1) {
+        constrs[[type]] <- rho[[type]] == targetRho[[type]]
+      }
+      else {
+        constrs[[paste0(type, '_max')]] <- rho[[type]] <= max(targetRho[[type]])
+        constrs[[paste0(type, '_min')]] <- rho[[type]] >= min(targetRho[[type]])
+      }
+    }
+  }
+  return(constrs)
+}
+
+#' Get the value of an object from the optimization problem. This function is
+#' defined for \code{directed_edge_level_dist}.
+#'
+#' @param object An object from the optimization problem.
+#' @param result A list returned from \code{CVXR::solve()}.
+#' @param mydist A list of distributions returned from \code{wdnet:::get_dist()}.
+#'
+#' @return Value of the object.
+#'   
+get_values <- function(object, result, mydist) {
+  out_out = result$getValue(object[['out-out']])
+  out_in = result$getValue(object[['out-in']])
+  in_out = result$getValue(object[['in-out']])
+  in_in = result$getValue(object[['in-in']])
+  if (deparse(substitute(object)) == 'e' & 
+      ! any(is.na(out_out), is.na(out_in), 
+            is.na(in_out), is.na(in_in))) {
+    rownames(out_out) <- rownames(out_in) <- mydist$d_out
+    colnames(in_out) <- colnames(out_out) <- mydist$d_out
+    rownames(in_out) <- rownames(in_in) <- mydist$d_in
+    colnames(out_in) <- colnames(in_in) <- mydist$d_in
+  }
+  list("out-out" = out_out, "out-in" = out_in,
+       "in-out" = in_out, "in-in" = in_in)
+}
+
 #' Parameters passed to CVXR::solver().
 #'
 #' @param solver (Optional) A string indicating the solver to use. Defaults to
@@ -118,12 +168,13 @@ solver.control <- function(solver = "ECOS",
 #'
 #' @param edgelist A two column matrix represents the directed edges of a
 #'   network.
-#' @param targetRho List, represents the predetermined assortativity
-#'   coefficients.
+#' @param targetRho List, represents the specific values or ranges of
+#'   assortativity coefficients.
 #' @param f The convex function of the joint edge-level distribution to be
-#'   minimized when \code{whichRange} is \code{NA}. Default is 0.
-#' @param whichRange Character, "out-out", "out-in", "in-out" or "in-in".
-#'   Represents the range of interested assortativity level provide other
+#'   minimized when \code{whichRange} is \code{NA}. Defaults to 0.
+#' @param whichRange Character, "out-out", "out-in", "in-out" or "in-in". The
+#'   range of interested assortativity level provide \code{targetRho} is
+#'   satisfied.
 #' @param control A list of parameters passed to \code{CVXR::solve()}.
 #'   predetermined assortativity level(s) are satisfied.
 #' @return Assortativity levels, edge-level distributions and the joint
@@ -136,8 +187,12 @@ solver.control <- function(solver = "ECOS",
 #'     control = panet.control(alpha = 0.3, beta = 0.1,
 #'     gamma = 0.3, xi = 0.3, delta_out = 1, delta_in = 1))$edgelist
 #' edge_assort(edgelist)
-#' r <- list('out-out' = -0.1, 'out-in' = 0.5, 'in-out' = 0.4, 'in-in' = 0.4)
-#' ret <- directed_edge_level_dist(edgelist, targetRho = r, f = CVXR::norm2)
+#' r <- list('out-out' = -0.1, 'out-in' = c(-0.2, 0.3), 'in-out' = 0.4)
+#' ret1 <- directed_edge_level_dist(edgelist, targetRho = r, 
+#'     whichRange = 'in-in')
+#' r$'in-in' <- 0.4
+#' r$'out-in' <- 0.3
+#' ret2 <- directed_edge_level_dist(edgelist, targetRho = r, f = CVXR::norm2)
 #' 
 directed_edge_level_dist <- function(edgelist, 
                                      targetRho = list('out-out' = NULL, 'out-in' = NULL,
@@ -156,8 +211,8 @@ directed_edge_level_dist <- function(edgelist,
   index_s <- s_outin != 0
   index_t <- t_outin != 0
   eMat <- CVXR::Variable(sum(index_s), sum(index_t), nonneg = TRUE)
-  constrs <- list(CVXR::sum_entries(eMat, 1) == s_outin[index_s],
-                  CVXR::sum_entries(eMat, 2) == t_outin[index_t])
+  constrs <- list('rowSum' = CVXR::sum_entries(eMat, 1) == s_outin[index_s],
+                  'colSum' = CVXR::sum_entries(eMat, 2) == t_outin[index_t])
   rm(s_outin, t_outin)
   
   mat1 <- matrix(0, m, m*n)
@@ -202,35 +257,6 @@ directed_edge_level_dist <- function(edgelist,
   # constrs$'out-in' <- rho$`out-in` <= 1
   # constrs$'in-out' <- rho$`in-out` <= 1
   # constrs$'in-in' <- rho$`in-in` <= 1
-  if (! is.null(targetRho$`out-out`)) {
-    constrs$'out-out' <- rho$'out-out' == targetRho$'out-out'
-  }
-  if (! is.null(targetRho$`out-in`)) {
-    constrs$'out-in' <- rho$'out-in' == targetRho$'out-in'
-  }
-  if (! is.null(targetRho$`in-out`)) {
-    constrs$'in-out' <- rho$'in-out' == targetRho$'in-out'
-  }
-  if (! is.null(targetRho$`in-in`)) {
-    constrs$'in-in' <- rho$'in-in' == targetRho$'in-in'
-  }
-  
-  getvalues <- function(object, result) {
-    out_out = result$getValue(object[[1]])
-    out_in = result$getValue(object[[2]])
-    in_out = result$getValue(object[[3]])
-    in_in = result$getValue(object[[4]])
-    if (deparse(substitute(object)) == 'e' & 
-        ! any(is.na(out_out), is.na(out_in), 
-              is.na(in_out), is.na(in_in))) {
-      rownames(out_out) <- rownames(out_in) <- mydist$d_out
-      colnames(in_out) <- colnames(out_out) <- mydist$d_out
-      rownames(in_out) <- rownames(in_in) <- mydist$d_in
-      colnames(out_in) <- colnames(in_in) <- mydist$d_in
-    }
-    list("out-out" = out_out, "out-in" = out_in,
-         "in-out" = in_out, "in-in" = in_in)
-  }
   name_eMat <- function(eMat, a = mydist$d_out, b = mydist$d_in, 
                         index_a = index_s, index_b = index_t) {
     temp <- paste0(rep(a, each = length(b)), '-',
@@ -240,41 +266,38 @@ directed_edge_level_dist <- function(edgelist,
     names(attributes(eMat)$dimnames) <- c('source', 'target')
     eMat
   }
+  constrs <- get_constrs(constrs, targetRho, rho)
   if (is.na(whichRange)) {
     problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
-    # result <- CVXR::solve(problem, solver = solver, abstol = abstol)
     if (result$status == 'solver_error') stop('SOLVER ERROR.')
     if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
-    return(list(rho = getvalues(rho, result),
-                e = getvalues(e, result),
+    return(list(rho = get_values(rho, result, mydist),
+                e = get_values(e, result, mydist),
                 joint_e = name_eMat(result$getValue(eMat)))) 
-    # result = result))
   } else {
     whichRange <- switch (whichRange,
                           'out-out' = 1, 'out-in' = 2, 
                           'in-out' = 3, 'in-in' = 4)
     problem1 <- CVXR::Problem(CVXR::Minimize(rho[[whichRange]]), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    # result1 <- CVXR::solve(problem1, solver = solver, abstol = abstol)
     if (result1$status == 'solver_error') stop('SOLVER ERROR.')
     if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
     problem2 <- CVXR::Problem(CVXR::Maximize(rho[[whichRange]]), constrs)
     result2 <- do.call(CVXR::solve, c(list(problem2), control))
-    # result2 <- CVXR::solve(problem2, solver = solver, abstol = abstol)
-    
+
     if (result2$status == 'solver_error') stop('SOLVER ERROR.')
     if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
     return(list(range = c(result1$getValue(rho[[whichRange]]), 
                           result2$getValue(rho[[whichRange]])),
-                lbound = list(rho = getvalues(rho, result1),
-                              e = getvalues(e, result1),
+                lbound = list(rho = get_values(rho, result1, mydist),
+                              e = get_values(e, result1, mydist),
                               joint_e = name_eMat(result1$getValue(eMat))),
-                ubound = list(rho = getvalues(rho, result2),
-                              e = getvalues(e, result2),
+                ubound = list(rho = get_values(rho, result2, mydist),
+                              e = get_values(e, result2, mydist),
                               joint_e = name_eMat(result2$getValue(eMat)))))
   }
 }
@@ -291,7 +314,7 @@ directed_edge_level_dist <- function(edgelist,
 #'   when \code{targetRho} is not \code{NA}. Default is 0.
 #' @param control A list of parameters passed to \code{CVXR::solve()}.
 #'
-#' @return Assortativity level and corresponding edge level distribution.
+#' @return Assortativity level and corresponding edge-level distribution.
 #' @export
 #'
 #' @examples
@@ -327,22 +350,19 @@ undirected_edge_level_dist <- function(edgelist, targetRho = NA,
     constrs$'rho' <- rho == targetRho
     problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
-    # result <- CVXR::solve(problem, solver = solver, abstol = abstol)
     if (result$status == 'solver_error') stop('SOLVER ERROR.')
     if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     return(list(rho = result$getValue(rho),
                 e = name_eMat(result$getValue(eMat), k)))
   } else {
-    constrs$'rho' <- rho <= 1
+    # constrs$'rho' <- rho <= 1
     problem1 <- CVXR::Problem(CVXR::Minimize(rho), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    # result1 <- CVXR::solve(problem1, solver = solver, abstol = abstol)
     if (result1$status == 'solver_error') stop('SOLVER ERROR.')
     if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
     problem2 <- CVXR::Problem(CVXR::Maximize(rho), constrs)
     result2 <- do.call(CVXR::solve, c(list(problem2), control))
-    # result2 <- CVXR::solve(problem2, solver = solver, abstol = abstol)
     if (result2$status == 'solver_error') stop('SOLVER ERROR.')
     if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
     
