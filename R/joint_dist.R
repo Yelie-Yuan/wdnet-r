@@ -23,14 +23,14 @@ get_dist <- function(edgelist = NA, directed = TRUE,
   outd <- temp$outstrength
   ind <- temp$instrength
   nedge <- nrow(edgelist)
-  n_jk <- data.frame('outdegree' = outd, 'indegree' = ind)
-  n_jk <- table(n_jk) / length(outd)
-  d_out <- as.numeric(rownames(n_jk))
-  d_in <- as.numeric(colnames(n_jk))
-  p_out <- as.numeric(rowSums(n_jk))
-  p_in <- as.numeric(colSums(n_jk))
-  t1 <- n_jk * d_out; t1 <- t1 / sum(t1)
-  t2 <- t(t(n_jk) * d_in); t2 <- t2 / sum(t2)
+  nu <- data.frame("outdegree" = outd, "indegree" = ind)
+  nu <- table(nu) / length(outd)
+  d_out <- as.numeric(rownames(nu))
+  d_in <- as.numeric(colnames(nu))
+  p_out <- as.numeric(rowSums(nu))
+  p_in <- as.numeric(colSums(nu))
+  t1 <- nu * d_out; t1 <- t1 / sum(t1)
+  t2 <- t(t(nu) * d_in); t2 <- t2 / sum(t2)
   # source-out
   q_s_out <- rowSums(t1)
   # target-in
@@ -39,24 +39,24 @@ get_dist <- function(edgelist = NA, directed = TRUE,
   q_s_in <- colSums(t1)
   # target-out
   q_t_out <- rowSums(t2)
-  e <- joint_e <- NA
+  e <- eta <- NA
   # other joint distributions
   if (joint_dist) {
     e <- list(
-      'out-out' = table(data.frame(
-        'source' = outd[edgelist[, 1]], 'target' = outd[edgelist[, 2]])) / nedge,
-      'out-in' = table(data.frame(
-        'source' = outd[edgelist[, 1]], 'target' = ind[edgelist[, 2]])) / nedge,
-      'in-out' = table(data.frame(
-        'source' = ind[edgelist[, 1]], 'target' = outd[edgelist[, 2]]))/ nedge,
-      'in-in' = table(data.frame(
-        'source' = ind[edgelist[, 1]], 'target' = ind[edgelist[, 2]])) / nedge)
-    joint_e <- table(data.frame(
-      'source' = paste(outd[edgelist[, 1]], ind[edgelist[, 1]], sep = '-'),
-      'target' = paste(outd[edgelist[, 2]], ind[edgelist[, 2]], sep = '-')
+      "out-out" = table(data.frame(
+        "source" = outd[edgelist[, 1]], "target" = outd[edgelist[, 2]])) / nedge,
+      "out-in" = table(data.frame(
+        "source" = outd[edgelist[, 1]], "target" = ind[edgelist[, 2]])) / nedge,
+      "in-out" = table(data.frame(
+        "source" = ind[edgelist[, 1]], "target" = outd[edgelist[, 2]]))/ nedge,
+      "in-in" = table(data.frame(
+        "source" = ind[edgelist[, 1]], "target" = ind[edgelist[, 2]])) / nedge)
+    eta <- table(data.frame(
+      "source" = paste(outd[edgelist[, 1]], ind[edgelist[, 1]], sep = "-"),
+      "target" = paste(outd[edgelist[, 2]], ind[edgelist[, 2]], sep = "-")
     )) / nedge
   }
-  list(n_jk  = n_jk, e = e, joint_e = joint_e,
+  list(nu  = nu, e = e, eta = eta,
        d_out = d_out, d_in = d_in,
        p_out = p_out, p_in = p_in,
        q_s_out = q_s_out, q_s_in = q_s_in,
@@ -64,7 +64,7 @@ get_dist <- function(edgelist = NA, directed = TRUE,
 }
 
 #' Get the constraints for the optimization problem. This function is defined
-#' for \code{directed_edge_level_dist}.
+#' for \code{directed_joint_dist}.
 #'
 #' @param constrs A list of constraints.
 #' @param targetRho A list of target assortativity levels.
@@ -79,8 +79,8 @@ get_constrs <- function(constrs, targetRho, rho) {
         constrs[[type]] <- rho[[type]] == targetRho[[type]]
       }
       else {
-        constrs[[paste0(type, '_max')]] <- rho[[type]] <= max(targetRho[[type]])
-        constrs[[paste0(type, '_min')]] <- rho[[type]] >= min(targetRho[[type]])
+        constrs[[paste0(type, "_max")]] <- rho[[type]] <= max(targetRho[[type]])
+        constrs[[paste0(type, "_min")]] <- rho[[type]] >= min(targetRho[[type]])
       }
     }
   }
@@ -88,7 +88,7 @@ get_constrs <- function(constrs, targetRho, rho) {
 }
 
 #' Get the value of an object from the optimization problem. This function is
-#' defined for \code{directed_edge_level_dist}.
+#' defined for \code{directed_joint_dist}.
 #'
 #' @param object An object from the optimization problem.
 #' @param result A list returned from \code{CVXR::solve()}.
@@ -97,11 +97,11 @@ get_constrs <- function(constrs, targetRho, rho) {
 #' @return Value of the object.
 #'   
 get_values <- function(object, result, mydist) {
-  out_out = result$getValue(object[['out-out']])
-  out_in = result$getValue(object[['out-in']])
-  in_out = result$getValue(object[['in-out']])
-  in_in = result$getValue(object[['in-in']])
-  if (deparse(substitute(object)) == 'e' & 
+  out_out = result$getValue(object[["out-out"]])
+  out_in = result$getValue(object[["out-in"]])
+  in_out = result$getValue(object[["in-out"]])
+  in_in = result$getValue(object[["in-in"]])
+  if (deparse(substitute(object)) == "e" & 
       ! any(is.na(out_out), is.na(out_in), 
             is.na(in_out), is.na(in_in))) {
     rownames(out_out) <- rownames(out_in) <- mydist$d_out
@@ -187,43 +187,41 @@ solver.control <- function(solver = "ECOS",
 #'     control = panet.control(alpha = 0.3, beta = 0.1,
 #'     gamma = 0.3, xi = 0.3, delta_out = 1, delta_in = 1))$edgelist
 #' edge_assort(edgelist)
-#' r <- list('out-out' = -0.1, 'out-in' = c(-0.2, 0.3), 'in-out' = 0.4)
-#' ret1 <- directed_edge_level_dist(edgelist, targetRho = r, 
-#'     whichRange = 'in-in')
-#' r$'in-in' <- 0.4
-#' r$'out-in' <- 0.3
-#' ret2 <- directed_edge_level_dist(edgelist, targetRho = r, f = CVXR::norm2)
+#' r <- list("out-out" = -0.1, "out-in" = c(-0.2, 0.3), "in-out" = 0.4)
+#' ret1 <- directed_joint_dist(edgelist, targetRho = r, 
+#'     whichRange = "in-in")
+#' r$"in-in" <- 0.4
+#' r$"out-in" <- 0.3
+#' ret2 <- directed_joint_dist(edgelist, targetRho = r, f = CVXR::norm2)
 #' 
-directed_edge_level_dist <- function(edgelist, 
-                                     targetRho = list('out-out' = NULL, 'out-in' = NULL,
-                                                      'in-out' = NULL, 'in-in' = NULL),
-                                     f = function(x) 0,
-                                     whichRange = NA,
-                                     control = solver.control()) {
+directed_joint_dist <- function(edgelist, 
+  targetRho = list("out-out" = NULL, "out-in" = NULL,
+    "in-out" = NULL, "in-in" = NULL),
+  f = function(x) 0, whichRange = NA, control = solver.control()) {
   mydist <- get_dist(edgelist = edgelist, directed = TRUE)
   m <- length(mydist$d_out)
   n <- length(mydist$d_in)
   
-  s_outin <- c(t(mydist$n_jk * mydist$d_out))
+  s_outin <- c(t(mydist$nu * mydist$d_out))
   s_outin <- s_outin / sum(s_outin)
-  t_outin <- c(t(mydist$n_jk) * mydist$d_in)
+  t_outin <- c(t(mydist$nu) * mydist$d_in)
   t_outin <- t_outin / sum(t_outin)
   index_s <- s_outin != 0
   index_t <- t_outin != 0
   eMat <- CVXR::Variable(sum(index_s), sum(index_t), nonneg = TRUE)
-  constrs <- list('rowSum' = CVXR::sum_entries(eMat, 1) == s_outin[index_s],
-                  'colSum' = CVXR::sum_entries(eMat, 2) == t_outin[index_t])
+  constrs <- list("rowSum" = CVXR::sum_entries(eMat, 1) == s_outin[index_s],
+                  "colSum" = CVXR::sum_entries(eMat, 2) == t_outin[index_t])
   rm(s_outin, t_outin)
   
-  mat1 <- matrix(0, m, m*n)
+  mat1 <- matrix(0, m, m * n)
   for (i in 1:m) {
     temp <- c(1:n) + n * (i - 1)
     mat1[i, temp] <- 1
   }
-  mat2 <- matrix(0, m*n, n)
+  mat2 <- matrix(0, m * n, n)
   for (i in 1:n) {
-    temp <- seq(0, m*n - 1, n) + i
-    mat2[temp, i] <- 1  
+    temp <- seq(0, m * n - 1, n) + i
+    mat2[temp, i] <- 1
   }
   e <- list("out-out" = mat1[, index_s] %*% eMat %*% t(mat1[, index_t]),
             "out-in"  = mat1[, index_s] %*% eMat %*% mat2[index_t, ],
@@ -253,52 +251,52 @@ directed_edge_level_dist <- function(edgelist,
       (e$"in-in" - mydist$q_s_in %*% t(mydist$q_t_in)) %*% 
       mydist$d_in / sig$s_in / sig$t_in)
   
-  # constrs$'out-out' <- rho$`out-out` <= 1
-  # constrs$'out-in' <- rho$`out-in` <= 1
-  # constrs$'in-out' <- rho$`in-out` <= 1
-  # constrs$'in-in' <- rho$`in-in` <= 1
+  # constrs$"out-out" <- rho$"out-out" <= 1
+  # constrs$"out-in" <- rho$"out-in" <= 1
+  # constrs$"in-out" <- rho$"in-out" <= 1
+  # constrs$"in-in" <- rho$"in-in" <= 1
   name_eMat <- function(eMat, a = mydist$d_out, b = mydist$d_in, 
                         index_a = index_s, index_b = index_t) {
-    temp <- paste0(rep(a, each = length(b)), '-',
-                   rep(b, length(a)), split = '')
+    temp <- paste0(rep(a, each = length(b)), "-",
+                   rep(b, length(a)), split = "")
     colnames(eMat) <- temp[index_b]
     rownames(eMat) <- temp[index_a]
-    names(attributes(eMat)$dimnames) <- c('source', 'target')
+    names(attributes(eMat)$dimnames) <- c("source", "target")
     eMat
   }
   constrs <- get_constrs(constrs, targetRho, rho)
   if (is.na(whichRange)) {
     problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
-    if (result$status == 'solver_error') stop('SOLVER ERROR.')
-    if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    if (result$status == "solver_error") stop("SOLVER ERROR.")
+    if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
     return(list(rho = get_values(rho, result, mydist),
                 e = get_values(e, result, mydist),
-                joint_e = name_eMat(result$getValue(eMat)))) 
+                eta = name_eMat(result$getValue(eMat)))) 
   } else {
     whichRange <- switch (whichRange,
-                          'out-out' = 1, 'out-in' = 2, 
-                          'in-out' = 3, 'in-in' = 4)
+                          "out-out" = 1, "out-in" = 2, 
+                          "in-out" = 3, "in-in" = 4)
     problem1 <- CVXR::Problem(CVXR::Minimize(rho[[whichRange]]), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    if (result1$status == 'solver_error') stop('SOLVER ERROR.')
-    if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    if (result1$status == "solver_error") stop("SOLVER ERROR.")
+    if (result1$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
     problem2 <- CVXR::Problem(CVXR::Maximize(rho[[whichRange]]), constrs)
     result2 <- do.call(CVXR::solve, c(list(problem2), control))
 
-    if (result2$status == 'solver_error') stop('SOLVER ERROR.')
-    if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    if (result2$status == "solver_error") stop("SOLVER ERROR.")
+    if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
     return(list(range = c(result1$getValue(rho[[whichRange]]), 
                           result2$getValue(rho[[whichRange]])),
                 lbound = list(rho = get_values(rho, result1, mydist),
                               e = get_values(e, result1, mydist),
-                              joint_e = name_eMat(result1$getValue(eMat))),
+                              eta = name_eMat(result1$getValue(eMat))),
                 ubound = list(rho = get_values(rho, result2, mydist),
                               e = get_values(e, result2, mydist),
-                              joint_e = name_eMat(result2$getValue(eMat)))))
+                              eta = name_eMat(result2$getValue(eMat)))))
   }
 }
 
@@ -320,10 +318,10 @@ directed_edge_level_dist <- function(edgelist,
 #' @examples
 #' set.seed(1234)
 #' edgelist <- matrix(sample(1:10, 500, replace = TRUE), ncol = 2)
-#' ret1 <- undirected_edge_level_dist(edgelist, f = CVXR::norm2)
-#' ret2 <- undirected_edge_level_dist(edgelist, targetRho = 0.6, f = CVXR::norm2)
+#' ret1 <- undirected_joint_dist(edgelist, f = CVXR::norm2)
+#' ret2 <- undirected_joint_dist(edgelist, targetRho = 0.6, f = CVXR::norm2)
 #' 
-undirected_edge_level_dist <- function(edgelist, targetRho = NA, 
+undirected_joint_dist <- function(edgelist, targetRho = NA, 
                                        f = function(x) 0,
                                        control = solver.control()) {
   stopifnot((targetRho <= 1 & targetRho >= -1) | is.na(targetRho))
@@ -347,24 +345,24 @@ undirected_edge_level_dist <- function(edgelist, targetRho = NA,
                   eMat == t(eMat))
   
   if (! is.na(targetRho)) {
-    constrs$'rho' <- rho == targetRho
+    constrs$"rho" <- rho == targetRho
     problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
-    if (result$status == 'solver_error') stop('SOLVER ERROR.')
-    if (result$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    if (result$status == "solver_error") stop("SOLVER ERROR.")
+    if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     return(list(rho = result$getValue(rho),
                 e = name_eMat(result$getValue(eMat), k)))
   } else {
-    # constrs$'rho' <- rho <= 1
+    # constrs$"rho" <- rho <= 1
     problem1 <- CVXR::Problem(CVXR::Minimize(rho), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    if (result1$status == 'solver_error') stop('SOLVER ERROR.')
-    if (result1$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    if (result1$status == "solver_error") stop("SOLVER ERROR.")
+    if (result1$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
     problem2 <- CVXR::Problem(CVXR::Maximize(rho), constrs)
     result2 <- do.call(CVXR::solve, c(list(problem2), control))
-    if (result2$status == 'solver_error') stop('SOLVER ERROR.')
-    if (result2$status == 'infeasible') stop('PROBLEM IS INFEASIBLE.')
+    if (result2$status == "solver_error") stop("SOLVER ERROR.")
+    if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
     return(list(range = c(result1$getValue(rho), result2$getValue(rho)),
                 lbound = list(rho = result1$getValue(rho),

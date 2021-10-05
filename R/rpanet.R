@@ -70,12 +70,13 @@ panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0
 #' @param edgeweight A vector represents the weight of edges of the seed graph.
 #'   Its length equals the number of edges of the seed graph. If NA, all the
 #'   edges of the seed graph have weight 1.
-#' @param nsteps Number of steps when generate a network.
+#' @param nsteps Number of steps when generating a network.
 #' @param control A list of parameters to be used when generate network.
 #'
 #' @return A list with the following components: edgelist, edgeweight, out- and
 #'   in-strength, number of edges per step (m), scenario of each new edge
-#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho).
+#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho). The edges in the seed graph 
+#'   are denoted as scenario 0.
 #' @export
 #'
 #' @examples
@@ -118,7 +119,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   stopifnot("Edge weight must be greater than 0." = w > 0)
   
   edgeweight <- c(edgeweight, w)
-  scenario <- sample(1:5, size = sum_m, replace = TRUE,
+  edge_scenario <- sample(1:5, size = sum_m, replace = TRUE,
                      prob = c(control$alpha, control$beta,
                               control$gamma, control$xi,
                               control$rho))
@@ -129,7 +130,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     startNode <- c(edgelist[, 1], rep(0, sum_m))
     endNode <- c(edgelist[, 2], rep(0, sum_m))
     ret <- rpanet_cpp(startNode, endNode, 
-                      scenario, 
+                      edge_scenario, 
                       exNodes, exEdges,
                       control$delta_out, control$delta_in)
     edgelist <- cbind(ret$startNode, ret$endNode)
@@ -139,18 +140,18 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                 edgeweight = edgeweight,
                 outstrength = c(strength$outstrength),
                 instrength = c(strength$instrength),
-                scenario = scenario,
+                edge_scenario = c(rep(0, exEdges),edge_scenario),
                 m = m)
     return(ret)
   }
   
-  scenario1 <- scenario == 1
-  scenario4 <- scenario == 4
+  edge_scenario1 <- edge_scenario == 1
+  edge_scenario4 <- edge_scenario == 4
   
-  noNewStart <- !((scenario > 3) | scenario1)
-  noNewEnd <- scenario < 3
-  totalNode <- endNode <- cumsum(c((scenario != 2) + scenario4)) + exNodes
-  startNode <- totalNode - scenario4
+  noNewStart <- !((edge_scenario > 3) | edge_scenario1)
+  noNewEnd <- edge_scenario < 3
+  totalNode <- endNode <- cumsum(c((edge_scenario != 2) + edge_scenario4)) + exNodes
+  startNode <- totalNode - edge_scenario4
   endNode[noNewEnd] <- 0
   startNode[noNewStart] <- 0
   nNodes <- totalNode[length(totalNode)]
@@ -200,7 +201,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
               edgeweight = edgeweight,
               outstrength = c(strength$outstrength),
               instrength = c(strength$instrength),
-              scenario = scenario,
+              edge_scenario = c(rep(0, exEdges),edge_scenario),
               m = m)
   return(ret)
 }

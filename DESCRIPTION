@@ -18,4 +18,4 @@ Imports: stats, igraph, matrixcalc, wdm, Rcpp, rARPACK, Matrix, CVXR
 LinkingTo: Rcpp, RcppArmadillo
 BugReports: https://gitlab.com/wdnetwork/wdnet/issues
 URL: https://githlab.com/wdnetwork/wdnet
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
