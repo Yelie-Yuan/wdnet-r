@@ -23,12 +23,16 @@ NULL
 #'
 #' Compute the clustering coefficient of a weighted and directed network.
 #'
-#' @usage dw_clustcoeff(adj, method = c("Clemente","Fagiolo"))
+#' @usage dw_clustcoeff(adj, method = c("Clemente","Fagiolo"), isolates = "zero")
 #'
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
 #' @param method which method used to compute clustering coefficients: Clemente
 #'   and Grassi (2018) or Fagiolo (2007).
+#' @param isolates character, defines how to treat vertices with degree zero 
+#'   and one. If "zero", then their clustering coefficient is returned as 0 
+#'   and are included in the averaging. Otherwise, their clustering coefficient 
+#'   is NaN and are excluded in the averaging. Default value is "zero".
 #'
 #' @return lists of local clustering coefficients (in terms of a vector), global
 #'   clustering coefficient (in terms of a scalar) and number of actual weighted
@@ -60,7 +64,8 @@ NULL
 #'
 #' @export
 
-dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo")) {
+dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo"), 
+                          isolates = "zero") {
   stopifnot(dim(adj)[1] == dim(adj)[2])
   method <- match.arg(method)
   ## Force to remove self-loops.
@@ -122,19 +127,20 @@ dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo")) {
                          'middle' = W_Wt_W,
                          'cycle' = W_W_W)
   }
-  
   localcc <- list('total' = numTriangles$'total' / denomTotal, 
                   'in' = numTriangles$'in' / denomIn, 
                   'out' = numTriangles$'out' / denomOut, 
                   'middle' = numTriangles$'middle' / denomMiddle, 
                   'cycle' = numTriangles$'cycle' / denomMiddle)
-  localcc <- rapply(localcc, function(i) ifelse(is.na(i), 0, i), 
-                    how = 'replace')
-  globalcc <- list('total' = mean(localcc$'total'), 
-                   'in' = mean(localcc$'in'), 
-                   'out' = mean(localcc$'out'), 
-                   'middle' = mean(localcc$'middle'), 
-                   'cycle' = mean(localcc$'cycle'))
+  if (isolates == "zero") {
+    localcc <- rapply(localcc, function(i) ifelse(is.na(i), 0, i), 
+                      how = 'replace')
+  }
+  globalcc <- list('total' = mean(localcc$'total', na.rm = TRUE), 
+                   'in' = mean(localcc$'in', na.rm = TRUE), 
+                   'out' = mean(localcc$'out', na.rm = TRUE), 
+                   'middle' = mean(localcc$'middle', na.rm = TRUE), 
+                   'cycle' = mean(localcc$'cycle', na.rm = TRUE))
   return(list('total' = list('localcc' = localcc$'total', 
                              'globalcc' = globalcc$'total', 
                              'numtriangles' = numTriangles$'total'), 
