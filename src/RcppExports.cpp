@@ -34,22 +34,27 @@ BEGIN_RCPP
 END_RCPP
 }
 // directed_rewire_cpp
-Rcpp::List directed_rewire_cpp(int iteration, int nattempts, arma::vec outd, arma::vec ind, arma::uvec sourceNode, arma::uvec targetNode, arma::uvec index_s, arma::uvec index_t, arma::mat eta, arma::vec edge_scenario);
-RcppExport SEXP _wdnet_directed_rewire_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP outdSEXP, SEXP indSEXP, SEXP sourceNodeSEXP, SEXP targetNodeSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP edge_scenarioSEXP) {
+Rcpp::List directed_rewire_cpp(int iteration, int nattempts, arma::uvec targetNode, arma::vec sourceOut, arma::vec sourceIn, arma::vec targetOut, arma::vec targetIn, arma::vec r_sourceOut, arma::vec r_sourceIn, arma::vec r_targetOut, arma::vec r_targetIn, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewireTrack);
+RcppExport SEXP _wdnet_directed_rewire_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP targetNodeSEXP, SEXP sourceOutSEXP, SEXP sourceInSEXP, SEXP targetOutSEXP, SEXP targetInSEXP, SEXP r_sourceOutSEXP, SEXP r_sourceInSEXP, SEXP r_targetOutSEXP, SEXP r_targetInSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewireTrackSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type iteration(iterationSEXP);
     Rcpp::traits::input_parameter< int >::type nattempts(nattemptsSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type outd(outdSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type ind(indSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type sourceNode(sourceNodeSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type targetNode(targetNodeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sourceOut(sourceOutSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sourceIn(sourceInSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type targetOut(targetOutSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type targetIn(targetInSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type r_sourceOut(r_sourceOutSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type r_sourceIn(r_sourceInSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type r_targetOut(r_targetOutSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type r_targetIn(r_targetInSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type index_s(index_sSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type index_t(index_tSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type eta(etaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type edge_scenario(edge_scenarioSEXP);
-    rcpp_result_gen = Rcpp::wrap(directed_rewire_cpp(iteration, nattempts, outd, ind, sourceNode, targetNode, index_s, index_t, eta, edge_scenario));
+    Rcpp::traits::input_parameter< bool >::type rewireTrack(rewireTrackSEXP);
+    rcpp_result_gen = Rcpp::wrap(directed_rewire_cpp(iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, r_sourceOut, r_sourceIn, r_targetOut, r_targetIn, index_s, index_t, eta, rewireTrack));
     return rcpp_result_gen;
 END_RCPP
 }
