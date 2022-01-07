@@ -359,7 +359,7 @@ directed_joint_dist <- function(edgelist,
 #'   network.
 #' @param targetRho Numeric, represents the predetermined assortativity
 #'   coefficient. If \code{NA}, the range of assortativity coefficient and
-#'   corresponding edge-level distribution are returned.
+#'   corresponding joint distribution are returned.
 #' @param f The convex function of the edge-level distribution to be minimized
 #'   when \code{targetRho} is not \code{NA}. Default is 0.
 #' @param control A list of parameters passed to \code{CVXR::solve()}.
