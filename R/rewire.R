@@ -181,7 +181,7 @@ undirected_rewire <- function(edgelist, e,
                  edgelist = edgelist)
   if (rewire.track) {
     colnames(ret$rewireHistory) <- c("Attempt", "Edge1", "Edge2", "RewireType", "Accepted")
-    ret$rewireHistory[, 1:3] <- ret$rewireHistory[, 1:3] + 1
+    ret$rewireHistory[, 1:4] <- ret$rewireHistory[, 1:4] + 1
     result$rewireHistory <- ret$rewireHistory
   }
   return(result)

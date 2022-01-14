@@ -167,7 +167,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   randOut <- runif(sum(noNewStart)) * (totalWeight + control$delta_out * totalNode)[noNewStart]
   randIn <- runif(sum(noNewEnd)) * (totalWeight + control$delta_in * totalNode)[noNewEnd]
   
-  temp <- randOut < totalWeight[noNewStart]
+  temp <- randOut <= totalWeight[noNewStart]
   if (any(temp)) {
     startEdge <- findInterval(randOut[temp], weightIntv, left.open = TRUE)
   }
@@ -180,7 +180,7 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     startNode <- findNode_cpp(startNode, startEdge, temp)
   }
   
-  temp <- randIn < totalWeight[noNewEnd]
+  temp <- randIn <= totalWeight[noNewEnd]
   if (any(temp)) {
     endEdge <- findInterval(randIn[temp], weightIntv, left.open = TRUE)
   }

@@ -50,18 +50,21 @@ Rcpp::List directed_rewire_cpp(
   arma::vec r_out_in(iteration, arma::fill::zeros);
   arma::vec r_in_out(iteration, arma::fill::zeros);
   arma::vec r_in_in(iteration, arma::fill::zeros);
-  arma::mat rewireHistory(iteration * nattempts, 4, arma::fill::zeros);
+  // arma::mat rewireHistory(iteration * nattempts, 4, arma::fill::zeros);
   // arma::vec sourceOut = outd.elem(sourceNode);
   // arma::vec sourceIn = ind.elem(sourceNode);
   // arma::vec targetOut = outd.elem(targetNode);
   // arma::vec targetIn = ind.elem(targetNode);
   int nedge = targetNode.size();
   int e1, e2, count = 0;
-  int s1, s2, t1, t2;
+  int s1, s2, t1, t2, hist_row;
   double u, ratio, temp;
-  // if (rewireTrack) {
-  //   arma::mat rewireHistory(iteration * nattempts, 4, arma::fill::zeros);
-  // }
+  if (rewireTrack) {
+    hist_row = iteration * nattempts;
+  } else {
+    hist_row = 1;
+  }
+  arma::mat rewireHistory(hist_row, 4, arma::fill::zeros);
   for (int n = 0; n < iteration; n++) {
     for (int i = 0; i < nattempts; i++) {
       e1 = floor(unif_rand() * nedge);
@@ -171,11 +174,17 @@ Rcpp::List undirected_rewire_cpp(
     bool rewireTrack) {
   GetRNGstate();
   arma::vec rho(iteration, arma::fill::zeros);
-  arma::mat rewireHistory(iteration * nattempts, 5, arma::fill::zeros);
-  int p1 = 0, nedge = index1.size();
+  int nedge = index1.size();
   int e1, e2, temp, count = 0;
-  int s1, s2, t1, t2;
+  int s1, s2, t1, t2, hist_row;
   double u, v, ratio;
+  if (rewireTrack) {
+    hist_row = iteration * nattempts;
+  } else {
+    hist_row = 1;
+  }
+  arma::mat rewireHistory(hist_row, 5, arma::fill::zeros);
+  
   for (int n = 0; n < iteration; n++) {
     for (int i = 0; i < nattempts; i++) {
       e1 = floor(unif_rand() * nedge);
@@ -195,7 +204,9 @@ Rcpp::List undirected_rewire_cpp(
       v = unif_rand();
       u = unif_rand();
       if (v < 0.5) {
-        rewireHistory(count, 3) = 1;
+        // if (rewireTrack) {
+        //   rewireHistory(count, 3) = 0;
+        // }
         if ((e(s1, t2) * e(s2, t1)) < (e(s1, t1) * e(s2, t2))) {
           ratio = e(s1, t2) * e(s2, t1) / 
             (e(s1, t1) * e(s2, t2));
@@ -204,7 +215,9 @@ Rcpp::List undirected_rewire_cpp(
           ratio = 1;
         }
         if (u <= ratio) {
-          rewireHistory(count, 4) = 1;
+          if (rewireTrack) {
+            rewireHistory(count, 4) = 1;
+          }
           temp = index2[e1];
           index2[e1] = index2[e2];
           index2[e2] = temp;
@@ -219,7 +232,9 @@ Rcpp::List undirected_rewire_cpp(
           degree1[e2 + nedge] = temp;
         }
       } else {
-        rewireHistory(count, 3) = 2;
+        if (rewireTrack) {
+          rewireHistory(count, 3) = 1;
+        }
         if ((e(s1, s2) * e(t1, t2)) < (e(s1, t1) * e(s2, t2))) {
           ratio = e(s1, s2) * e(t1, t2) / 
             (e(s1, t1) * e(s2, t2));
@@ -228,7 +243,9 @@ Rcpp::List undirected_rewire_cpp(
           ratio = 1;
         }
         if (u <= ratio) {
-          rewireHistory(count, 4) = 1;
+          if (rewireTrack) {
+            rewireHistory(count, 4) = 1;
+          }
           temp = index2[e1];
           index2[e1] = index1[e2];
           index1[e2] = temp;
@@ -242,9 +259,6 @@ Rcpp::List undirected_rewire_cpp(
           degree1[e1 + nedge] = degree2[e2 + nedge];
           degree2[e2 + nedge] = temp;
         }
-      }
-      if (ratio == 1) {
-        p1++;
       }
       count++;
     }
