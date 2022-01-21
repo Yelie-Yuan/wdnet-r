@@ -134,3 +134,35 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sampleNode_simple_cpp
+int sampleNode_simple_cpp(int tnode, double sumstrength, arma::vec strength, double delta);
+RcppExport SEXP _wdnet_sampleNode_simple_cpp(SEXP tnodeSEXP, SEXP sumstrengthSEXP, SEXP strengthSEXP, SEXP deltaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type tnode(tnodeSEXP);
+    Rcpp::traits::input_parameter< double >::type sumstrength(sumstrengthSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type strength(strengthSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleNode_simple_cpp(tnode, sumstrength, strength, delta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rpanet_simple_cpp
+Rcpp::List rpanet_simple_cpp(int nsteps, arma::vec control, arma::vec m, arma::vec w, arma::vec outstrength, arma::vec instrength, double sumstrength, int nnode);
+RcppExport SEXP _wdnet_rpanet_simple_cpp(SEXP nstepsSEXP, SEXP controlSEXP, SEXP mSEXP, SEXP wSEXP, SEXP outstrengthSEXP, SEXP instrengthSEXP, SEXP sumstrengthSEXP, SEXP nnodeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type nsteps(nstepsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type m(mSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type outstrength(outstrengthSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type instrength(instrengthSEXP);
+    Rcpp::traits::input_parameter< double >::type sumstrength(sumstrengthSEXP);
+    Rcpp::traits::input_parameter< int >::type nnode(nnodeSEXP);
+    rcpp_result_gen = Rcpp::wrap(rpanet_simple_cpp(nsteps, control, m, w, outstrength, instrength, sumstrength, nnode));
+    return rcpp_result_gen;
+END_RCPP
+}

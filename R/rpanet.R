@@ -64,7 +64,7 @@ panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0
 
 
 
-#' Generate a growing network with preferential attachment.
+#' Generate a growing preferential attachment network.
 #'
 #' @param edgelist A two column matrix represents the seed graph.
 #' @param edgeweight A vector represents the weight of edges of the seed graph.
@@ -86,7 +86,6 @@ panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0
 #'       control = panet.control(mdist = stats::rpois,
 #'       mpar = list(lambda = 1), m_c = 1,
 #'       wdist = stats::runif, wpar = list(min = 1, max = 10), w_c = 0))
-
 
 rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
                    edgeweight = NA,
@@ -135,12 +134,12 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                       control$delta_out, control$delta_in)
     edgelist <- cbind(ret$startNode, ret$endNode)
     strength <- nodeStrength_cpp(ret$startNode, ret$endNode, 
-                                 edgeweight, ret$nNodes, weighted = FALSE)
+                                 edgeweight, ret$nNodes, weighted = TRUE)
     ret <- list(edgelist = edgelist,
                 edgeweight = edgeweight,
                 outstrength = c(strength$outstrength),
                 instrength = c(strength$instrength),
-                edge_scenario = c(rep(0, exEdges),edge_scenario),
+                edge_scenario = c(rep(0, exEdges), edge_scenario),
                 m = m)
     return(ret)
   }

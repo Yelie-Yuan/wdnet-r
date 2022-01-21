@@ -1,0 +1,108 @@
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+
+//' Sample a node according to node strength.
+//'
+//' @param tnode Number of nodes at current step.
+//' @param sumstrength Total strength at current step.
+//' @param strength Vector of node strength.
+//' @param delta The tuning parameter, delta_in or delta_out.
+//' @return Sampled node.
+// [[Rcpp::export]]
+int sampleNode_simple_cpp(int tnode, double sumstrength, 
+               arma::vec strength, double delta) {
+  int i;
+  double j = 0, v;
+  v = unif_rand() * (sumstrength + tnode * delta);
+  for (i = 0; i < tnode; i++) {
+    j = j + strength[i] + delta;
+    if (j >= v)
+      break;
+  }
+  return i + 1;
+}
+
+
+//' Sample a node according to node strength.
+//'
+//' @param nsteps Number of steps.
+//' @param control Vector of control parameters, i.e., alpha, beta,
+//'   gamma, xi, delta_in and delta_out.
+//' @param m Vector, number of edges at each step.
+//' @param w Weight of new edges.
+//' @param outstrength Vector of node out-strength.
+//' @param instrength Vector of node in-strength.
+//' @param sumstrength Total strength of inital network.
+//' @param nnode Number of nodes of inital network.
+//' @return A list of source nodes, target nodes, node out- and in-strength.
+// [[Rcpp::export]]
+Rcpp::List rpanet_simple_cpp(int        nsteps,
+                             arma::vec  control,
+                             arma::vec  m,
+                             arma::vec  w,
+                             arma::vec  outstrength,
+                             arma::vec  instrength, 
+                             double     sumstrength,
+                             int        nnode) {
+  GetRNGstate();
+  double alpha = control[0], beta = control[1], gamma = control[2], xi = control[3];
+  double delta_out = control[4], delta_in = control[5];
+  double u;
+  int count = 0, tnode = nnode, max_m = arma::max(m);
+  int i, j;
+  arma::vec v1(max_m, arma::fill::zeros);
+  arma::vec v2(max_m, arma::fill::zeros);
+  arma::vec scenario(max_m, arma::fill::zeros);
+  arma::vec startnode(outstrength.size(), arma::fill::zeros); 
+  arma::vec endnode(outstrength.size(), arma::fill::zeros);
+  arma::vec edgescenario(arma::accu(m), arma::fill::zeros); 
+  for (i = 0; i < nsteps; i++) {
+    for (j = 0; j < m[i]; j++) {
+      u = unif_rand();
+      if (u <= alpha) {
+        scenario[j] = 1;
+        nnode++;
+        v1[j] = nnode;
+        v2[j] = sampleNode_simple_cpp(tnode, sumstrength, instrength, delta_in);
+      } else if (u <= alpha + beta) {
+        scenario[j] = 2;
+        v1[j] = sampleNode_simple_cpp(tnode, sumstrength, outstrength, delta_out);
+        v2[j] = sampleNode_simple_cpp(tnode, sumstrength, instrength, delta_in);
+      } else if (u <= alpha + beta + gamma) {
+        scenario[j] = 3;
+        nnode++;
+        v1[j] = sampleNode_simple_cpp(tnode, sumstrength, outstrength, delta_out);
+        v2[j] = nnode;
+      } else if (u <= alpha + beta + gamma + xi) {
+        scenario[j] = 4;
+        nnode += 2;
+        v1[j] = nnode - 1;
+        v2[j] = nnode;
+      } else {
+        scenario[j] = 5;
+        nnode++;
+        v1[j] = nnode;
+        v2[j] = nnode;
+      }
+    }
+    for (j = 0; j < m[i]; j++) {
+      edgescenario[count] = scenario[j];
+      startnode[count] = v1[j];
+      endnode[count] = v2[j];
+      outstrength[v1[j] - 1] += w[count];
+      instrength[v2[j] - 1] += w[count];
+      sumstrength += w[count];
+      count++;
+    }
+    tnode = nnode;
+  }
+  PutRNGstate();
+  
+  Rcpp::List ret;
+  ret["startnode"] = startnode.subvec(0, count - 1);
+  ret["endnode"] = endnode.subvec(0, count - 1);
+  ret["instrength"] = instrength.subvec(0, nnode - 1);
+  ret["outstrength"] = outstrength.subvec(0, nnode - 1);
+  ret["edgescenario"] = edgescenario;
+  return ret;
+}

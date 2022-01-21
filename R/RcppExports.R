@@ -126,3 +126,30 @@ rpanet_cpp <- function(startNode, endNode, scenario, nNodes, nEdges, delta_out, 
     .Call(`_wdnet_rpanet_cpp`, startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in)
 }
 
+#' Sample a node according to node strength.
+#'
+#' @param tnode Number of nodes at current step.
+#' @param sumstrength Total strength at current step.
+#' @param strength Vector of node strength.
+#' @param delta The tuning parameter, delta_in or delta_out.
+#' @return Sampled node.
+sampleNode_simple_cpp <- function(tnode, sumstrength, strength, delta) {
+    .Call(`_wdnet_sampleNode_simple_cpp`, tnode, sumstrength, strength, delta)
+}
+
+#' Sample a node according to node strength.
+#'
+#' @param nsteps Number of steps.
+#' @param control Vector of control parameters, i.e., alpha, beta,
+#'   gamma, xi, delta_in and delta_out.
+#' @param m Vector, number of edges at each step.
+#' @param w Weight of new edges.
+#' @param outstrength Vector of node out-strength.
+#' @param instrength Vector of node in-strength.
+#' @param sumstrength Total strength of inital network.
+#' @param nnode Number of nodes of inital network.
+#' @return A list of source nodes, target nodes, node out- and in-strength.
+rpanet_simple_cpp <- function(nsteps, control, m, w, outstrength, instrength, sumstrength, nnode) {
+    .Call(`_wdnet_rpanet_simple_cpp`, nsteps, control, m, w, outstrength, instrength, sumstrength, nnode)
+}
+
