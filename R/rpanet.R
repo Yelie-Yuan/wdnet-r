@@ -28,12 +28,15 @@ NULL
 #'   node.
 #' @param xi The probability of adding an edge between two new nodes.
 #' @param rho The probability of introducing a new node with a self looped edge.
-#' @param delta_out A tuning parameter related to growth rate. Probability of
-#'   choosing an existing node as the source node of the newly added edge is
-#'   proportional to nodes outstrength + outdelta.
-#' @param delta_in A tuning parameter related to growth rate. Probability of
-#'   choosing an existing node as the target node of the newly added edge is
-#'   proportional to nodes instrength + indelta.
+#' @param delta_out A tuning parameter related to growth rate for directed
+#'   networks. Probability of choosing an existing node as the source node of
+#'   the newly added edge is proportional to node outstrength + outdelta.
+#' @param delta_in A tuning parameter related to growth rate for directed
+#'   networks. Probability of choosing an existing node as the target node of
+#'   the newly added edge is proportional to node instrength + indelta.
+#' @param delta A tuning parameter related to growth rate for undirected
+#'   networks. Probability of choosing an existing node is proportional to node
+#'   strength + delta.
 #' @param mdist Distribution function or a constant for number of newly added
 #'   edges per step. The default value is 0.
 #' @param mpar Additional parameters passed on to mdist.
@@ -50,14 +53,14 @@ NULL
 
 
 panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0,
-                           delta_out = 0.1, delta_in = 0.1, 
+                           delta_out = 0.1, delta_in = 0.1, delta = 0.1,
                            mdist = 0, 
                            mpar = list(), m_c = 1, 
                            wdist = 0, 
                            wpar = list(), w_c = 1) {
   ## set default value here
   list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
-       delta_out = delta_out, delta_in = delta_in, 
+       delta_out = delta_out, delta_in = delta_in, delta = delta,
        mdist = mdist, mpar = mpar, m_c = m_c,
        wdist = wdist, wpar = wpar, w_c = w_c)
 }
@@ -72,6 +75,8 @@ panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0
 #'   edges of the seed graph have weight 1.
 #' @param nsteps Number of steps when generating a network.
 #' @param control A list of parameters to be used when generate network.
+#' @param directed Logical, whether to generate directed networks. When FALSE, 
+#' the edge directions are omitted.
 #'
 #' @return A list with the following components: edgelist, edgeweight, out- and
 #'   in-strength, number of edges per step (m), scenario of each new edge
@@ -89,11 +94,12 @@ panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0
 
 rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
                    edgeweight = NA,
-                   control = panet.control()) {
+                   control = panet.control(), 
+                   directed = TRUE) {
   stopifnot("nsteps must be greater than 0." = nsteps > 0)
   stopifnot("alpha + beta + bamma + xi + rho must equals to 1." =
               round(control$alpha + control$beta + control$gamma +
-              control$xi + control$rho, 2) == 1)
+                      control$xi + control$rho, 2) == 1)
   temp <- c(edgelist)
   exNodes <- max(temp)
   stopifnot("Nodes' index should be consecutive natural numbers start from 1." =
@@ -119,9 +125,12 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   
   edgeweight <- c(edgeweight, w)
   edge_scenario <- sample(1:5, size = sum_m, replace = TRUE,
-                     prob = c(control$alpha, control$beta,
-                              control$gamma, control$xi,
-                              control$rho))
+                          prob = c(control$alpha, control$beta,
+                                   control$gamma, control$xi,
+                                   control$rho))
+  if (! directed) {
+    control$delta_out <- control$delta_in <- control$delta / 2
+  }
   
   if (all(edgeweight == edgeweight[1]) & all(m == 1)) {
     control$delta_out <- control$delta_out / edgeweight[1]
@@ -131,76 +140,72 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     ret <- rpanet_cpp(startNode, endNode, 
                       edge_scenario, 
                       exNodes, exEdges,
-                      control$delta_out, control$delta_in)
-    edgelist <- cbind(ret$startNode, ret$endNode)
-    strength <- nodeStrength_cpp(ret$startNode, ret$endNode, 
-                                 edgeweight, ret$nNodes, weighted = TRUE)
-    ret <- list(edgelist = edgelist,
-                edgeweight = edgeweight,
-                outstrength = c(strength$outstrength),
-                instrength = c(strength$instrength),
-                edge_scenario = c(rep(0, exEdges), edge_scenario),
-                m = m)
-    return(ret)
+                      control$delta_out, control$delta_in, 
+                      directed)
+    startNode <- ret$startNode
+    endNode <- ret$endNode
+    nNodes <- ret$nNodes
   }
-  
-  edge_scenario1 <- edge_scenario == 1
-  edge_scenario4 <- edge_scenario == 4
-  
-  noNewStart <- !((edge_scenario > 3) | edge_scenario1)
-  noNewEnd <- edge_scenario < 3
-  totalNode <- endNode <- cumsum(c((edge_scenario != 2) + edge_scenario4)) + exNodes
-  startNode <- totalNode - edge_scenario4
-  endNode[noNewEnd] <- 0
-  startNode[noNewStart] <- 0
-  nNodes <- totalNode[length(totalNode)]
-  
-  weightIntv <- cumsum(c(0, edgeweight))
-  temp_m <- cumsum(m[-nsteps])
-  temp <- c(exWeight, weightIntv[temp_m + exEdges + 1])
-  totalWeight <- rep(temp, m)
-  temp <- c(exNodes, totalNode[temp_m])
-  rm(temp_m)
-  totalNode <- rep(temp, m)
-  
-  randOut <- runif(sum(noNewStart)) * (totalWeight + control$delta_out * totalNode)[noNewStart]
-  randIn <- runif(sum(noNewEnd)) * (totalWeight + control$delta_in * totalNode)[noNewEnd]
-  
-  temp <- randOut <= totalWeight[noNewStart]
-  if (any(temp)) {
-    startEdge <- findInterval(randOut[temp], weightIntv, left.open = TRUE)
-  }
-  if (! all(temp)) {
-    startNode[noNewStart][! temp] <- sampleNode_cpp(totalNode[noNewStart][! temp])
-  }
-  startNode <- c(edgelist[, 1], startNode)
-  temp <- which(startNode == 0)
-  if (length(temp) != 0) {
-    startNode <- findNode_cpp(startNode, startEdge, temp)
-  }
-  
-  temp <- randIn <= totalWeight[noNewEnd]
-  if (any(temp)) {
-    endEdge <- findInterval(randIn[temp], weightIntv, left.open = TRUE)
-  }
-  if (! all(temp)) {
-    endNode[noNewEnd][! temp] <- sampleNode_cpp(totalNode[noNewEnd][!temp])
-  }
-  endNode <- c(edgelist[, 2], endNode)
-  temp <- which(endNode == 0)
-  if (length(temp) != 0) {
-    endNode <- findNode_cpp(endNode, endEdge, temp)
+  else {
+    edge_scenario1 <- edge_scenario == 1
+    edge_scenario4 <- edge_scenario == 4
+    
+    noNewStart <- !((edge_scenario > 3) | edge_scenario1)
+    noNewEnd <- edge_scenario < 3
+    totalNode <- endNode <- cumsum(c((edge_scenario != 2) + edge_scenario4)) + exNodes
+    startNode <- totalNode - edge_scenario4
+    endNode[noNewEnd] <- 0
+    startNode[noNewStart] <- 0
+    nNodes <- totalNode[length(totalNode)]
+    
+    weightIntv <- cumsum(c(0, edgeweight))
+    temp_m <- cumsum(m[-nsteps])
+    temp <- c(exWeight, weightIntv[temp_m + exEdges + 1])
+    totalWeight <- rep(temp, m)
+    temp <- c(exNodes, totalNode[temp_m])
+    rm(temp_m)
+    totalNode <- rep(temp, m)
+    rm(temp)
+    
+    randOut <- runif(sum(noNewStart)) * (totalWeight + control$delta_out * totalNode)[noNewStart]
+    randIn <- runif(sum(noNewEnd)) * (totalWeight + control$delta_in * totalNode)[noNewEnd]
+    tempOut <- randOut <= totalWeight[noNewStart]
+    if (! all(tempOut)) {
+      startNode[noNewStart][! tempOut] <- sampleNode_cpp(totalNode[noNewStart][! tempOut])
+    }
+    tempIn <- randIn <= totalWeight[noNewEnd]
+    if (! all(tempIn)) {
+      endNode[noNewEnd][! tempIn] <- sampleNode_cpp(totalNode[noNewEnd][!tempIn])
+    }
+    
+    startNode <- c(edgelist[, 1], startNode)
+    endNode <- c(edgelist[, 2], endNode)
+    startEdge <- findInterval(randOut[tempOut], weightIntv, left.open = TRUE)
+    endEdge <- findInterval(randIn[tempIn], weightIntv, left.open = TRUE)
+    if (directed) {
+      startNode <- findNode_cpp(startNode, startEdge)
+      endNode <- findNode_cpp(endNode, endEdge)
+    }
+    else {
+      ret <- findNode_undirected_cpp(startNode, endNode, startEdge, endEdge)
+      startNode <- ret$startNode
+      endNode <- ret$endNode
+    }
   }
   edgelist <- cbind(startNode, endNode)
-  colnames(edgelist) <- NULL
   strength <- nodeStrength_cpp(startNode, endNode, 
                                edgeweight, nNodes, weighted = TRUE)
-  
+  colnames(edgelist) <- NULL
   ret <- list(edgelist = edgelist,
               edgeweight = edgeweight,
-              outstrength = c(strength$outstrength),
-              instrength = c(strength$instrength),
-              edge_scenario = c(rep(0, exEdges),edge_scenario),
+              edge_scenario = c(rep(0, exEdges), edge_scenario),
               m = m)
+  if (directed) {
+    ret$outstrength <- c(strength$outstrength)
+    ret$instrength <- c(strength$instrength)
+  }
+  else {
+    ret$strength <- c(strength$outstrength) + c(strength$instrength)
+  }
   return(ret)
 }

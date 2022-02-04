@@ -79,15 +79,28 @@ BEGIN_RCPP
 END_RCPP
 }
 // findNode_cpp
-arma::vec findNode_cpp(arma::vec nodes, arma::vec edges, arma::vec index);
-RcppExport SEXP _wdnet_findNode_cpp(SEXP nodesSEXP, SEXP edgesSEXP, SEXP indexSEXP) {
+arma::vec findNode_cpp(arma::vec nodes, arma::vec edges);
+RcppExport SEXP _wdnet_findNode_cpp(SEXP nodesSEXP, SEXP edgesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type nodes(nodesSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type edges(edgesSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type index(indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(findNode_cpp(nodes, edges, index));
+    rcpp_result_gen = Rcpp::wrap(findNode_cpp(nodes, edges));
+    return rcpp_result_gen;
+END_RCPP
+}
+// findNode_undirected_cpp
+Rcpp::List findNode_undirected_cpp(arma::vec startNode, arma::vec endNode, arma::vec startEdge, arma::vec endEdge);
+RcppExport SEXP _wdnet_findNode_undirected_cpp(SEXP startNodeSEXP, SEXP endNodeSEXP, SEXP startEdgeSEXP, SEXP endEdgeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type startNode(startNodeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type endNode(endNodeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type startEdge(startEdgeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type endEdge(endEdgeSEXP);
+    rcpp_result_gen = Rcpp::wrap(findNode_undirected_cpp(startNode, endNode, startEdge, endEdge));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -118,8 +131,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rpanet_cpp
-Rcpp::List rpanet_cpp(arma::vec startNode, arma::vec endNode, arma::vec scenario, int nNodes, int nEdges, double delta_out, double delta_in);
-RcppExport SEXP _wdnet_rpanet_cpp(SEXP startNodeSEXP, SEXP endNodeSEXP, SEXP scenarioSEXP, SEXP nNodesSEXP, SEXP nEdgesSEXP, SEXP delta_outSEXP, SEXP delta_inSEXP) {
+Rcpp::List rpanet_cpp(arma::vec startNode, arma::vec endNode, arma::vec scenario, int nNodes, int nEdges, double delta_out, double delta_in, bool directed);
+RcppExport SEXP _wdnet_rpanet_cpp(SEXP startNodeSEXP, SEXP endNodeSEXP, SEXP scenarioSEXP, SEXP nNodesSEXP, SEXP nEdgesSEXP, SEXP delta_outSEXP, SEXP delta_inSEXP, SEXP directedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -130,7 +143,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nEdges(nEdgesSEXP);
     Rcpp::traits::input_parameter< double >::type delta_out(delta_outSEXP);
     Rcpp::traits::input_parameter< double >::type delta_in(delta_inSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_cpp(startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in));
+    Rcpp::traits::input_parameter< bool >::type directed(directedSEXP);
+    rcpp_result_gen = Rcpp::wrap(rpanet_cpp(startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in, directed));
     return rcpp_result_gen;
 END_RCPP
 }

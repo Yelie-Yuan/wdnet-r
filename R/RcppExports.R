@@ -81,11 +81,21 @@ undirected_rewire_cpp <- function(iteration, nattempts, node1, node2, degree1, d
 #' Fill missing values in node sequence.
 #'
 #' @param nodes Sequence of source/target node of edges, missing values are denoted as 0.
-#' @param edges Edges sampled according to preferential attachment.
-#' @param index Index of missing values in nodes.
+#' @param edges Sampled edges according to preferential attachment.
 #' @return Sequence of source/target node of edges.
-findNode_cpp <- function(nodes, edges, index) {
-    .Call(`_wdnet_findNode_cpp`, nodes, edges, index)
+findNode_cpp <- function(nodes, edges) {
+    .Call(`_wdnet_findNode_cpp`, nodes, edges)
+}
+
+#' Fill missing values in node sequence.
+#'
+#' @param startNode Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 1]}.
+#' @param endNode Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 2]}.
+#' @param startEdge Index of sampled edges, corresponds to the missing nodes in startNode.
+#' @param endEdge Index of sampled edges, corresponds to the missing nodes in endNode.
+#' @return Sequence of source/target node of edges.
+findNode_undirected_cpp <- function(startNode, endNode, startEdge, endEdge) {
+    .Call(`_wdnet_findNode_undirected_cpp`, startNode, endNode, startEdge, endEdge)
 }
 
 #' Aggregate edgeweight into nodes' strength.
@@ -120,10 +130,11 @@ sampleNode_cpp <- function(totalNode) {
 #' @param nEdges Number of edges at current step.
 #' @param delta_out Tuning parameter.
 #' @param delta_in Tuning parameter.
+#' @param directed Whether the network is directed.
 #' @return Number of nodes, sequences of source and target nodes.
 #' 
-rpanet_cpp <- function(startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in) {
-    .Call(`_wdnet_rpanet_cpp`, startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in)
+rpanet_cpp <- function(startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in, directed) {
+    .Call(`_wdnet_rpanet_cpp`, startNode, endNode, scenario, nNodes, nEdges, delta_out, delta_in, directed)
 }
 
 #' Sample a node according to node strength.

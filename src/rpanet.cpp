@@ -4,18 +4,62 @@
 //' Fill missing values in node sequence.
 //'
 //' @param nodes Sequence of source/target node of edges, missing values are denoted as 0.
-//' @param edges Edges sampled according to preferential attachment.
-//' @param index Index of missing values in nodes.
+//' @param edges Sampled edges according to preferential attachment.
 //' @return Sequence of source/target node of edges.
 // [[Rcpp::export]]
 arma::vec findNode_cpp(arma::vec nodes, 
-                       arma::vec edges, 
-                       arma::vec index) {
-  int n = index.size();
+                       arma::vec edges) {
+  int n = nodes.size(), n1 = 0;
   for (int j = 0; j < n; j++) {
-    nodes[index[j] - 1] = nodes[edges[j] - 1];
+    if (nodes[j] == 0) {
+      nodes[j] = nodes[edges[n1] - 1];
+      n1++;
+    }
   }
   return nodes;
+}
+
+//' Fill missing values in node sequence.
+//'
+//' @param startNode Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 1]}.
+//' @param endNode Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 2]}.
+//' @param startEdge Index of sampled edges, corresponds to the missing nodes in startNode.
+//' @param endEdge Index of sampled edges, corresponds to the missing nodes in endNode.
+//' @return Sequence of source/target node of edges.
+// [[Rcpp::export]]
+Rcpp::List findNode_undirected_cpp(arma::vec startNode, 
+                       arma::vec endNode, 
+                       arma::vec startEdge, 
+                       arma::vec endEdge) {
+  GetRNGstate();
+  int n = startNode.size(), n1 = 0, n2 = 0;
+  double u;
+  for (int j = 0; j < n; j++) {
+    if (startNode[j] == 0) {
+      u = unif_rand();
+      if (u <= 0.5) {
+        startNode[j] = startNode[startEdge[n1]  - 1];
+      } else {
+        startNode[j] = endNode[startEdge[n1] - 1];
+      }
+      n1++;
+    }
+    if (endNode[j] == 0) {
+      u = unif_rand();
+      if (u <= 0.5) {
+        endNode[j] = startNode[endEdge[n2] - 1];
+      } else {
+        endNode[j] = endNode[endEdge[n2] - 1];
+      }
+      n2++;
+    }
+  }
+  PutRNGstate();
+  
+  Rcpp::List ret;
+  ret["startNode"] = startNode;
+  ret["endNode"] = endNode;
+  return ret;
 }
 
 //' Aggregate edgeweight into nodes' strength.
@@ -82,6 +126,7 @@ arma::vec sampleNode_cpp(arma::vec totalNode) {
 //' @param nEdges Number of edges at current step.
 //' @param delta_out Tuning parameter.
 //' @param delta_in Tuning parameter.
+//' @param directed Whether the network is directed.
 //' @return Number of nodes, sequences of source and target nodes.
 //' 
 // [[Rcpp::export]]
@@ -91,10 +136,11 @@ Rcpp::List rpanet_cpp(arma::vec startNode,
                       int nNodes,
                       int nEdges,
                       double delta_out,
-                      double delta_in) {
+                      double delta_in, 
+                      bool directed) {
   GetRNGstate();
   int n = scenario.size();
-  double u;
+  double u, v;
   int j;
   for (int i = 0; i < n; i++) {
     j = scenario[i];
@@ -102,8 +148,19 @@ Rcpp::List rpanet_cpp(arma::vec startNode,
       case 1: {
         u = unif_rand() * (nEdges + nNodes * delta_in);
         if (u < nEdges) {
-          endNode[nEdges] = endNode[floor(u)] ;
-        } 
+          if (directed) {
+            endNode[nEdges] = endNode[floor(u)] ;
+          }
+          else {
+            v = unif_rand();
+            if (v <= 0.5) {
+              endNode[nEdges] = startNode[floor(u)];
+            } 
+            else {
+              endNode[nEdges] = endNode[floor(u)];
+            }
+          }
+        }
         else {
           endNode[nEdges] = ceil((u - nEdges) / delta_in);
         }
@@ -114,14 +171,37 @@ Rcpp::List rpanet_cpp(arma::vec startNode,
       case 2: {
         u = unif_rand() * (nEdges + nNodes * delta_out);
         if (u < nEdges) {
-          startNode[nEdges] = startNode[floor(u)] ;
+          if (directed) {
+            startNode[nEdges] = startNode[floor(u)] ;
+          }
+          else {
+            v = unif_rand();
+            if (v <= 0.5) {
+              startNode[nEdges] = startNode[floor(u)];
+            } 
+            else {
+              startNode[nEdges] = endNode[floor(u)];
+            }
+          }
         } 
         else {
           startNode[nEdges] = ceil((u - nEdges) / delta_out);
         }
+        
         u = unif_rand() * (nEdges + nNodes * delta_in);
         if (u < nEdges) {
-          endNode[nEdges] = endNode[floor(u)] ;
+          if (directed) {
+            endNode[nEdges] = endNode[floor(u)] ;
+          }
+          else {
+            v = unif_rand();
+            if (v <= 0.5) {
+              endNode[nEdges] = startNode[floor(u)];
+            } 
+            else {
+              endNode[nEdges] = endNode[floor(u)];
+            }
+          }
         } 
         else {
           endNode[nEdges] = ceil((u - nEdges) / delta_in);
@@ -131,7 +211,18 @@ Rcpp::List rpanet_cpp(arma::vec startNode,
       case 3: {
         u = unif_rand() * (nEdges + nNodes * delta_out);
         if (u < nEdges) {
-          startNode[nEdges] = startNode[floor(u)] ;
+          if (directed) {
+            startNode[nEdges] = startNode[floor(u)] ;
+          }
+          else {
+            v = unif_rand();
+            if (v <= 0.5) {
+              startNode[nEdges] = startNode[floor(u)];
+            } 
+            else {
+              startNode[nEdges] = endNode[floor(u)];
+            }
+          }
         } 
         else {
           startNode[nEdges] = ceil((u - nEdges) / delta_out);
