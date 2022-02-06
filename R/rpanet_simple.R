@@ -64,11 +64,12 @@ rpanet_simple <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   ret <- rpanet_simple_cpp(nsteps, control_cpp, m, w,
                            outstrength, instrength, sumstrength,
                            nnode)
-  
+  control$delta <- NULL
   list("edgelist" = rbind(edgelist, cbind(ret$startnode, ret$endnode)), 
        "edgeweight" = c(edgeweight, w),
        "out-strength" = ret$outstrength, 
        "in-strength" = ret$instrength, 
        "edgescenario" = c(rep(0, nrow(edgelist)), ret$edgescenario),
-       "m" = m)
+       "m" = m, 
+       "control" = control)
 }

@@ -3,10 +3,10 @@ Title: Weighted Directed Network
 Version: 0.0-3
 Date: 2021-04-05
 Authors@R: c(
-    person("Jun", "Yan", email = "jun.yan@uconn.edu",
-           role = c("aut", "cre")),
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut")),
+    person("Jun", "Yan", email = "jun.yan@uconn.edu",
+           role = c("aut", "cre")),
     person("Panpan", "Zhang", email = "panpan.zhang@pennmedicine.upenn.edu",
            role = "aut"))
 Description: Assortativitity and centrality measures for weighted directed

@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2021  Panpan Zhang and Jun Yan
+## Copyright (C) 2021  Yelie Yuan, Panpan Zhang and Jun Yan
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -52,7 +52,7 @@ NULL
 #' @export
 
 
-panet.control  <- function(alpha = 0.5, beta = 0.2, gamma = 0.3, xi = 0, rho = 0,
+panet.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0, xi = 0, rho = 0,
                            delta_out = 0.1, delta_in = 0.1, delta = 0.1,
                            mdist = 0, 
                            mpar = list(), m_c = 1, 
@@ -203,9 +203,12 @@ rpanet <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   if (directed) {
     ret$outstrength <- c(strength$outstrength)
     ret$instrength <- c(strength$instrength)
+    control$delta <- NULL
   }
   else {
     ret$strength <- c(strength$outstrength) + c(strength$instrength)
+    control$delta_out <- control$delta_in <- NULL
   }
+  ret$control <- control
   return(ret)
 }
