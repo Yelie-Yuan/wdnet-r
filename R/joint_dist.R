@@ -1,3 +1,21 @@
+##
+## wdnet: Weighted directed network
+## Copyright (C) 2022  Yelie Yuan, Panpan Zhang, and Jun Yan
+## Jun Yan <jun.yan@uconn.edu>
+##
+## This file is part of the R package wdnet.
+##
+## The R package wdnet is free software: You can redistribute it and/or
+## modify it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or any later
+## version (at your option). See the GNU General Public License at
+## <https://www.gnu.org/licenses/> for details.
+##
+## The R package wdnet is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+##
+
 #' @importFrom CVXR Variable sum_entries Minimize Maximize Problem solve
 NULL
 
@@ -15,9 +33,9 @@ get_dist <- function(edgelist = NA, directed = TRUE,
                      joint_dist = FALSE) {
   if (! directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
   edgelist <- as.matrix(edgelist)
-  temp <- nodeStrength_cpp(startNode = edgelist[, 1], 
-                           endNode = edgelist[, 2], 
-                           nNodes = max(edgelist), 
+  temp <- nodeStrength_cpp(start_node = edgelist[, 1], 
+                           end_node = edgelist[, 2], 
+                           nnode = max(edgelist), 
                            weight = 1,
                            weighted = FALSE)
   

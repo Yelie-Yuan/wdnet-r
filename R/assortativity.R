@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2021  Yelie Yuan, Panpan Zhang and Jun Yan
+## Copyright (C) 2022  Yelie Yuan, Panpan Zhang and Jun Yan
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -93,7 +93,7 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
 #' @export
 #'
 #' @examples
-#' net <- rpanet(nsteps = 10^3)
+#' net <- rpanet(nstep = 10^3)
 #' result <- edge_assort(net$edgelist, directed = TRUE)
 edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE) {
   if (! directed) {
@@ -106,16 +106,16 @@ edge_assort <- function(edgelist, edgeweight = NA, directed = TRUE) {
   sourceNode <- edgelist[, 1]
   targetNode <- edgelist[, 2]
   if (is.na(edgeweight[1])) {
-    temp <- nodeStrength_cpp(startNode = sourceNode, 
-                             endNode = targetNode, 
-                             nNodes = nnode, 
+    temp <- nodeStrength_cpp(start_node = sourceNode, 
+                             end_node = targetNode, 
+                             nnode = nnode, 
                              weight = 1,
                              weighted = FALSE)
     edgeweight <- rep(1, length(sourceNode))
   } else {
-    temp <- nodeStrength_cpp(startNode = sourceNode, 
-                             endNode = targetNode, 
-                             nNodes = nnode, 
+    temp <- nodeStrength_cpp(start_node = sourceNode, 
+                             end_node = targetNode, 
+                             nnode = nnode, 
                              weight = edgeweight,
                              weighted = TRUE)
   }
@@ -177,10 +177,10 @@ dw_feature_assort <- function(adj = NA, edgelist = NA, edgeweight = NA,
   }
   nNodes <- max(edgelist)
   if (is.na(feature1)[1] | is.na(feature2)[1]) {
-    temp <- nodeStrength_cpp(startNode = edgelist[, 1], 
-                             endNode = edgelist[, 2], 
+    temp <- nodeStrength_cpp(start_node = edgelist[, 1], 
+                             end_node = edgelist[, 2], 
                              weight = edgeweight, 
-                             nNodes = nNodes, 
+                             nnode = nNodes, 
                              weighted = TRUE)
   }
   if (is.na(feature1)[1]) {

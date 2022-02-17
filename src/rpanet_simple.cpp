@@ -25,7 +25,7 @@ int sampleNode_simple_cpp(int tnode, double sumstrength,
 
 //' Sample a node according to node strength.
 //'
-//' @param nsteps Number of steps.
+//' @param nstep Number of steps.
 //' @param control Vector of control parameters, i.e., alpha, beta,
 //'   gamma, xi, delta_in and delta_out.
 //' @param m Vector, number of edges at each step.
@@ -36,7 +36,7 @@ int sampleNode_simple_cpp(int tnode, double sumstrength,
 //' @param nnode Number of nodes of inital network.
 //' @return A list of source nodes, target nodes, node out- and in-strength.
 // [[Rcpp::export]]
-Rcpp::List rpanet_simple_cpp(int        nsteps,
+Rcpp::List rpanet_simple_cpp(int        nstep,
                              arma::vec  control,
                              arma::vec  m,
                              arma::vec  w,
@@ -53,10 +53,10 @@ Rcpp::List rpanet_simple_cpp(int        nsteps,
   arma::vec v1(max_m, arma::fill::zeros);
   arma::vec v2(max_m, arma::fill::zeros);
   arma::vec scenario(max_m, arma::fill::zeros);
-  arma::vec startnode(outstrength.size(), arma::fill::zeros); 
-  arma::vec endnode(outstrength.size(), arma::fill::zeros);
+  arma::vec start_node(outstrength.size(), arma::fill::zeros); 
+  arma::vec end_node(outstrength.size(), arma::fill::zeros);
   arma::vec edgescenario(arma::accu(m), arma::fill::zeros); 
-  for (i = 0; i < nsteps; i++) {
+  for (i = 0; i < nstep; i++) {
     for (j = 0; j < m[i]; j++) {
       u = unif_rand();
       if (u <= alpha) {
@@ -87,8 +87,8 @@ Rcpp::List rpanet_simple_cpp(int        nsteps,
     }
     for (j = 0; j < m[i]; j++) {
       edgescenario[count] = scenario[j];
-      startnode[count] = v1[j];
-      endnode[count] = v2[j];
+      start_node[count] = v1[j];
+      end_node[count] = v2[j];
       outstrength[v1[j] - 1] += w[count];
       instrength[v2[j] - 1] += w[count];
       sumstrength += w[count];
@@ -99,10 +99,10 @@ Rcpp::List rpanet_simple_cpp(int        nsteps,
   PutRNGstate();
   
   Rcpp::List ret;
-  ret["startnode"] = startnode.subvec(0, count - 1);
-  ret["endnode"] = endnode.subvec(0, count - 1);
+  ret["start_node"] = start_node.subvec(0, count - 1);
+  ret["end_node"] = end_node.subvec(0, count - 1);
   ret["instrength"] = instrength.subvec(0, nnode - 1);
   ret["outstrength"] = outstrength.subvec(0, nnode - 1);
-  ret["edgescenario"] = edgescenario;
+  ret["scenario"] = edgescenario;
   return ret;
 }

@@ -1,3 +1,21 @@
+##
+## wdnet: Weighted directed network
+## Copyright (C) 2022  Yelie Yuan, Panpan Zhang, and Jun Yan
+## Jun Yan <jun.yan@uconn.edu>
+##
+## This file is part of the R package wdnet.
+##
+## The R package wdnet is free software: You can redistribute it and/or
+## modify it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or any later
+## version (at your option). See the GNU General Public License at
+## <https://www.gnu.org/licenses/> for details.
+##
+## The R package wdnet is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+##
+
 #' @importFrom stats runif rpois
 NULL
 
@@ -7,7 +25,7 @@ NULL
 #' @param edgeweight A vector represents the weight of edges of the seed graph.
 #'   Its length equals the number of edges of the seed graph. If NA, all the
 #'   edges of the seed graph have weight 1.
-#' @param nsteps Number of steps when generating a network.
+#' @param nstep Number of steps when generating a network.
 #' @param control A list of parameters to be used when generate network.
 #'
 #' @return A list with the following components: edgelist, edgeweight, out- and
@@ -17,17 +35,17 @@ NULL
 #' @export
 #'
 #' @examples
-#' net <- rpanet_simple(nsteps = 100, 
+#' net <- rpanet_simple(nstep = 100, 
 #'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.6))
-#' net <- rpanet_simple(edgelist = matrix(c(1:8), ncol = 2), nsteps = 10^3,
+#' net <- rpanet_simple(edgelist = matrix(c(1:8), ncol = 2), nstep = 10^3,
 #'       control = panet.control(mdist = stats::rpois,
-#'       mpar = list(lambda = 1), m_c = 1,
-#'       wdist = stats::runif, wpar = list(min = 1, max = 10), w_c = 0))
+#'       mpar = list(lambda = 1), mconst = 1,
+#'       wdist = stats::runif, wpar = list(min = 1, max = 10), wconst = 0))
 
 
-rpanet_simple <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
+rpanet_simple <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
                           edgeweight = NA, control = panet.control()) {
-  stopifnot("nsteps must be greater than 0." = nsteps > 0)
+  stopifnot("nstep must be greater than 0." = nstep > 0)
   stopifnot("alpha + beta + bamma + xi + rho must be less or equal to 1." = 
               control$alpha + control$beta + control$gamma + 
               control$xi + control$rho <= 1)
@@ -39,16 +57,16 @@ rpanet_simple <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   stopifnot(length(edgeweight) == nrow(edgelist))
   
   if (! is.numeric(control$mdist)) {
-    m <- do.call(control$mdist, c(nsteps, control$mpar)) + control$m_c
+    m <- do.call(control$mdist, c(nstep, control$mpar)) + control$mconst
   }
-  else m <- rep(control$mdist + control$m_c, nsteps)
+  else m <- rep(control$mdist + control$mconst, nstep)
   stopifnot("Number of new edges per step must be positive integers." = m %% 1 == 0)
   stopifnot("Number of new edges per step must be positive integers." = m > 0)
   sum_m <- sum(m)
   if (! is.numeric(control$wdist)) {
-    w <- do.call(control$wdist, c(sum_m, control$wpar)) + control$w_c
+    w <- do.call(control$wdist, c(sum_m, control$wpar)) + control$wconst
   }
-  else w <- rep(control$wdist + control$w_c, sum_m)
+  else w <- rep(control$wdist + control$wconst, sum_m)
   stopifnot("Edge weight must be greater than 0." = w > 0)
   
   strength <- nodeStrength_cpp(edgelist[, 1], edgelist[, 2], 
@@ -61,15 +79,15 @@ rpanet_simple <- function(nsteps = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   control_cpp <- c(control$alpha, control$beta, control$gamma, control$xi, 
                    control$delta_out, control$delta_in)
   
-  ret <- rpanet_simple_cpp(nsteps, control_cpp, m, w,
+  ret <- rpanet_simple_cpp(nstep, control_cpp, m, w,
                            outstrength, instrength, sumstrength,
                            nnode)
   control$delta <- NULL
-  list("edgelist" = rbind(edgelist, cbind(ret$startnode, ret$endnode)), 
+  list("edgelist" = rbind(edgelist, cbind(ret$start_node, ret$end_node)), 
        "edgeweight" = c(edgeweight, w),
        "out-strength" = ret$outstrength, 
        "in-strength" = ret$instrength, 
-       "edgescenario" = c(rep(0, nrow(edgelist)), ret$edgescenario),
+       "scenario" = c(rep(0, nrow(edgelist)), ret$scenario),
        "m" = m, 
        "control" = control)
 }

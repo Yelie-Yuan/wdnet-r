@@ -1,3 +1,21 @@
+##
+## wdnet: Weighted directed network
+## Copyright (C) 2022  Yelie Yuan, Panpan Zhang, and Jun Yan
+## Jun Yan <jun.yan@uconn.edu>
+##
+## This file is part of the R package wdnet.
+##
+## The R package wdnet is free software: You can redistribute it and/or
+## modify it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or any later
+## version (at your option). See the GNU General Public License at
+## <https://www.gnu.org/licenses/> for details.
+##
+## The R package wdnet is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+##
+
 #' @importFrom igraph graph_from_adjacency_matrix as_edgelist
 #' @importFrom stats cor
 NULL
@@ -42,9 +60,9 @@ directed_rewire <- function(edgelist, eta,
   targetNode <- edgelist[, 2]
   stopifnot(temp[1] == 1)
   stopifnot(temp[2] == length(unique(c(edgelist))))
-  temp <- nodeStrength_cpp(startNode = sourceNode, 
-                           endNode = targetNode, 
-                           nNodes = temp[2], 
+  temp <- nodeStrength_cpp(start_node = sourceNode, 
+                           end_node = targetNode, 
+                           nnode = temp[2], 
                            weight = 1,
                            weighted = FALSE)
   outd <- temp$outstrength

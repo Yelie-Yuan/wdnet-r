@@ -21,35 +21,35 @@ arma::vec findNode_cpp(arma::vec nodes,
 
 //' Fill missing values in node sequence.
 //'
-//' @param startNode Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 1]}.
-//' @param endNode Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 2]}.
-//' @param startEdge Index of sampled edges, corresponds to the missing nodes in startNode.
-//' @param endEdge Index of sampled edges, corresponds to the missing nodes in endNode.
+//' @param start_node Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 1]}.
+//' @param end_node Sequence of nodes from the first column of edgelist, i.e., \code{edgelist[, 2]}.
+//' @param start_edge Index of sampled edges, corresponds to the missing nodes in start_node.
+//' @param end_edge Index of sampled edges, corresponds to the missing nodes in end_node.
 //' @return Sequence of source/target node of edges.
 // [[Rcpp::export]]
-Rcpp::List findNode_undirected_cpp(arma::vec startNode, 
-                       arma::vec endNode, 
-                       arma::vec startEdge, 
-                       arma::vec endEdge) {
+Rcpp::List findNode_undirected_cpp(arma::vec start_node, 
+                       arma::vec end_node, 
+                       arma::vec start_edge, 
+                       arma::vec end_edge) {
   GetRNGstate();
-  int n = startNode.size(), n1 = 0, n2 = 0;
+  int n = start_node.size(), n1 = 0, n2 = 0;
   double u;
   for (int j = 0; j < n; j++) {
-    if (startNode[j] == 0) {
+    if (start_node[j] == 0) {
       u = unif_rand();
       if (u <= 0.5) {
-        startNode[j] = startNode[startEdge[n1]  - 1];
+        start_node[j] = start_node[start_edge[n1]  - 1];
       } else {
-        startNode[j] = endNode[startEdge[n1] - 1];
+        start_node[j] = end_node[start_edge[n1] - 1];
       }
       n1++;
     }
-    if (endNode[j] == 0) {
+    if (end_node[j] == 0) {
       u = unif_rand();
       if (u <= 0.5) {
-        endNode[j] = startNode[endEdge[n2] - 1];
+        end_node[j] = start_node[end_edge[n2] - 1];
       } else {
-        endNode[j] = endNode[endEdge[n2] - 1];
+        end_node[j] = end_node[end_edge[n2] - 1];
       }
       n2++;
     }
@@ -57,38 +57,38 @@ Rcpp::List findNode_undirected_cpp(arma::vec startNode,
   PutRNGstate();
   
   Rcpp::List ret;
-  ret["startNode"] = startNode;
-  ret["endNode"] = endNode;
+  ret["start_node"] = start_node;
+  ret["end_node"] = end_node;
   return ret;
 }
 
 //' Aggregate edgeweight into nodes' strength.
 //'
-//' @param startNode Sequence of source nodes.
-//' @param endNode Sequence of target nodes.
+//' @param start_node Sequence of source nodes.
+//' @param end_node Sequence of target nodes.
 //' @param weight Sequence of edgeweight.
-//' @param nNodes Number of nodes of sampled network.
+//' @param nnode Number of nodes of sampled network.
 //' @param weighted Logical, ture if the edges are weighted, 
 //'   false if not.
 //' @return Sequence of outstrength/instrength.
 // [[Rcpp::export]]
-Rcpp::List nodeStrength_cpp(arma::vec startNode, 
-                            arma::vec endNode,
+Rcpp::List nodeStrength_cpp(arma::vec start_node, 
+                            arma::vec end_node,
                             arma::vec weight, 
-                            int nNodes, 
+                            int nnode, 
                             bool weighted = true) {
-  int n = startNode.size();
-  arma::vec outstrength(nNodes, arma::fill::zeros);
-  arma::vec instrength(nNodes, arma::fill::zeros);
+  int n = start_node.size();
+  arma::vec outstrength(nnode, arma::fill::zeros);
+  arma::vec instrength(nnode, arma::fill::zeros);
   if (weighted) {
     for (int i = 0; i < n; i++) {
-      outstrength[startNode[i] - 1] += weight[i];
-      instrength[endNode[i] - 1] += weight[i];
+      outstrength[start_node[i] - 1] += weight[i];
+      instrength[end_node[i] - 1] += weight[i];
     }
   } else {
     for (int i = 0; i < n; i++) {
-      outstrength[startNode[i] - 1] += 1;
-      instrength[endNode[i] - 1] += 1;
+      outstrength[start_node[i] - 1] += 1;
+      instrength[end_node[i] - 1] += 1;
     }
   }
   
@@ -100,15 +100,15 @@ Rcpp::List nodeStrength_cpp(arma::vec startNode,
 
 //' Sample nodes with respect to the number of nodes at each step.
 //'
-//' @param totalNode Number of nodes at each step.
+//' @param total_node Number of nodes at each step.
 //' @return Sequence of sampled nodes.
 // [[Rcpp::export]]
-arma::vec sampleNode_cpp(arma::vec totalNode) {
+arma::vec sampleNode_cpp(arma::vec total_node) {
   GetRNGstate();
-  int n = totalNode.size();
+  int n = total_node.size();
   arma::vec nodes(n, arma::fill::zeros);
   for (int i = 0; i < n; i++) {
-    nodes[i] = Rcpp::sample(totalNode[i], 1)[0];
+    nodes[i] = Rcpp::sample(total_node[i], 1)[0];
   }
   PutRNGstate();
   return nodes;
@@ -119,22 +119,22 @@ arma::vec sampleNode_cpp(arma::vec totalNode) {
 //' e.g., edge weights are constant, 
 //' number of new edges per step is 1.
 //'
-//' @param startNode Sequence of source nodes.
-//' @param endNode Sequence of target nodes.
+//' @param start_node Sequence of source nodes.
+//' @param end_node Sequence of target nodes.
 //' @param scenario Sequence of alpha, beta, gamma, xi, rho scenarios.
-//' @param nNodes Number of nodes at current step.
-//' @param nEdges Number of edges at current step.
+//' @param nnode Number of nodes at current step.
+//' @param nedge Number of edges at current step.
 //' @param delta_out Tuning parameter.
 //' @param delta_in Tuning parameter.
 //' @param directed Whether the network is directed.
 //' @return Number of nodes, sequences of source and target nodes.
 //' 
 // [[Rcpp::export]]
-Rcpp::List rpanet_cpp(arma::vec startNode,
-                      arma::vec endNode,
+Rcpp::List rpanet_cpp(arma::vec start_node,
+                      arma::vec end_node,
                       arma::vec scenario,
-                      int nNodes,
-                      int nEdges,
+                      int nnode,
+                      int nedge,
                       double delta_out,
                       double delta_in, 
                       bool directed) {
@@ -146,111 +146,111 @@ Rcpp::List rpanet_cpp(arma::vec startNode,
     j = scenario[i];
     switch(j) {
       case 1: {
-        u = unif_rand() * (nEdges + nNodes * delta_in);
-        if (u < nEdges) {
+        u = unif_rand() * (nedge + nnode * delta_in);
+        if (u < nedge) {
           if (directed) {
-            endNode[nEdges] = endNode[floor(u)] ;
+            end_node[nedge] = end_node[floor(u)] ;
           }
           else {
             v = unif_rand();
             if (v <= 0.5) {
-              endNode[nEdges] = startNode[floor(u)];
+              end_node[nedge] = start_node[floor(u)];
             } 
             else {
-              endNode[nEdges] = endNode[floor(u)];
+              end_node[nedge] = end_node[floor(u)];
             }
           }
         }
         else {
-          endNode[nEdges] = ceil((u - nEdges) / delta_in);
+          end_node[nedge] = ceil((u - nedge) / delta_in);
         }
-        nNodes++;
-        startNode[nEdges] = nNodes;
+        nnode++;
+        start_node[nedge] = nnode;
         break;
       }
       case 2: {
-        u = unif_rand() * (nEdges + nNodes * delta_out);
-        if (u < nEdges) {
+        u = unif_rand() * (nedge + nnode * delta_out);
+        if (u < nedge) {
           if (directed) {
-            startNode[nEdges] = startNode[floor(u)] ;
+            start_node[nedge] = start_node[floor(u)] ;
           }
           else {
             v = unif_rand();
             if (v <= 0.5) {
-              startNode[nEdges] = startNode[floor(u)];
+              start_node[nedge] = start_node[floor(u)];
             } 
             else {
-              startNode[nEdges] = endNode[floor(u)];
+              start_node[nedge] = end_node[floor(u)];
             }
           }
         } 
         else {
-          startNode[nEdges] = ceil((u - nEdges) / delta_out);
+          start_node[nedge] = ceil((u - nedge) / delta_out);
         }
         
-        u = unif_rand() * (nEdges + nNodes * delta_in);
-        if (u < nEdges) {
+        u = unif_rand() * (nedge + nnode * delta_in);
+        if (u < nedge) {
           if (directed) {
-            endNode[nEdges] = endNode[floor(u)] ;
+            end_node[nedge] = end_node[floor(u)] ;
           }
           else {
             v = unif_rand();
             if (v <= 0.5) {
-              endNode[nEdges] = startNode[floor(u)];
+              end_node[nedge] = start_node[floor(u)];
             } 
             else {
-              endNode[nEdges] = endNode[floor(u)];
+              end_node[nedge] = end_node[floor(u)];
             }
           }
         } 
         else {
-          endNode[nEdges] = ceil((u - nEdges) / delta_in);
+          end_node[nedge] = ceil((u - nedge) / delta_in);
         }
         break;
       }
       case 3: {
-        u = unif_rand() * (nEdges + nNodes * delta_out);
-        if (u < nEdges) {
+        u = unif_rand() * (nedge + nnode * delta_out);
+        if (u < nedge) {
           if (directed) {
-            startNode[nEdges] = startNode[floor(u)] ;
+            start_node[nedge] = start_node[floor(u)] ;
           }
           else {
             v = unif_rand();
             if (v <= 0.5) {
-              startNode[nEdges] = startNode[floor(u)];
+              start_node[nedge] = start_node[floor(u)];
             } 
             else {
-              startNode[nEdges] = endNode[floor(u)];
+              start_node[nedge] = end_node[floor(u)];
             }
           }
         } 
         else {
-          startNode[nEdges] = ceil((u - nEdges) / delta_out);
+          start_node[nedge] = ceil((u - nedge) / delta_out);
         }
-        nNodes++;
-        endNode[nEdges] = nNodes;
+        nnode++;
+        end_node[nedge] = nnode;
         break;
       }
       case 4: {
-        nNodes += 2;
-        startNode[nEdges] = nNodes - 1;
-        endNode[nEdges] = nNodes;
+        nnode += 2;
+        start_node[nedge] = nnode - 1;
+        end_node[nedge] = nnode;
         break;
       }
       case 5: {
-        nNodes++;
-        startNode[nEdges] = nNodes;
-        endNode[nEdges] = nNodes;
+        nnode++;
+        start_node[nedge] = nnode;
+        end_node[nedge] = nnode;
         break;
       }
     }
-    nEdges++;
+    nedge++;
   }
   PutRNGstate();
   
   Rcpp::List ret;
-  ret["startNode"] = startNode;
-  ret["endNode"] = endNode;
-  ret["nNodes"] = nNodes;
+  ret["start_node"] = start_node;
+  ret["end_node"] = end_node;
+  ret["nnode"] = nnode;
   return ret;
 }
