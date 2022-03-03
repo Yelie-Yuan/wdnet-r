@@ -1,4 +1,3 @@
-#include <R.h>
 #include <Rinternals.h>
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
@@ -9,8 +8,9 @@
 
 /* .C calls */
 extern void netSim(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_directed_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_undirected_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void rpanet_directed_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void rpanet_directed_general_recip_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void rpanet_undirected_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 /* .Call calls */
 extern SEXP _wdnet_directed_rewire_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -26,9 +26,10 @@ extern SEXP _wdnet_sampleNode_simple_cpp(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_undirected_rewire_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CMethodDef CEntries[] = {
-  {"netSim",                        (DL_FUNC) &netSim,                        12},
-  {"rpanet_directed_general_cpp",   (DL_FUNC) &rpanet_directed_general_cpp,   15},
-  {"rpanet_undirected_general_cpp", (DL_FUNC) &rpanet_undirected_general_cpp, 13},
+  {"netSim",                            (DL_FUNC) &netSim,                            12},
+  {"rpanet_directed_general_cpp",       (DL_FUNC) &rpanet_directed_general_cpp,       17},
+  {"rpanet_directed_general_recip_cpp", (DL_FUNC) &rpanet_directed_general_recip_cpp, 21},
+  {"rpanet_undirected_general_cpp",     (DL_FUNC) &rpanet_undirected_general_cpp,     14},
   {NULL, NULL, 0}
 };
 

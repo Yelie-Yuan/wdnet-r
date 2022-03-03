@@ -8,8 +8,7 @@ using namespace std;
 //    targetPreferenceFunc); how to pass R functions in c++?
 // 2. w can not equal to 1 in function sampleNode, otherwise findNode returns error 
 //    because of numeric precision
-// 3. add a parameter p to control reciprocal edges
-// 4. add a parameter m to control number of new edges per step
+// 3. add a parameter m to control number of new edges per step
 
 // node structure
 struct node {
@@ -107,7 +106,8 @@ void updateTree(node *temp_node, double edgeweight, double *params) {
 extern "C" {
   void rpanet_undirected_general_cpp(int *nstep_ptr, int *new_node_id_ptr, int *new_edge_id_ptr, 
       int *node_vec1, int *node_vec2, double *strength, double *edgeweight, int *scenario,
-      double *alpha_ptr, double *beta_ptr, double *gamma_ptr, double *xi_ptr, double *params) {
+      double *alpha_ptr, double *beta_ptr, double *gamma_ptr, double *xi_ptr, double *params, 
+      double *pref) {
     double u;
     int nstep = *nstep_ptr, new_node_id = *new_node_id_ptr, new_edge_id = *new_edge_id_ptr;
     double alpha = *alpha_ptr, beta = *beta_ptr, gamma = *gamma_ptr, xi = *xi_ptr;
@@ -115,7 +115,9 @@ extern "C" {
     // initialize a tree from seed graph
     node *root = createNode(0, strength[0], params);
     queue<node*> q;
+    queue<node*> q2;
     q.push(root);
+    q2.push(root);
     for (int i = 1; i < new_node_id; i++) {
       insert(q, i, strength[i], params);
     }
@@ -172,5 +174,22 @@ extern "C" {
     PutRNGstate();
     *new_node_id_ptr = new_node_id;
     *new_edge_id_ptr = new_edge_id;
+    // save strength and preference
+    node *temp_node;
+    int j = 0;
+    while (! q2.empty())
+    {
+      temp_node = q2.front();
+      q2.pop();
+      if (temp_node->left != NULL) {
+        q2.push(temp_node->left);
+      }
+      if (temp_node->right != NULL) {
+        q2.push(temp_node->right);
+      }
+      strength[j] = temp_node->strength;
+      pref[j] = temp_node->p;
+      j++;
+    }
   }
 }

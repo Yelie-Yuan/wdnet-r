@@ -43,6 +43,18 @@
 #'   is proportional to \code{target_param[1] *
 #'   in-strength^target_param[2] + target_param[3] *
 #'   out-strength^target_param[4] + target_param[5]}.
+#' @param group_dist The distribution of node groups, its length must equal
+#'   to the number of rows of \code{recip_matrix}. If \code{NA}, all groups
+#'   will have the same probability. \code{group_dist} and \code{recip_matrix}
+#'   are defined for directed networks.
+#' @param recip_matrix A square matrix giving the probability of adding a
+#'   reciprocal edge after a new edge is introduced. Element
+#'   \code{p_{ij}} represents the probability of adding a reciprocal edge from
+#'   node \code{A}, which belongs to group \code{i}, to node \code{B}, which
+#'   belongs to group \code{j}, immediately after a directed edge from \code{B}
+#'   to \code{A} is introduced.
+#'   Note that reciprocal edges are not considered when rho-scenario edges are 
+#'   introduced.
 #'
 #' @return List of parameters.
 #' @export
@@ -52,14 +64,53 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
     wdist = 0, wpar = list(), wconst = 1,
     param = c(1, 1),
     source_param = c(1, 1, 0, 0, 1),
-    target_param = c(1, 1, 0, 0, 1)) {
-  ## set default value here
-  list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
-       wdist = wdist, wpar = wpar, wconst = wconst,
-       param = param,
-       source_param = source_param,
-       target_param = target_param)
+    target_param = c(1, 1, 0, 0, 1),
+    group_dist = NA,
+    recip_matrix = NA) {
+    stopifnot("alpha + beta + bamma + xi + rho must equal to 1." =
+        alpha + beta + gamma + xi + rho == 1)
+    if (is.matrix(recip_matrix)) {
+        stopifnot("'recip_matrix' must be a square matrix." =
+            nrow(recip_matrix) == ncol(recip_matrix))
+    }
+    else {
+        stopifnot("'recip_matrix' must be NA or a square matrix." =
+            (is.na(recip_matrix) & length(recip_matrix) == 1))
+    }
+    if (is.na(recip_matrix[1])) {
+        group_dist <- NA
+    }
+    else {
+        if (is.na(group_dist[1])) {
+            n <- length(recip_matrix)^0.5
+            group_dist <- rep(1 / n, n)
+        }
+    }
+    if (! is.na(recip_matrix[1])) {
+        stopifnot("Elements of 'group_dist' must be greater or equal to 0." =
+                all(group_dist >= 0))
+        if (sum(group_dist) != 1) {
+            warning("'group_dist' is normalized.")
+            group_dist <- group_dist / sum(group_dist)
+        }
+        stopifnot("Elements of 'recip_matrix' must be greater than 0." =
+            all(recip_matrix >= 0))
+        stopifnot("Elements of 'recip_matrix' must be less or equal to 1." =
+            all(recip_matrix <= 1))
+        stopifnot("Dimensions of 'group_dist' and 'recip_matrix' do not match." =
+            length(group_dist) == length(recip_matrix)^0.5)
+    }
+    list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
+        wdist = wdist, wpar = wpar, wconst = wconst,
+        param = param,
+        source_param = source_param,
+        target_param = target_param,
+        group_dist = group_dist,
+        recip_matrix = recip_matrix)
 }
+
+#' @importFrom dplyr recode
+NULL
 
 #' Generate a preferential attachment network using augument tree method.
 #'
@@ -69,80 +120,130 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
 #'   edges of the seed graph have weight 1.
 #' @param nstep Number of steps when generating a network.
 #' @param control A list of parameters that controls the process.
-#' @param directed Logical, whether to generate directed networks. When 
-#' \code{FALSE}, the edge directions are omitted.
+#' @param directed Logical, whether to generate directed networks. When
+#'   \code{FALSE}, the edge directions are omitted.
+#' @param group A integer vector presents the group of the nodes from the seed
+#'   graph. Only defined for directed networks. If \code{NA}, all the nodes from
+#'   the seed graph are labeled as group 1.
 #'
 #' @return A list with the following components: edgelist, edgeweight, strength
 #'   for undirected networks, out- and in-strength for directed networks,
-#'   scenario of each new edge
-#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho). The edges in the seed graph
-#'   are denoted as scenario 0.
+#'   control parameters, node group (if applicable) and edge scenario (alpha,
+#'   beta, gamma, xi, rho, reciprocal). The edges in the seed graph are denoted
+#'   as "NA".
 #' @export
 #'
 #' @examples
-#' net <- rpanet_general(nstep = 100,
-#'   control = general.control(alpha = 0.4, beta = 0, gamma = 0.6))
-#' net <- rpanet_general(edgelist = matrix(c(1:8), ncol = 2), nstep = 10^5,
-#'   control = general.control(wdist = stats::runif,
-#'   wpar = list(min = 1, max = 10), wconst = 0))
+#' set.seed(123)
+#' net <- rpanet_general(nstep = 1e5, 
+#'   control = general.control(alpha = 0.4, beta = 0, gamma = 0.6, param = c(1, 2)), 
+#'   directed = FALSE)
+#' net <- rpanet_general(nstep = 1e5, edgelist = matrix(c(1:8), ncol = 2),
+#'   control = general.control(wdist = stats::runif, 
+#'     wpar = list(min = 1, max = 10), wconst = 0, 
+#'     source_param = c(1, 1, 0.1, 1, 2), 
+#'     target_param = c(1, 1, 0.1, 1, 2)))
 
 rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                            edgeweight = NA,
                            control = general.control(),
-                           directed = TRUE) {
+                           directed = TRUE,
+                           group = NA) {
     stopifnot("nstep must be greater than 0." = nstep > 0)
-    stopifnot("alpha + beta + bamma + xi + rho must less or equal to 1." =
-              control$rho >= 0)
     temp <- c(edgelist)
     nnode <- max(temp)
     stopifnot("Nodes' index should be consecutive numbers start from 1." =
               sum(! duplicated(temp)) == nnode)
+    if (is.na(group[1])) {
+        group <- rep(0, nnode)
+    }
+    else {
+        stopifnot("Value/length of 'group' is not valid." =
+            all(is.integer(group)) & length(group) == nnode)
+    }
     nedge <- nrow(edgelist)
     if (is.na(edgeweight[1])) edgeweight[1:nedge] <- 1
     stopifnot(length(edgeweight) == nedge)
     if (! is.numeric(control$wdist)) {
-        w <- do.call(control$wdist, c(nstep, control$wpar)) + control$wconst
+        w <- do.call(control$wdist, c(nstep * 2, control$wpar)) + control$wconst
     } else {
-        w <- rep(control$wdist + control$wconst, nstep)
+        w <- rep(control$wdist + control$wconst, nstep * 2)
     }
     stopifnot("Edgeweight must be greater than 0." = w > 0)
-
-    node_vec1 <- node_vec2 <- scenario <- integer(nstep + nedge)
+    edgeweight <- c(edgeweight, w)
+    vec_length <- ifelse(is.na(control$group_dist[1]), nstep + nedge, (nstep + nedge) * 2)
+    node_vec1 <- node_vec2 <-  scenario <- integer(vec_length)
     node_vec1[1:nedge] <- edgelist[, 1] - 1
     node_vec2[1:nedge] <- edgelist[, 2] - 1
     scenario[1:nedge] <- 0
-
-    strength <- nodeStrength_cpp(edgelist[, 1], edgelist[, 2], edgeweight,
+    seed_strength <- nodeStrength_cpp(edgelist[, 1], edgelist[, 2], edgeweight,
         nnode, weighted = TRUE)
-    edgeweight <- c(edgeweight, w)
     if (directed) {
-        ret_c <- .C("rpanet_directed_general_cpp",
-            as.integer(nstep),
-            nnode = as.integer(nnode),
-            nedge = as.integer(nedge),
-            node_vec1 = as.integer(node_vec1),
-            node_vec2 = as.integer(node_vec2),
-            as.double(strength$outstrength),
-            as.double(strength$instrength),
-            as.double(edgeweight),
-            scenario = as.integer(scenario),
-            as.double(control$alpha),
-            as.double(control$beta),
-            as.double(control$gamma),
-            as.double(control$xi),
-            as.double(control$source_param),
-            as.double(control$target_param),
-            PACKAGE = "wdnet")
+        outstrength <- instrength <- double(vec_length)
+        outstrength[1:nnode] <- seed_strength$outstrength
+        instrength[1:nnode] <- seed_strength$instrength
+        source_pref <- target_pref <- double(vec_length)
+        if (is.na(control$group_dist[1])) {
+            ret_c <- .C("rpanet_directed_general_cpp",
+                as.integer(nstep),
+                nnode = as.integer(nnode),
+                nedge = as.integer(nedge),
+                node_vec1 = as.integer(node_vec1),
+                node_vec2 = as.integer(node_vec2),
+                outstrength = as.double(outstrength),
+                instrength = as.double(instrength),
+                as.double(edgeweight),
+                scenario = as.integer(scenario),
+                as.double(control$alpha),
+                as.double(control$beta),
+                as.double(control$gamma),
+                as.double(control$xi),
+                as.double(control$source_param),
+                as.double(control$target_param),
+                source_pref = as.double(source_pref),
+                target_pref = as.double(target_pref),
+                PACKAGE = "wdnet")
+        }
+        else {
+            node_group <- integer(vec_length)
+            node_group[1:nnode] <- group
+            ret_c <- .C("rpanet_directed_general_recip_cpp",
+                as.integer(nstep),
+                nnode = as.integer(nnode),
+                nedge = as.integer(nedge),
+                node_vec1 = as.integer(node_vec1),
+                node_vec2 = as.integer(node_vec2),
+                outstrength = as.double(outstrength),
+                instrength = as.double(instrength),
+                as.double(edgeweight),
+                scenario = as.integer(scenario),
+                as.double(control$alpha),
+                as.double(control$beta),
+                as.double(control$gamma),
+                as.double(control$xi),
+                as.double(control$source_param),
+                as.double(control$target_param),
+                as.double(control$group_dist),
+                as.double(t(control$recip_matrix)),
+                group = as.integer(node_group),
+                as.integer(length(control$group_dist)),
+                source_pref = as.double(source_pref),
+                target_pref = as.double(target_pref),
+                PACKAGE = "wdnet")
+        }
         control$param <- NULL
     }
     else {
+        strength <- double(vec_length)
+        strength[1:nnode] <- seed_strength$outstrength + seed_strength$instrength
+        pref <- double(vec_length)
         ret_c <- .C("rpanet_undirected_general_cpp",
             as.integer(nstep),
             nnode = as.integer(nnode),
             nedge = as.integer(nedge),
             node_vec1 = as.integer(node_vec1),
             node_vec2 = as.integer(node_vec2),
-            as.double(strength$outstrength + strength$instrength),
+            strength = as.double(strength),
             as.double(edgeweight),
             scenario = as.integer(scenario),
             as.double(control$alpha),
@@ -150,25 +251,36 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
             as.double(control$gamma),
             as.double(control$xi),
             as.double(control$param),
+            pref = as.double(pref),
             PACKAGE = "wdnet")
         control$source_param <- control$target_param <- NULL
     }
-    ret_c$node_vec1 <- ret_c$node_vec1 + 1
-    ret_c$node_vec2 <- ret_c$node_vec2 + 1
-    edgelist <- cbind(ret_c$node_vec1, ret_c$node_vec2)
+    nnode <- ret_c$nnode
+    nedge <- ret_c$nedge
+    node_vec1 <- ret_c$node_vec1[1:nedge] + 1
+    node_vec2 <- ret_c$node_vec2[1:nedge] + 1
+    scenario <- ret_c$scenario[1:nedge]
+    scenario <- dplyr::recode(scenario, "0" = "NA", "1" = "alpha", "2" = "beta",
+            "3" = "gamma", "4" = "xi", "5" = "rho", "6" = "reciprocal")
+    edgeweight <- edgeweight[1:nedge]
+    edgelist <- cbind(node_vec1, node_vec2)
     colnames(edgelist) <- NULL
     ret <- list("edgelist" = edgelist,
         "edgeweight" = edgeweight,
-        "scenario" = ret_c$scenario,
+        "scenario" = scenario,
         "control" = control)
-    strength <- nodeStrength_cpp(ret_c$node_vec1, ret_c$node_vec2,
-        edgeweight, ret_c$nnode, TRUE)
     if (directed) {
-        ret$outstrength <- c(strength$outstrength)
-        ret$instrength <- c(strength$instrength)
+        ret$outstrength <- ret_c$outstrength[1:nnode]
+        ret$instrength <- ret_c$instrength[1:nnode]
+        # ret$source_pref <- ret_c$source_pref[1:nnode]
+        # ret$target_pref <- ret_c$target_pref[1:nnode]
     }
     else {
-        ret$strengh <- c(strength$outstrength) + c(strength$instrength)
+        ret$strength <- ret_c$strength[1:nnode]
+        # ret$pref <- ret_c$pref[1:nnode]
+    }
+    if (length(ret_c$group) > 0) {
+      ret$node_group <- ret_c$group[1:nnode] + 1
     }
     return(ret)
 }
