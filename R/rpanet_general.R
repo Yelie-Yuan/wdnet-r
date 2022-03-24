@@ -25,11 +25,17 @@
 #'   node.
 #' @param xi The probability of adding an edge between two new nodes.
 #' @param rho The probability of introducing a new node with a self looped edge.
-#' @param wdist Dsitribution function or a constant for edge weights.
+#' @param beta_loop Logical, wheter self-loops are allowed in beta scenario.
+#' @param w_dist Dsitribution function or a constant for edge weights.
 #'   Default value is 0.
-#' @param wpar Additional parameters passed on to wdist.
-#' @param wconst A constant add to wdist. Weight of new edges follow
-#'   distribution wdist(wpar) + wconst. Default value is 1.
+#' @param w_par Parameters passed on to w_dist.
+#' @param w_const A constant add to w_dist. Weight of new edges follow
+#'   distribution w_dist(w_par) + w_const. Default value is 1.
+#' @param m_dist Distribution function or a constant for number of new
+#'   edges per step. The default value is 0.
+#' @param m_par Parameters passed on to m_dist.
+#' @param m_const A constant add to m_dist. The number of newly added edges per step
+#'   then follows m_dist(m_par) + m_const. The default value is 1.
 #' @param param Parameters of the preference function for undirected networks.
 #'   Probability of choosing an exising node is proportional to
 #'   \code{strength^param[1] + param[2]}.
@@ -60,8 +66,9 @@
 #' @export
 
 general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
-    xi = 0, rho = 0,
-    wdist = 0, wpar = list(), wconst = 1,
+    xi = 0, rho = 0, beta_loop = TRUE,
+    w_dist = 0, w_par = list(), w_const = 1,
+    m_dist = 0, m_par = list(), m_const = 1,
     param = c(1, 1),
     source_param = c(1, 1, 0, 0, 1),
     target_param = c(1, 1, 0, 0, 1),
@@ -101,7 +108,9 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
             length(group_dist) == length(recip_matrix)^0.5)
     }
     list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
-        wdist = wdist, wpar = wpar, wconst = wconst,
+        beta_loop = beta_loop,
+        w_dist = w_dist, w_par = w_par, w_const = w_const,
+        m_dist = m_dist, m_par = m_par, m_const = m_const,
         param = param,
         source_param = source_param,
         target_param = target_param,
@@ -122,7 +131,7 @@ NULL
 #' @param control A list of parameters that controls the process.
 #' @param directed Logical, whether to generate directed networks. When
 #'   \code{FALSE}, the edge directions are omitted.
-#' @param group A integer vector presents the group of the nodes from the seed
+#' @param node_group A integer vector presents the group of the nodes from the seed
 #'   graph. Only defined for directed networks. If \code{NA}, all the nodes from
 #'   the seed graph are labeled as group 1.
 #'
@@ -139,39 +148,49 @@ NULL
 #'   control = general.control(alpha = 0.4, beta = 0, gamma = 0.6, param = c(1, 2)), 
 #'   directed = FALSE)
 #' net <- rpanet_general(nstep = 1e5, edgelist = matrix(c(1:8), ncol = 2),
-#'   control = general.control(wdist = stats::runif, 
-#'     wpar = list(min = 1, max = 10), wconst = 0, 
+#'   control = general.control(w_dist = stats::runif, 
+#'     w_par = list(min = 1, max = 10), w_const = 0, 
 #'     source_param = c(1, 1, 0.1, 1, 2), 
 #'     target_param = c(1, 1, 0.1, 1, 2)))
 
 rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                            edgeweight = NA,
+                           node_group = NA,
                            control = general.control(),
-                           directed = TRUE,
-                           group = NA) {
+                           directed = TRUE) {
     stopifnot("nstep must be greater than 0." = nstep > 0)
     temp <- c(edgelist)
     nnode <- max(temp)
     stopifnot("Nodes' index should be consecutive numbers start from 1." =
               sum(! duplicated(temp)) == nnode)
-    if (is.na(group[1])) {
-        group <- rep(0, nnode)
+    if (is.na(node_group[1])) {
+        node_group <- rep(0, nnode)
     }
     else {
-        stopifnot("Value/length of 'group' is not valid." =
-            all(is.integer(group)) & length(group) == nnode)
+        stopifnot("Value/length of 'node_group' is not valid." =
+            all(is.integer(node_group)) & length(node_group) == nnode)
     }
     nedge <- nrow(edgelist)
     if (is.na(edgeweight[1])) edgeweight[1:nedge] <- 1
     stopifnot(length(edgeweight) == nedge)
-    if (! is.numeric(control$wdist)) {
-        w <- do.call(control$wdist, c(nstep * 2, control$wpar)) + control$wconst
+    if (! is.numeric(control$m_dist)) {
+        m <- do.call(control$m_dist, c(nstep, control$m_par)) + control$m_const
     } else {
-        w <- rep(control$wdist + control$wconst, nstep * 2)
+        m <- rep(control$m_dist + control$m_const, nstep)
+    }
+    stopifnot("Number of new edges per step must be positive integers." =
+              m %% 1 == 0)
+    stopifnot("Number of new edges per step must be positive integers." =
+              m > 0)
+    sum_m <- sum(m)
+    if (! is.numeric(control$w_dist)) {
+        w <- do.call(control$w_dist, c(sum_m * 2, control$w_par)) + control$w_const
+    } else {
+        w <- rep(control$w_dist + control$w_const, sum_m * 2)
     }
     stopifnot("Edgeweight must be greater than 0." = w > 0)
     edgeweight <- c(edgeweight, w)
-    vec_length <- ifelse(is.na(control$group_dist[1]), nstep + nedge, (nstep + nedge) * 2)
+    vec_length <- ifelse(is.na(control$group_dist[1]), sum_m + nedge, (sum_m + nedge) * 2)
     node_vec1 <- node_vec2 <-  scenario <- integer(vec_length)
     node_vec1[1:nedge] <- edgelist[, 1] - 1
     node_vec2[1:nedge] <- edgelist[, 2] - 1
@@ -186,6 +205,7 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
         if (is.na(control$group_dist[1])) {
             ret_c <- .C("rpanet_directed_general_cpp",
                 as.integer(nstep),
+                as.integer(m),
                 nnode = as.integer(nnode),
                 nedge = as.integer(nedge),
                 node_vec1 = as.integer(node_vec1),
@@ -198,6 +218,7 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                 as.double(control$beta),
                 as.double(control$gamma),
                 as.double(control$xi),
+                as.integer(control$beta_loop),
                 as.double(control$source_param),
                 as.double(control$target_param),
                 source_pref = as.double(source_pref),
@@ -205,10 +226,10 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                 PACKAGE = "wdnet")
         }
         else {
-            node_group <- integer(vec_length)
-            node_group[1:nnode] <- group
+            node_group <- c(node_group, integer(vec_length))
             ret_c <- .C("rpanet_directed_general_recip_cpp",
                 as.integer(nstep),
+                as.integer(m),
                 nnode = as.integer(nnode),
                 nedge = as.integer(nedge),
                 node_vec1 = as.integer(node_vec1),
@@ -221,11 +242,12 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                 as.double(control$beta),
                 as.double(control$gamma),
                 as.double(control$xi),
+                as.integer(control$beta_loop),
                 as.double(control$source_param),
                 as.double(control$target_param),
                 as.double(control$group_dist),
                 as.double(t(control$recip_matrix)),
-                group = as.integer(node_group),
+                node_group = as.integer(node_group),
                 as.integer(length(control$group_dist)),
                 source_pref = as.double(source_pref),
                 target_pref = as.double(target_pref),
@@ -239,6 +261,8 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
         pref <- double(vec_length)
         ret_c <- .C("rpanet_undirected_general_cpp",
             as.integer(nstep),
+            as.integer(m),
+            # as.integer(control$m_unique),
             nnode = as.integer(nnode),
             nedge = as.integer(nedge),
             node_vec1 = as.integer(node_vec1),
@@ -250,6 +274,7 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
             as.double(control$beta),
             as.double(control$gamma),
             as.double(control$xi),
+            as.integer(control$beta_loop),
             as.double(control$param),
             pref = as.double(pref),
             PACKAGE = "wdnet")
@@ -268,7 +293,8 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     ret <- list("edgelist" = edgelist,
         "edgeweight" = edgeweight,
         "scenario" = scenario,
-        "control" = control)
+        "control" = control,
+        "m" = m)
     if (directed) {
         ret$outstrength <- ret_c$outstrength[1:nnode]
         ret$instrength <- ret_c$instrength[1:nnode]
@@ -279,8 +305,8 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
         ret$strength <- ret_c$strength[1:nnode]
         # ret$pref <- ret_c$pref[1:nnode]
     }
-    if (length(ret_c$group) > 0) {
-      ret$node_group <- ret_c$group[1:nnode] + 1
+    if (length(ret_c$node_group) > 0) {
+      ret$node_group <- ret_c$node_group[1:nnode] + 1
     }
     return(ret)
 }

@@ -37,7 +37,7 @@ NULL
 #' @param delta A tuning parameter related to growth rate for undirected
 #'   networks. Probability of choosing an existing node is proportional to node
 #'   strength + delta.
-#' @param mdist Distribution function or a constant for number of newly added
+#' @param mdist Distribution function or a constant for number of new
 #'   edges per step. The default value is 0.
 #' @param mpar Additional parameters passed on to mdist.
 #' @param mconst A constant add to mdist. The number of newly added edges per step
