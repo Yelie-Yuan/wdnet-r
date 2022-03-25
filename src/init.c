@@ -1,7 +1,7 @@
 #include <R.h>
-#include <Rinternals.h>        
+#include <Rinternals.h>
 #include <stdlib.h> // for NULL
-#include <R_ext/Rdynload.h>    
+#include <R_ext/Rdynload.h>
 
 /* FIXME:
    Check these declarations against the C/Fortran source code.
@@ -9,10 +9,8 @@
 
 /* .C calls */
 extern void netSim(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_directed_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_directed_general_recip_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, 
-void *, void *);
-extern void rpanet_undirected_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void rpanet_directed_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void rpanet_undirected_general_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 /* .Call calls */
 extern SEXP _wdnet_directed_rewire_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -28,10 +26,9 @@ extern SEXP _wdnet_sampleNode_simple_cpp(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_undirected_rewire_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CMethodDef CEntries[] = {
-    {"netSim",                            (DL_FUNC) &netSim,                            12},
-    {"rpanet_directed_general_cpp",       (DL_FUNC) &rpanet_directed_general_cpp,       19},
-    {"rpanet_directed_general_recip_cpp", (DL_FUNC) &rpanet_directed_general_recip_cpp, 23},
-    {"rpanet_undirected_general_cpp",     (DL_FUNC) &rpanet_undirected_general_cpp,     16},
+    {"netSim",                        (DL_FUNC) &netSim,                        12},
+    {"rpanet_directed_general_cpp",   (DL_FUNC) &rpanet_directed_general_cpp,   27},
+    {"rpanet_undirected_general_cpp", (DL_FUNC) &rpanet_undirected_general_cpp, 17},
     {NULL, NULL, 0}
 };
 

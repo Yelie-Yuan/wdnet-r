@@ -2,6 +2,7 @@
 #include<queue>
 #include<math.h>
 #include<R.h>
+#include<bits/stdc++.h>
 using namespace std;
 
 // 1. user defined preference functions (SourcePreferenceFunc and 
@@ -31,8 +32,8 @@ double SourcePreferenceFunc(double outs, double ins, double *source_params) {
     source_params[2] * pow(ins, source_params[3]) + source_params[4];
 }
 double TargetPreferenceFunc(double outs, double ins, double *target_params) {
-  return target_params[0] * pow(ins, target_params[1]) + 
-    target_params[2] * pow(outs, target_params[3]) + target_params[4];
+  return target_params[0] * pow(outs, target_params[1]) + 
+    target_params[2] * pow(ins, target_params[3]) + target_params[4];
 }
 
 // update total source preference from current node to root
@@ -127,130 +128,25 @@ node *FindTargetNode(node *root, double w) {
 }
 
 // sample a node from the tree
-node* SampleNode2(node *root, char type) {
-  double w = 1;
+node* SampleNode2(node *root, char type, deque<node*> &qm) {
+  double w;
   node *temp_node;
-  while (w == 1) {
-    w = unif_rand();
-  }
-  if (type == 's') {
-    w *= root->total_sourcep;
-    temp_node = FindSourceNode(root, w);
-  }
-  else {
-    w *= root->total_targetp;
-    temp_node = FindTargetNode(root, w);
-  }
-  return temp_node;
-}
-
-// sample edges with a given seed graph
-extern "C" {
-  void rpanet_directed_general_cpp(int *nstep_ptr, int *m,
-      int *new_node_id_ptr, int *new_edge_id_ptr,
-      int *source_node, int *target_node,
-      double *outs, double *ins,
-      double *edgeweight, int *scenario,
-      double *alpha_ptr, double *beta_ptr, 
-      double *gamma_ptr, double *xi_ptr, 
-      int *beta_loop_ptr,
-      double *source_params, double *target_params, 
-      double *source_pref, double *target_pref) {
-    double u;
-    int nstep = *nstep_ptr, new_node_id = *new_node_id_ptr, new_edge_id = *new_edge_id_ptr;
-    double alpha = *alpha_ptr, beta = *beta_ptr, gamma = *gamma_ptr, xi = *xi_ptr;
-    bool beta_loop = *beta_loop_ptr;
-    int i, j;
-    node *node1, *node2;
-    // initialize a tree from the seed graph
-    node *root = CreateNode2(0);
-    root->outs = outs[0];
-    root->ins = ins[0];
-    UpdatePreference2(root, source_params, target_params);
-    queue<node*> q;
-    queue<node*> qm;
-    q.push(root);
-    for (int i = 1; i < new_node_id; i++) {
-      node1 = InsertNode2(q, i);
-      node1->outs = outs[i];
-      node1->ins = ins[i];
-      UpdatePreference2(node1, source_params, target_params);
+  while (true) {
+    w = 1;
+    while (w == 1) {
+      w = unif_rand();
     }
-    // sample edges
-    GetRNGstate();
-    for (i = 0; i < nstep; i++) {
-      for (j = 0; j < m[i]; j++) {
-        u = unif_rand();
-        if (u <= alpha) {
-          node1 = InsertNode2(q, new_node_id);
-          new_node_id++;
-          node2 = SampleNode2(root, 't');
-          scenario[new_edge_id] = 1;
-        }
-        else if (u <= alpha + beta) {
-          node1 = SampleNode2(root, 's');
-          node2 = SampleNode2(root, 't');
-          if (! beta_loop) {
-            while (node1 == node2) {
-              node2 = SampleNode2(root, 't');
-            }
-          }
-          scenario[new_edge_id] = 2;
-        }
-        else if (u <= alpha + beta + gamma) {
-          node1 = SampleNode2(root, 's');
-          node2 = InsertNode2(q, new_node_id);
-          new_node_id++;
-          scenario[new_edge_id] = 3;
-        }
-        else if (u <= alpha + beta + gamma + xi) {
-          node1 = InsertNode2(q, new_node_id);
-          new_node_id++;
-          node2 = InsertNode2(q, new_node_id);
-          new_node_id++;
-          scenario[new_edge_id] = 4;
-        }
-        else {
-          node1 = node2 = InsertNode2(q, new_node_id);
-          new_node_id++;
-          scenario[new_edge_id] = 5;
-        }
-        node1->outs += edgeweight[new_edge_id];
-        node2->ins += edgeweight[new_edge_id];
-        source_node[new_edge_id] = node1->id;
-        target_node[new_edge_id] = node2->id;
-        qm.push(node1);
-        qm.push(node2);
-        new_edge_id++;
-      }
-      while(! qm.empty()) {
-        UpdatePreference2(qm.front(), source_params, target_params);
-        qm.pop();
-      }
+    if (type == 's') {
+      w *= root->total_sourcep;
+      temp_node = FindSourceNode(root, w);
     }
-    PutRNGstate();
-    *new_node_id_ptr = new_node_id;
-    *new_edge_id_ptr = new_edge_id;
-    // save strength and preference
-    queue<node*> q2;
-    q2.push(root);
-    node *temp_node;
-    j = 0;
-    while (! q2.empty())
-    {
-      temp_node = q2.front();
-      q2.pop();
-      if (temp_node->left != NULL) {
-        q2.push(temp_node->left);
-      }
-      if (temp_node->right != NULL) {
-        q2.push(temp_node->right);
-      }
-      outs[j] = temp_node->outs;
-      ins[j] = temp_node->ins;
-      source_pref[j] = temp_node->sourcep;
-      target_pref[j] = temp_node->targetp;
-      j++;
+    else {
+      w *= root->total_targetp;
+      temp_node = FindTargetNode(root, w);
+    }
+    if (find(qm.begin(), qm.end(), temp_node) == qm.end()) {
+      // if temp_node not in qm
+      return temp_node;
     }
   }
 }
@@ -270,7 +166,7 @@ int SampleGroup(double *group_dist) {
 }
 
 extern "C" {
-  void rpanet_directed_general_recip_cpp(int *nstep_ptr, int *m, 
+  void rpanet_directed_general_cpp(int *nstep_ptr, int *m, 
       int *new_node_id_ptr, int *new_edge_id_ptr, 
       int *source_node, int *target_node, 
       double *outs, double *ins, 
@@ -278,7 +174,11 @@ extern "C" {
       double *alpha_ptr, double *beta_ptr, 
       double *gamma_ptr, double *xi_ptr, 
       int *beta_loop_ptr,
+      int *m_unique_ptr,
+      int *m_source_unique_ptr,
+      int *m_target_unique_ptr,
       double *source_params, double *target_params, 
+      int *sample_recip_ptr,
       double *group_dist, double *recip, 
       int *node_group, int *ngroup_ptr, 
       double *source_pref, double *target_pref) {
@@ -287,7 +187,10 @@ extern "C" {
         new_edge_id = *new_edge_id_ptr, ngroup = *ngroup_ptr;
     double alpha = *alpha_ptr, beta = *beta_ptr, gamma = *gamma_ptr, xi = *xi_ptr;
     bool beta_loop = *beta_loop_ptr;
-    int i, j;
+    bool m_unique = *m_unique_ptr, m_source_unique = *m_source_unique_ptr;
+    bool m_target_unique = *m_target_unique_ptr;
+    bool m_error, sample_recip = *sample_recip_ptr;
+    int i, j, ks, kt, n_existing;
     node *node1, *node2;
     // initialize a tree from the seed graph
     node *root = CreateNode2(0);
@@ -296,7 +199,9 @@ extern "C" {
     root->group = node_group[0];
     UpdatePreference2(root, source_params, target_params);
     queue<node*> q;
-    queue<node*> qm;
+    queue<node*> q1;
+    deque<node*> qm_source;
+    deque<node*> qm_target;
     q.push(root);
     for (int i = 1; i < new_node_id; i++) {
       node1 = InsertNode2(q, i);
@@ -308,70 +213,151 @@ extern "C" {
     // sample edges
     GetRNGstate();
     for (i = 0; i < nstep; i++) {
+      qm_source.clear();
+      qm_target.clear();
+      m_error = false;
+      n_existing = new_node_id;
       for (j = 0; j < m[i]; j++) {
         u = unif_rand();
+        ks = qm_source.size();
+        kt = qm_target.size();
         if (u <= alpha) {
+          if (kt + 1 > n_existing) {
+            m_error = true;
+            break;
+          }
           node1 = InsertNode2(q, new_node_id);
-          node1->group = SampleGroup(group_dist);
+          if (sample_recip) {
+            node1->group = SampleGroup(group_dist);
+          }
           new_node_id++;
-          node2 = SampleNode2(root, 't');
+          node2 = SampleNode2(root, 't', qm_target);
           scenario[new_edge_id] = 1;
         }
         else if (u <= alpha + beta) {
-          node1 = SampleNode2(root, 's');
-          node2 = SampleNode2(root, 't');
-          if (! beta_loop) {
-            while (node1 == node2) {
-              node2 = SampleNode2(root, 't');
+          if (m_unique) {
+            if (ks + 2 - int(beta_loop) > n_existing) {
+              m_error = true;
+              break;
             }
+          }
+          else {
+            if (m_source_unique) {
+              if (ks + 1 > n_existing) {
+                m_error = true;
+                break;
+              }
+            }
+            if (m_target_unique) {
+              if (kt + 1 > n_existing) {
+                m_error = true;
+                break;
+              }
+            }
+          }
+          node1 = SampleNode2(root, 's', qm_source);
+          if (! beta_loop) {
+            if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
+              node2 = SampleNode2(root, 't', qm_target);
+            }
+            else {
+              if (kt + 2 > n_existing) {
+                m_error = true;
+                break;
+              }
+              qm_target.push_back(node1);
+              node2 = SampleNode2(root, 't', qm_target);
+              qm_target.pop_back();
+            }
+          }
+          else {
+            node2 = SampleNode2(root, 't', qm_target);
           }
           scenario[new_edge_id] = 2;
         }
         else if (u <= alpha + beta + gamma) {
-          node1 = SampleNode2(root, 's');
+          if (ks + 1 > n_existing) {
+            m_error = true;
+            break;
+          }
+          node1 = SampleNode2(root, 's', qm_source);
           node2 = InsertNode2(q, new_node_id);
-          node2->group = SampleGroup(group_dist);
+          if (sample_recip) {
+            node2->group = SampleGroup(group_dist);
+          }
           new_node_id++;
           scenario[new_edge_id] = 3;
         }
         else if (u <= alpha + beta + gamma + xi) {
           node1 = InsertNode2(q, new_node_id);
-          node1->group = SampleGroup(group_dist);
           new_node_id++;
           node2 = InsertNode2(q, new_node_id);
-          node2->group = SampleGroup(group_dist);
           new_node_id++;
+          if (sample_recip) {
+            node1->group = SampleGroup(group_dist);
+            node2->group = SampleGroup(group_dist);
+          }
           scenario[new_edge_id] = 4;
         }
         else {
           node1 = node2 = InsertNode2(q, new_node_id);
-          node1->group = SampleGroup(group_dist);
+          if (sample_recip) {
+            node1->group = SampleGroup(group_dist);
+          }
           new_node_id++;
           scenario[new_edge_id] = 5;
+        }
+        // handle duplicate nodes
+        if (m_unique) {
+          if (node1->id < n_existing) {
+            qm_source.push_back(node1);
+            qm_target.push_back(node2);
+          }
+          if ((node2->id < n_existing) & (node1 != node2)) {
+            qm_source.push_back(node1);
+            qm_target.push_back(node2);
+          }
+        }
+        else {
+          if (m_source_unique & (node1->id < n_existing)) {
+            qm_source.push_back(node1);
+          }
+          if (m_target_unique & (node2->id < n_existing)) {
+            qm_target.push_back(node2);
+          }
         }
         node1->outs += edgeweight[new_edge_id];
         node2->ins += edgeweight[new_edge_id];
         source_node[new_edge_id] = node1->id;
         target_node[new_edge_id] = node2->id;
-        qm.push(node1);
-        qm.push(node2);
+        q1.push(node1);
+        q1.push(node2);
         // handel reciprocal
-        p = unif_rand();
-        if (scenario[new_edge_id] != 5) {
-          if (p <= recip[node2->group * ngroup + node1->group]) {
-            new_edge_id++;
-            node2->outs += edgeweight[new_edge_id];
-            node1->ins += edgeweight[new_edge_id];
-            source_node[new_edge_id] = node2->id;
-            target_node[new_edge_id] = node1->id;
-            scenario[new_edge_id] = 6;
+        if (sample_recip) {
+          p = unif_rand();
+          if (scenario[new_edge_id] != 5) {
+            if (p <= recip[node2->group * ngroup + node1->group]) {
+              new_edge_id++;
+              node2->outs += edgeweight[new_edge_id];
+              node1->ins += edgeweight[new_edge_id];
+              source_node[new_edge_id] = node2->id;
+              target_node[new_edge_id] = node1->id;
+              scenario[new_edge_id] = 6;
+            }
           }
         }
         new_edge_id++;
       }
-      while (! qm.empty()) {
-        UpdatePreference2(qm.front(), source_params, target_params);
-        qm.pop();
+      if (m_error) {
+        m[i] = j;
+        // need to print this info
+        // cout << "Unique nodes exhausted at step " << i + 1
+        //   << ". Set the value of m at current step to " << j 
+        //   << "." << endl;
+      }
+      while(! q1.empty()) {
+        UpdatePreference2(q1.front(), source_params, target_params);
+        q1.pop();
       }
     }
     PutRNGstate();

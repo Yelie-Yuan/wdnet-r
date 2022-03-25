@@ -2,6 +2,7 @@
 #include<queue>
 #include<math.h>
 #include<R.h>
+#include<bits/stdc++.h>
 using namespace std;
 
 // 1. user defined preference functions (sourcePreferenceFunc and 
@@ -83,14 +84,21 @@ node *FindNode(node *root, double w) {
 }
 
 // sample a node from the tree
-node* SampleNode(node *root){
-  double w = 1;
-  while (w == 1) {
-    w = unif_rand();
+node *SampleNode(node *root, deque<node*> &qm) {
+  double w;
+  node *temp_node;
+  while (true) {
+    w = 1;
+    while (w == 1) {
+      w = unif_rand();
+    }
+    w *= root->totalp;
+    temp_node = FindNode(root, w);
+    if (find(qm.begin(), qm.end(), temp_node) == qm.end()) {
+      // if temp_node not in qm
+      return temp_node;
+    }
   }
-  w *= root->totalp;
-  node *temp_node = FindNode(root, w);
-  return temp_node;
 }
 
 // sample edges with a given seed graph
@@ -110,19 +118,22 @@ extern "C" {
       double *alpha_ptr, double *beta_ptr, 
       double *gamma_ptr, double *xi_ptr, 
       int *beta_loop_ptr,
+      int *m_unique_ptr,
       double *params, double *pref) {
     double u;
     int nstep = *nstep_ptr, new_node_id = *new_node_id_ptr, new_edge_id = *new_edge_id_ptr;
     double alpha = *alpha_ptr, beta = *beta_ptr, gamma = *gamma_ptr, xi = *xi_ptr;
-    bool beta_loop = *beta_loop_ptr;
-    int i, j;
+    bool beta_loop = *beta_loop_ptr, m_unique = *m_unique_ptr;
+    bool m_error;
+    int i, j, k;
     node *node1, *node2;
     // initialize a tree from seed graph
     node *root = CreateNode(0);
     root->strength = strength[0];
     UpdatePreference(root, params);
     queue<node*> q;
-    queue<node*> qm;
+    queue<node*> q1;
+    deque<node*> qm;
     q.push(root);
     for (i = 1; i < new_node_id; i++) {
       node1 = InsertNode(q, i);
@@ -132,26 +143,48 @@ extern "C" {
     // sample edges
     GetRNGstate();
     for (i = 0; i < nstep; i++) {
+      qm.clear();
+      m_error = false;
       for (j = 0; j < m[i]; j++) {
         u = unif_rand();
+        k = qm.size();
         if (u <= alpha) {
+          if (k + 1 > new_node_id) {
+            m_error = true;
+            break;
+          }
           node1 = InsertNode(q, new_node_id);
           new_node_id++;
-          node2 = SampleNode(root);
+          node2 = SampleNode(root, qm);
           scenario[new_edge_id] = 1;
         }
         else if (u <= alpha + beta) {
-          node1 = SampleNode(root);
-          node2 = SampleNode(root);
-          if (! beta_loop) {
-            while (node1 == node2) {
-              node2 = SampleNode(root);
+          if (m_unique) {
+            if (beta_loop) {
+              k -= 1;
             }
+            if (k + 2 > new_node_id) {
+              m_error = true;
+              break;
+            }
+          }
+          node1 = SampleNode(root, qm);
+          if (! beta_loop) {
+            qm.push_back(node1);
+            node2 = SampleNode(root, qm);
+            qm.pop_back();
+          }
+          else {
+            node2 = SampleNode(root, qm);
           }
           scenario[new_edge_id] = 2;
         }
         else if (u <= alpha + beta + gamma) {
-          node1 = SampleNode(root);
+          if (k + 1 > new_node_id) {
+            m_error = true;
+            break;
+          }
+          node1 = SampleNode(root, qm);
           node2 = InsertNode(q, new_node_id);
           new_node_id++;
           scenario[new_edge_id] = 3;
@@ -168,19 +201,31 @@ extern "C" {
           new_node_id++;
           scenario[new_edge_id] = 5;
         }
-        // handle duplicate nodes (sampled nodes from the same step should be unique)
-        // to be added
+        // handle duplicate nodes
+        if (m_unique) {
+          qm.push_back(node1);
+          if (node1 != node2) {
+            qm.push_back(node2);
+          }
+        }
         node1->strength += edgeweight[new_edge_id];
         node2->strength += edgeweight[new_edge_id];
         node_vec1[new_edge_id] = node1->id;
         node_vec2[new_edge_id] = node2->id;
-        qm.push(node1);
-        qm.push(node2);
+        q1.push(node1);
+        q1.push(node2);
         new_edge_id++;
       }
-      while (! qm.empty()) {
-        UpdatePreference(qm.front(), params);
-        qm.pop();
+      if (m_error) {
+        m[i] = j;
+        // need to print this info
+        // cout << "Unique nodes exhausted at step " << i + 1
+        //   << ". Set the value of m at current step to " << j 
+        //   << "." << endl;
+      }
+      while (! q1.empty()) {
+        UpdatePreference(q1.front(), params);
+        q1.pop();
       }
     }
     PutRNGstate();
