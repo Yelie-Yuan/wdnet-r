@@ -18,7 +18,7 @@
 
 #' Parameter settings for function rpanet_general.
 #'
-#' @param alpha The probability of adding an edge from the new node to an
+#' @param alpha The probability of adding an edge from a new node to an
 #'   existing node.
 #' @param beta The probability of adding an edge between existing nodes.
 #' @param gamma The probability of adding an edge from an existing node to a new
@@ -100,6 +100,16 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
             stop("'recip_matrix' can not be NA when 'group_dist' is provided.")
         }
     }
+    if (any(m_unique, m_source_unique, m_target_unique)) {
+        if (all(source_param[c(3, 5)] == 0)) {
+            stop("Zero out-strength (out-degree) nodes have no source
+                preference, please use a different 'source_param'.")
+        }
+        if (all(target_param[c(1, 5)] == 0)) {
+            stop("Zero in-strength (in-degree) nodes have no target 
+                preference, please use a different 'target_param'.")
+        }
+    }
     if (m_unique) {
       m_source_unique <- m_target_unique <- FALSE
     }
@@ -116,8 +126,6 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
         recip_matrix = recip_matrix)
 }
 
-#' @importFrom dplyr recode
-NULL
 
 #' Generate a preferential attachment network using augument tree method.
 #'
@@ -135,9 +143,9 @@ NULL
 #'
 #' @return A list with the following components: edgelist, edgeweight, strength
 #'   for undirected networks, out- and in-strength for directed networks,
-#'   control parameters, node group (if applicable) and edge scenario (alpha,
-#'   beta, gamma, xi, rho, reciprocal). The edges in the seed graph are denoted
-#'   as "NA".
+#'   control parameters, node group (if applicable) and edge scenario (1~alpha,
+#'   2~beta, 3~gamma, 4~xi, 5~rho, 6~reciprocal). The edges from the seed graph
+#'   are denoted as "NA".
 #' @export
 #'
 #' @examples
@@ -188,7 +196,7 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     }
     stopifnot("Edgeweight must be greater than 0." = w > 0)
     edgeweight <- c(edgeweight, w)
-    node_vec_length <- ifelse(is.na(control$group_dist[1]), sum_m + nedge, (sum_m + nedge) * 2)
+    node_vec_length <- (sum_m + nedge) * 2
     node_vec1 <- node_vec2 <-  scenario <- integer(node_vec_length)
     node_vec1[1:nedge] <- edgelist[, 1] - 1
     node_vec2[1:nedge] <- edgelist[, 2] - 1
@@ -196,10 +204,10 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     seed_strength <- nodeStrength_cpp(edgelist[, 1], edgelist[, 2], edgeweight,
         nnode, weighted = TRUE)
     if (directed) {
-        outstrength <- instrength <- double(node_vec_length * 2)
+        outstrength <- instrength <- double(node_vec_length)
         outstrength[1:nnode] <- seed_strength$outstrength
         instrength[1:nnode] <- seed_strength$instrength
-        source_pref <- target_pref <- double(node_vec_length * 2)
+        source_pref <- target_pref <- double(node_vec_length)
         if (is.na(control$group_dist[1])) {
             sample_recip <- FALSE
             control$group_dist <- 1
@@ -242,9 +250,9 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     }
     else {
         sample_recip <- FALSE
-        strength <- double(node_vec_length * 2)
+        strength <- double(node_vec_length)
         strength[1:nnode] <- seed_strength$outstrength + seed_strength$instrength
-        pref <- double(node_vec_length * 2)
+        pref <- double(node_vec_length)
         ret_c <- .C("rpanet_undirected_general_cpp",
             as.integer(nstep),
             m = as.integer(m),
@@ -271,8 +279,8 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     node_vec1 <- ret_c$node_vec1[1:nedge] + 1
     node_vec2 <- ret_c$node_vec2[1:nedge] + 1
     scenario <- ret_c$scenario[1:nedge]
-    scenario <- dplyr::recode(scenario, "0" = "NA", "1" = "alpha", "2" = "beta",
-            "3" = "gamma", "4" = "xi", "5" = "rho", "6" = "reciprocal")
+    # scenario <- dplyr::recode(scenario, "0" = "NA", "1" = "alpha", "2" = "beta",
+    #         "3" = "gamma", "4" = "xi", "5" = "rho", "6" = "reciprocal")
     m <- ret_c$m
     edgeweight <- edgeweight[1:nedge]
     edgelist <- cbind(node_vec1, node_vec2)

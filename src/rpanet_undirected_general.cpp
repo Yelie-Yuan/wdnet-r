@@ -111,28 +111,30 @@ node *SampleNode(node *root, deque<node*> &qm) {
 //   rpanet_undirected_general_cpp(alpha, beta, gamma, ...)
 // }
 extern "C" {
-  void rpanet_undirected_general_cpp(int *nstep_ptr, int *m,
+  void rpanet_undirected_general_cpp(
+      int *nstep_ptr, int *m,
       int *new_node_id_ptr, int *new_edge_id_ptr, 
       int *node_vec1, int *node_vec2, 
-      double *strength, double *edgeweight, int *scenario,
+      double *strength, double *edgeweight, 
+      int *scenario,
       double *alpha_ptr, double *beta_ptr, 
       double *gamma_ptr, double *xi_ptr, 
-      int *beta_loop_ptr,
-      int *m_unique_ptr,
+      int *beta_loop_ptr, int *m_unique_ptr,
       double *params, double *pref) {
     double u;
-    int nstep = *nstep_ptr, new_node_id = *new_node_id_ptr, new_edge_id = *new_edge_id_ptr;
-    double alpha = *alpha_ptr, beta = *beta_ptr, gamma = *gamma_ptr, xi = *xi_ptr;
-    bool beta_loop = *beta_loop_ptr, m_unique = *m_unique_ptr;
-    bool m_error;
-    int i, j, k;
+    int nstep = *nstep_ptr, new_node_id = *new_node_id_ptr, 
+      new_edge_id = *new_edge_id_ptr;
+    double alpha = *alpha_ptr, beta = *beta_ptr, 
+      gamma = *gamma_ptr, xi = *xi_ptr;
+    bool beta_loop = *beta_loop_ptr, m_unique = *m_unique_ptr,
+      m_error;
+    int i, j, k, n_existing, current_scenario;
     node *node1, *node2;
     // initialize a tree from seed graph
     node *root = CreateNode(0);
     root->strength = strength[0];
     UpdatePreference(root, params);
-    queue<node*> q;
-    queue<node*> q1;
+    queue<node*> q, q1;
     deque<node*> qm;
     q.push(root);
     for (i = 1; i < new_node_id; i++) {
@@ -143,68 +145,87 @@ extern "C" {
     // sample edges
     GetRNGstate();
     for (i = 0; i < nstep; i++) {
-      qm.clear();
       m_error = false;
+      n_existing = new_node_id;
       for (j = 0; j < m[i]; j++) {
         u = unif_rand();
-        k = qm.size();
         if (u <= alpha) {
-          if (k + 1 > new_node_id) {
-            m_error = true;
-            break;
-          }
-          node1 = InsertNode(q, new_node_id);
-          new_node_id++;
-          node2 = SampleNode(root, qm);
-          scenario[new_edge_id] = 1;
+          current_scenario = 1;
         }
         else if (u <= alpha + beta) {
-          if (m_unique) {
-            if (beta_loop) {
-              k -= 1;
-            }
-            if (k + 2 > new_node_id) {
-              m_error = true;
-              break;
-            }
-          }
-          node1 = SampleNode(root, qm);
-          if (! beta_loop) {
-            qm.push_back(node1);
-            node2 = SampleNode(root, qm);
-            qm.pop_back();
-          }
-          else {
-            node2 = SampleNode(root, qm);
-          }
-          scenario[new_edge_id] = 2;
+          current_scenario = 2;
         }
         else if (u <= alpha + beta + gamma) {
-          if (k + 1 > new_node_id) {
-            m_error = true;
-            break;
-          }
-          node1 = SampleNode(root, qm);
-          node2 = InsertNode(q, new_node_id);
-          new_node_id++;
-          scenario[new_edge_id] = 3;
+          current_scenario = 3;
         }
         else if (u <= alpha + beta + gamma + xi) {
-          node1 = InsertNode(q, new_node_id);
-          new_node_id++;
-          node2 = InsertNode(q, new_node_id);
-          new_node_id++;
-          scenario[new_edge_id] = 4;
+          current_scenario = 4;
         }
         else {
-          node1 = node2 = InsertNode(q, new_node_id);
-          new_node_id++;
-          scenario[new_edge_id] = 5;
+          current_scenario = 5;
+        }
+        if (m_unique) {
+          k = qm.size();
+          switch (current_scenario) {
+            case 1:
+              if (k + 1 > n_existing) {
+                m_error = true;
+              }
+              break;
+            case 2:
+              if (k + 2 - int(beta_loop) > n_existing) {
+                m_error = true;
+              }
+              break;
+            case 3:
+              if (k + 1 > n_existing) {
+                m_error = true;
+              }
+              break;
+          }
+        }
+        if (m_error) {
+          break;
+        }
+        switch (current_scenario) {
+          case 1:
+            node1 = InsertNode(q, new_node_id);
+            new_node_id++;
+            node2 = SampleNode(root, qm);
+            break;
+          case 2:
+            node1 = SampleNode(root, qm);
+            if (! beta_loop) {
+              qm.push_back(node1);
+              node2 = SampleNode(root, qm);
+              qm.pop_back();
+            }
+            else {
+              node2 = SampleNode(root, qm);
+            }
+            break;
+          case 3:
+            node1 = SampleNode(root, qm);
+            node2 = InsertNode(q, new_node_id);
+            new_node_id++;
+            break;
+          case 4:
+            node1 = InsertNode(q, new_node_id);
+            new_node_id++;
+            node2 = InsertNode(q, new_node_id);
+            new_node_id++;
+            break;
+          case 5:
+            node1 = node2 = InsertNode(q, new_node_id);
+            new_node_id++;
+            break;
         }
         // handle duplicate nodes
         if (m_unique) {
-          qm.push_back(node1);
-          if (node1 != node2) {
+          if (node1->id < n_existing) {
+            qm.push_back(node1);
+          }
+          if ((node2->id < n_existing) & (node1 != node2)) {
             qm.push_back(node2);
           }
         }
@@ -212,6 +233,7 @@ extern "C" {
         node2->strength += edgeweight[new_edge_id];
         node_vec1[new_edge_id] = node1->id;
         node_vec2[new_edge_id] = node2->id;
+        scenario[new_edge_id] = current_scenario;
         q1.push(node1);
         q1.push(node2);
         new_edge_id++;
@@ -219,35 +241,40 @@ extern "C" {
       if (m_error) {
         m[i] = j;
         // need to print this info
-        // cout << "Unique nodes exhausted at step " << i + 1
-        //   << ". Set the value of m at current step to " << j 
-        //   << "." << endl;
+        Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
       }
       while (! q1.empty()) {
         UpdatePreference(q1.front(), params);
         q1.pop();
       }
+      qm.clear();
     }
     PutRNGstate();
     *new_node_id_ptr = new_node_id;
     *new_edge_id_ptr = new_edge_id;
+    // free memory (queue)
+    queue<node*>().swap(q);
+    queue<node*>().swap(q1);
     // save strength and preference
-    queue<node*> q2;
-    q2.push(root);
+    q.push(root);
     node *temp_node;
     j = 0;
-    while (! q2.empty()) {
-      temp_node = q2.front();
-      q2.pop();
+    while (! q.empty()) {
+      temp_node = q.front();
+      q.pop();
       if (temp_node->left != NULL) {
-        q2.push(temp_node->left);
+        q.push(temp_node->left);
       }
       if (temp_node->right != NULL) {
-        q2.push(temp_node->right);
+        q.push(temp_node->right);
       }
       strength[j] = temp_node->strength;
       pref[j] = temp_node->p;
+      // free memory (node and tree)
+      delete(temp_node);
       j++;
     }
+    // free memory (queue)
+    queue<node*>().swap(q);
   }
 }
