@@ -145,7 +145,7 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
 #'   for undirected networks, out- and in-strength for directed networks,
 #'   control parameters, node group (if applicable) and edge scenario (1~alpha,
 #'   2~beta, 3~gamma, 4~xi, 5~rho, 6~reciprocal). The edges from the seed graph
-#'   are denoted as "NA".
+#'   are denoted as 0.
 #' @export
 #'
 #' @examples
@@ -217,7 +217,7 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
             sample_recip <- TRUE
         }
         node_group <- c(node_group, integer(node_vec_length))
-        ret_c <- .C("rpanet_directed_general_cpp",
+        ret_c <- .C("rpanet_general_directed_cpp",
             as.integer(nstep),
             m = as.integer(m),
             nnode = as.integer(nnode),
@@ -253,7 +253,7 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
         strength <- double(node_vec_length)
         strength[1:nnode] <- seed_strength$outstrength + seed_strength$instrength
         pref <- double(node_vec_length)
-        ret_c <- .C("rpanet_undirected_general_cpp",
+        ret_c <- .C("rpanet_general_undirected_cpp",
             as.integer(nstep),
             m = as.integer(m),
             nnode = as.integer(nnode),

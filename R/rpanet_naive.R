@@ -19,7 +19,7 @@
 #' @importFrom stats runif rpois
 NULL
 
-#' Generate a growing preferential attachment network.
+#' Generate a directed preferential attachment network.
 #'
 #' @param edgelist A two column matrix represents the seed graph.
 #' @param edgeweight A vector represents the weight of edges of the seed graph.
@@ -35,15 +35,15 @@ NULL
 #' @export
 #'
 #' @examples
-#' net <- rpanet_simple(nstep = 100, 
+#' net <- rpanet_naive(nstep = 100, 
 #'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.6))
-#' net <- rpanet_simple(edgelist = matrix(c(1:8), ncol = 2), nstep = 10^3,
-#'       control = panet.control(mdist = stats::rpois,
-#'       mpar = list(lambda = 1), mconst = 1,
-#'       wdist = stats::runif, wpar = list(min = 1, max = 10), wconst = 0))
+#' net <- rpanet_naive(edgelist = matrix(c(1:8), ncol = 2), nstep = 10^3,
+#'       control = panet.control(m_dist = stats::rpois,
+#'       m_par = list(lambda = 1), m_const = 1,
+#'       w_dist = stats::runif, w_par = list(min = 1, max = 10), w_const = 0))
 
 
-rpanet_simple <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
+rpanet_naive <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2), 
                           edgeweight = NA, control = panet.control()) {
   stopifnot("nstep must be greater than 0." = nstep > 0)
   stopifnot("alpha + beta + bamma + xi + rho must be less or equal to 1." = 
@@ -56,17 +56,17 @@ rpanet_simple <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   if (is.na(edgeweight[1])) edgeweight[1:nrow(edgelist)] <- 1
   stopifnot(length(edgeweight) == nrow(edgelist))
   
-  if (! is.numeric(control$mdist)) {
-    m <- do.call(control$mdist, c(nstep, control$mpar)) + control$mconst
+  if (! is.numeric(control$m_dist)) {
+    m <- do.call(control$m_dist, c(nstep, control$m_par)) + control$m_const
   }
-  else m <- rep(control$mdist + control$mconst, nstep)
+  else m <- rep(control$m_dist + control$m_const, nstep)
   stopifnot("Number of new edges per step must be positive integers." = m %% 1 == 0)
   stopifnot("Number of new edges per step must be positive integers." = m > 0)
   sum_m <- sum(m)
-  if (! is.numeric(control$wdist)) {
-    w <- do.call(control$wdist, c(sum_m, control$wpar)) + control$wconst
+  if (! is.numeric(control$w_dist)) {
+    w <- do.call(control$w_dist, c(sum_m, control$w_par)) + control$w_const
   }
-  else w <- rep(control$wdist + control$wconst, sum_m)
+  else w <- rep(control$w_dist + control$w_const, sum_m)
   stopifnot("Edge weight must be greater than 0." = w > 0)
   
   strength <- nodeStrength_cpp(edgelist[, 1], edgelist[, 2], 
@@ -79,14 +79,14 @@ rpanet_simple <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
   control_cpp <- c(control$alpha, control$beta, control$gamma, control$xi, 
                    control$delta_out, control$delta_in)
   
-  ret <- rpanet_simple_cpp(nstep, control_cpp, m, w,
+  ret <- rpanet_naive_cpp(nstep, control_cpp, m, w,
                            outstrength, instrength, sumstrength,
                            nnode)
   control$delta <- NULL
-  list("edgelist" = rbind(edgelist, cbind(ret$start_node, ret$end_node)), 
+  list("edgelist" = rbind(edgelist, cbind(ret$start_node, ret$end_node) + 1), 
        "edgeweight" = c(edgeweight, w),
-       "out-strength" = ret$outstrength, 
-       "in-strength" = ret$instrength, 
+       "outstrength" = ret$outstrength, 
+       "instrength" = ret$instrength, 
        "scenario" = c(rep(0, nrow(edgelist)), ret$scenario),
        "m" = m, 
        "control" = control)

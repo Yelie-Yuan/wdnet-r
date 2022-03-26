@@ -33,9 +33,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// directed_rewire_cpp
-Rcpp::List directed_rewire_cpp(int iteration, int nattempts, arma::uvec targetNode, arma::vec sourceOut, arma::vec sourceIn, arma::vec targetOut, arma::vec targetIn, arma::vec r_sourceOut, arma::vec r_sourceIn, arma::vec r_targetOut, arma::vec r_targetIn, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewireTrack);
-RcppExport SEXP _wdnet_directed_rewire_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP targetNodeSEXP, SEXP sourceOutSEXP, SEXP sourceInSEXP, SEXP targetOutSEXP, SEXP targetInSEXP, SEXP r_sourceOutSEXP, SEXP r_sourceInSEXP, SEXP r_targetOutSEXP, SEXP r_targetInSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewireTrackSEXP) {
+// rewire_directed_cpp
+Rcpp::List rewire_directed_cpp(int iteration, int nattempts, arma::uvec targetNode, arma::vec sourceOut, arma::vec sourceIn, arma::vec targetOut, arma::vec targetIn, arma::vec r_sourceOut, arma::vec r_sourceIn, arma::vec r_targetOut, arma::vec r_targetIn, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewire_track);
+RcppExport SEXP _wdnet_rewire_directed_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP targetNodeSEXP, SEXP sourceOutSEXP, SEXP sourceInSEXP, SEXP targetOutSEXP, SEXP targetInSEXP, SEXP r_sourceOutSEXP, SEXP r_sourceInSEXP, SEXP r_targetOutSEXP, SEXP r_targetInSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewire_trackSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -53,14 +53,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::uvec >::type index_s(index_sSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type index_t(index_tSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type eta(etaSEXP);
-    Rcpp::traits::input_parameter< bool >::type rewireTrack(rewireTrackSEXP);
-    rcpp_result_gen = Rcpp::wrap(directed_rewire_cpp(iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, r_sourceOut, r_sourceIn, r_targetOut, r_targetIn, index_s, index_t, eta, rewireTrack));
+    Rcpp::traits::input_parameter< bool >::type rewire_track(rewire_trackSEXP);
+    rcpp_result_gen = Rcpp::wrap(rewire_directed_cpp(iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, r_sourceOut, r_sourceIn, r_targetOut, r_targetIn, index_s, index_t, eta, rewire_track));
     return rcpp_result_gen;
 END_RCPP
 }
-// undirected_rewire_cpp
-Rcpp::List undirected_rewire_cpp(int iteration, int nattempts, Rcpp::IntegerVector node1, Rcpp::IntegerVector node2, arma::vec degree1, arma::vec degree2, arma::vec index1, arma::vec index2, arma::mat e, bool rewireTrack);
-RcppExport SEXP _wdnet_undirected_rewire_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP node1SEXP, SEXP node2SEXP, SEXP degree1SEXP, SEXP degree2SEXP, SEXP index1SEXP, SEXP index2SEXP, SEXP eSEXP, SEXP rewireTrackSEXP) {
+// rewire_undirected_cpp
+Rcpp::List rewire_undirected_cpp(int iteration, int nattempts, Rcpp::IntegerVector node1, Rcpp::IntegerVector node2, arma::vec degree1, arma::vec degree2, arma::vec index1, arma::vec index2, arma::mat e, bool rewire_track);
+RcppExport SEXP _wdnet_rewire_undirected_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP node1SEXP, SEXP node2SEXP, SEXP degree1SEXP, SEXP degree2SEXP, SEXP index1SEXP, SEXP index2SEXP, SEXP eSEXP, SEXP rewire_trackSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -73,8 +73,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type index1(index1SEXP);
     Rcpp::traits::input_parameter< arma::vec >::type index2(index2SEXP);
     Rcpp::traits::input_parameter< arma::mat >::type e(eSEXP);
-    Rcpp::traits::input_parameter< bool >::type rewireTrack(rewireTrackSEXP);
-    rcpp_result_gen = Rcpp::wrap(undirected_rewire_cpp(iteration, nattempts, node1, node2, degree1, degree2, index1, index2, e, rewireTrack));
+    Rcpp::traits::input_parameter< bool >::type rewire_track(rewire_trackSEXP);
+    rcpp_result_gen = Rcpp::wrap(rewire_undirected_cpp(iteration, nattempts, node1, node2, degree1, degree2, index1, index2, e, rewire_track));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -148,9 +148,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sampleNode_simple_cpp
-int sampleNode_simple_cpp(int tnode, double sumstrength, arma::vec strength, double delta);
-RcppExport SEXP _wdnet_sampleNode_simple_cpp(SEXP tnodeSEXP, SEXP sumstrengthSEXP, SEXP strengthSEXP, SEXP deltaSEXP) {
+// sampleNode_naive_cpp
+int sampleNode_naive_cpp(int tnode, double sumstrength, arma::vec strength, double delta);
+RcppExport SEXP _wdnet_sampleNode_naive_cpp(SEXP tnodeSEXP, SEXP sumstrengthSEXP, SEXP strengthSEXP, SEXP deltaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -158,13 +158,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type sumstrength(sumstrengthSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type strength(strengthSEXP);
     Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleNode_simple_cpp(tnode, sumstrength, strength, delta));
+    rcpp_result_gen = Rcpp::wrap(sampleNode_naive_cpp(tnode, sumstrength, strength, delta));
     return rcpp_result_gen;
 END_RCPP
 }
-// rpanet_simple_cpp
-Rcpp::List rpanet_simple_cpp(int nstep, arma::vec control, arma::vec m, arma::vec w, arma::vec outstrength, arma::vec instrength, double sumstrength, int nnode);
-RcppExport SEXP _wdnet_rpanet_simple_cpp(SEXP nstepSEXP, SEXP controlSEXP, SEXP mSEXP, SEXP wSEXP, SEXP outstrengthSEXP, SEXP instrengthSEXP, SEXP sumstrengthSEXP, SEXP nnodeSEXP) {
+// rpanet_naive_cpp
+Rcpp::List rpanet_naive_cpp(int nstep, arma::vec control, arma::vec m, arma::vec w, arma::vec outstrength, arma::vec instrength, double sumstrength, int nnode);
+RcppExport SEXP _wdnet_rpanet_naive_cpp(SEXP nstepSEXP, SEXP controlSEXP, SEXP mSEXP, SEXP wSEXP, SEXP outstrengthSEXP, SEXP instrengthSEXP, SEXP sumstrengthSEXP, SEXP nnodeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -176,7 +176,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type instrength(instrengthSEXP);
     Rcpp::traits::input_parameter< double >::type sumstrength(sumstrengthSEXP);
     Rcpp::traits::input_parameter< int >::type nnode(nnodeSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_simple_cpp(nstep, control, m, w, outstrength, instrength, sumstrength, nnode));
+    rcpp_result_gen = Rcpp::wrap(rpanet_naive_cpp(nstep, control, m, w, outstrength, instrength, sumstrength, nnode));
     return rcpp_result_gen;
 END_RCPP
 }

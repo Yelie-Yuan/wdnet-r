@@ -9,7 +9,7 @@
 //' @param delta The tuning parameter, delta_in or delta_out.
 //' @return Sampled node.
 // [[Rcpp::export]]
-int sampleNode_simple_cpp(int tnode, double sumstrength, 
+int sampleNode_naive_cpp(int tnode, double sumstrength, 
                arma::vec strength, double delta) {
   int i;
   double j = 0, v;
@@ -19,7 +19,7 @@ int sampleNode_simple_cpp(int tnode, double sumstrength,
     if (j >= v)
       break;
   }
-  return i + 1;
+  return i;
 }
 
 
@@ -36,7 +36,7 @@ int sampleNode_simple_cpp(int tnode, double sumstrength,
 //' @param nnode Number of nodes of inital network.
 //' @return A list of source nodes, target nodes, node out- and in-strength.
 // [[Rcpp::export]]
-Rcpp::List rpanet_simple_cpp(int        nstep,
+Rcpp::List rpanet_naive_cpp(int        nstep,
                              arma::vec  control,
                              arma::vec  m,
                              arma::vec  w,
@@ -61,36 +61,36 @@ Rcpp::List rpanet_simple_cpp(int        nstep,
       u = unif_rand();
       if (u <= alpha) {
         scenario[j] = 1;
-        nnode++;
         v1[j] = nnode;
-        v2[j] = sampleNode_simple_cpp(tnode, sumstrength, instrength, delta_in);
+        nnode++;
+        v2[j] = sampleNode_naive_cpp(tnode, sumstrength, instrength, delta_in);
       } else if (u <= alpha + beta) {
         scenario[j] = 2;
-        v1[j] = sampleNode_simple_cpp(tnode, sumstrength, outstrength, delta_out);
-        v2[j] = sampleNode_simple_cpp(tnode, sumstrength, instrength, delta_in);
+        v1[j] = sampleNode_naive_cpp(tnode, sumstrength, outstrength, delta_out);
+        v2[j] = sampleNode_naive_cpp(tnode, sumstrength, instrength, delta_in);
       } else if (u <= alpha + beta + gamma) {
         scenario[j] = 3;
-        nnode++;
-        v1[j] = sampleNode_simple_cpp(tnode, sumstrength, outstrength, delta_out);
+        v1[j] = sampleNode_naive_cpp(tnode, sumstrength, outstrength, delta_out);
         v2[j] = nnode;
+        nnode++;
       } else if (u <= alpha + beta + gamma + xi) {
         scenario[j] = 4;
+        v1[j] = nnode;
+        v2[j] = nnode + 1;
         nnode += 2;
-        v1[j] = nnode - 1;
-        v2[j] = nnode;
       } else {
         scenario[j] = 5;
-        nnode++;
         v1[j] = nnode;
         v2[j] = nnode;
+        nnode++;
       }
     }
     for (j = 0; j < m[i]; j++) {
       edgescenario[count] = scenario[j];
       start_node[count] = v1[j];
       end_node[count] = v2[j];
-      outstrength[v1[j] - 1] += w[count];
-      instrength[v2[j] - 1] += w[count];
+      outstrength[v1[j]] += w[count];
+      instrength[v2[j]] += w[count];
       sumstrength += w[count];
       count++;
     }

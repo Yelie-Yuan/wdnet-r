@@ -5,9 +5,8 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-// 1. user defined preference functions (sourcePreferenceFunc and 
-//    targetPreferenceFunc); how to pass R functions in c++?
-// 2. w can not equal to 1 in function SampleNode, otherwise FindNode returns error 
+// 1. user defined preference functions
+// 2. w can not equal to 1 in function sampleNode, otherwise findNode returns error 
 //    because of numeric precision
 // 3. add a parameter m to control number of new edges per step
 
@@ -20,27 +19,27 @@ struct node {
 };
 
 // preference function; import from R
-double PreferenceFunc(double strength, double *params) {
+double preferenceFunc(double strength, double *params) {
   return pow(strength, params[0]) + params[1];
 }
 
 // update total preference from current node to root
-void AddIncrement(node *current_node, double increment) {
+void addIncrement(node *current_node, double increment) {
   current_node->totalp += increment;
   while(current_node->id > 0) {
-    return AddIncrement(current_node->parent, increment);
+    return addIncrement(current_node->parent, increment);
   }
 }
 
 // update strength and preference of from the sampled node to root
-void UpdatePreference(node *temp_node, double *params) {
+void updatePreference(node *temp_node, double *params) {
   double temp_p = temp_node->p;
-  temp_node->p = PreferenceFunc(temp_node->strength, params);
-  AddIncrement(temp_node, temp_node->p - temp_p);
+  temp_node->p = preferenceFunc(temp_node->strength, params);
+  addIncrement(temp_node, temp_node->p - temp_p);
 }
 
 // create a new node
-node *CreateNode(int id) {
+node *createNode(int id) {
   node *new_node = new node();
   new_node->id = id;
   new_node->strength = 0;
@@ -50,8 +49,8 @@ node *CreateNode(int id) {
 }
 
 // may need a better way to construct the complete tree
-node *InsertNode(queue<node*> &q, int id) {
-  node *new_node = CreateNode(id);
+node *insertNode(queue<node*> &q, int id) {
+  node *new_node = createNode(id);
   node *temp_node = q.front();
   // check left
   if(temp_node->left == NULL) {
@@ -68,23 +67,23 @@ node *InsertNode(queue<node*> &q, int id) {
 }
 
 // find node with a given critical point w
-node *FindNode(node *root, double w) {
+node *findNode(node *root, double w) {
   w -= root->p;
   if (w <= 0) {
     return root;
   }
   else {
     if (w > root->left->totalp) {
-      return FindNode(root->right, w - root->left->totalp);
+      return findNode(root->right, w - root->left->totalp);
     }
     else {
-      return FindNode(root->left, w);
+      return findNode(root->left, w);
     }
   }
 }
 
 // sample a node from the tree
-node *SampleNode(node *root, deque<node*> &qm) {
+node *sampleNode(node *root, deque<node*> &qm) {
   double w;
   node *temp_node;
   while (true) {
@@ -93,7 +92,7 @@ node *SampleNode(node *root, deque<node*> &qm) {
       w = unif_rand();
     }
     w *= root->totalp;
-    temp_node = FindNode(root, w);
+    temp_node = findNode(root, w);
     if (find(qm.begin(), qm.end(), temp_node) == qm.end()) {
       // if temp_node not in qm
       return temp_node;
@@ -105,13 +104,13 @@ node *SampleNode(node *root, deque<node*> &qm) {
 // alpha and gamma scenarios are kept for interfacing with R
 // alpha: (new, existing); gamma: (existing, new)
 // if (directed) {
-//   rpanet_directed_general_cpp(alpha, beta, gamma, ...)
+//   rpanet_general_directed_cpp(alpha, beta, gamma, ...)
 // }
 // else {
-//   rpanet_undirected_general_cpp(alpha, beta, gamma, ...)
+//   rpanet_general_undirected_cpp(alpha, beta, gamma, ...)
 // }
 extern "C" {
-  void rpanet_undirected_general_cpp(
+  void rpanet_general_undirected_cpp(
       int *nstep_ptr, int *m,
       int *new_node_id_ptr, int *new_edge_id_ptr, 
       int *node_vec1, int *node_vec2, 
@@ -131,16 +130,16 @@ extern "C" {
     int i, j, k, n_existing, current_scenario;
     node *node1, *node2;
     // initialize a tree from seed graph
-    node *root = CreateNode(0);
+    node *root = createNode(0);
     root->strength = strength[0];
-    UpdatePreference(root, params);
+    updatePreference(root, params);
     queue<node*> q, q1;
     deque<node*> qm;
     q.push(root);
     for (i = 1; i < new_node_id; i++) {
-      node1 = InsertNode(q, i);
+      node1 = insertNode(q, i);
       node1->strength = strength[i];
-      UpdatePreference(node1, params);
+      updatePreference(node1, params);
     }
     // sample edges
     GetRNGstate();
@@ -189,34 +188,34 @@ extern "C" {
         }
         switch (current_scenario) {
           case 1:
-            node1 = InsertNode(q, new_node_id);
+            node1 = insertNode(q, new_node_id);
             new_node_id++;
-            node2 = SampleNode(root, qm);
+            node2 = sampleNode(root, qm);
             break;
           case 2:
-            node1 = SampleNode(root, qm);
+            node1 = sampleNode(root, qm);
             if (! beta_loop) {
               qm.push_back(node1);
-              node2 = SampleNode(root, qm);
+              node2 = sampleNode(root, qm);
               qm.pop_back();
             }
             else {
-              node2 = SampleNode(root, qm);
+              node2 = sampleNode(root, qm);
             }
             break;
           case 3:
-            node1 = SampleNode(root, qm);
-            node2 = InsertNode(q, new_node_id);
+            node1 = sampleNode(root, qm);
+            node2 = insertNode(q, new_node_id);
             new_node_id++;
             break;
           case 4:
-            node1 = InsertNode(q, new_node_id);
+            node1 = insertNode(q, new_node_id);
             new_node_id++;
-            node2 = InsertNode(q, new_node_id);
+            node2 = insertNode(q, new_node_id);
             new_node_id++;
             break;
           case 5:
-            node1 = node2 = InsertNode(q, new_node_id);
+            node1 = node2 = insertNode(q, new_node_id);
             new_node_id++;
             break;
         }
@@ -244,7 +243,7 @@ extern "C" {
         Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
       }
       while (! q1.empty()) {
-        UpdatePreference(q1.front(), params);
+        updatePreference(q1.front(), params);
         q1.pop();
       }
       qm.clear();

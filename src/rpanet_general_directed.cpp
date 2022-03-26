@@ -5,8 +5,8 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-// 1. user defined preference functions (SourcePreferenceFunc and 
-//    TargetPreferenceFunc); how to pass R functions in c++?
+// 1. user defined preference functions (sourcePreferenceFunc and 
+//    targetPreferenceFunc)
 // 2. w can not equal to 1 in function SampleNode, otherwise findNode returns error 
 //    because of numeric precision
 // 3. add a parameter m to control number of new edges per step
@@ -27,49 +27,49 @@ struct node {
 };
 
 // preference functions
-double SourcePreferenceFunc(double outs, double ins, double *source_params) {
+double sourcePreferenceFunc(double outs, double ins, double *source_params) {
   return source_params[0] * pow(outs, source_params[1]) + 
     source_params[2] * pow(ins, source_params[3]) + source_params[4];
 }
-double TargetPreferenceFunc(double outs, double ins, double *target_params) {
+double targetPreferenceFunc(double outs, double ins, double *target_params) {
   return target_params[0] * pow(outs, target_params[1]) + 
     target_params[2] * pow(ins, target_params[3]) + target_params[4];
 }
 
 // update total source preference from current node to root
-void AddSourceIncrement(node *current_node, double increment) {
+void addSourceIncrement(node *current_node, double increment) {
   current_node->total_sourcep += increment;
   while(current_node->id > 0) {
-    return AddSourceIncrement(current_node->parent, increment);
+    return addSourceIncrement(current_node->parent, increment);
   }
 }
 // update total source preference from current node to root
-void AddTargetIncrement(node *current_node, double increment) {
+void addTargetIncrement(node *current_node, double increment) {
   current_node->total_targetp += increment;
   while(current_node->id > 0) {
-    return AddTargetIncrement(current_node->parent, increment);
+    return addTargetIncrement(current_node->parent, increment);
   }
 }
 
 // update strength, preference and total preference from the sampled node to root
-void UpdatePreference2(node *temp_node, 
+void updatePreference2(node *temp_node, 
     double *source_params, double *target_params) {
   double tp = temp_node->sourcep;
-  temp_node->sourcep = SourcePreferenceFunc(temp_node->outs, temp_node->ins, 
+  temp_node->sourcep = sourcePreferenceFunc(temp_node->outs, temp_node->ins, 
     source_params);
   if (temp_node->sourcep != tp) {
-    AddSourceIncrement(temp_node, temp_node->sourcep - tp);
+    addSourceIncrement(temp_node, temp_node->sourcep - tp);
   }
   tp = temp_node->targetp;
-  temp_node->targetp = TargetPreferenceFunc(temp_node->outs, temp_node->ins, 
+  temp_node->targetp = targetPreferenceFunc(temp_node->outs, temp_node->ins, 
     target_params);
   if (temp_node->targetp != tp) {
-    AddTargetIncrement(temp_node, temp_node->targetp - tp);
+    addTargetIncrement(temp_node, temp_node->targetp - tp);
   }
 }
 
 // create a new node
-node *CreateNode2(int id) {
+node *createNode2(int id) {
   node *new_node = new node();
   new_node->id = id;
   new_node->group = -1;
@@ -81,8 +81,8 @@ node *CreateNode2(int id) {
 }
 
 // insert a new node to the tree
-node *InsertNode2(queue<node*> &q, int new_node_id) {
-  node *new_node = CreateNode2(new_node_id);
+node *insertNode2(queue<node*> &q, int new_node_id) {
+  node *new_node = createNode2(new_node_id);
   node *temp_node = q.front();
   if(temp_node->left == NULL) {
     temp_node->left = new_node;
@@ -97,38 +97,38 @@ node *InsertNode2(queue<node*> &q, int new_node_id) {
 }
 
 // find source node with a given critical point w
-node *FindSourceNode(node *root, double w) {
+node *findSourceNode(node *root, double w) {
   w -= root->sourcep;
   if (w <= 0) {
     return root;
   } 
   else {
     if (w > root->left->total_sourcep) {
-      return FindSourceNode(root->right, w - root->left->total_sourcep);
+      return findSourceNode(root->right, w - root->left->total_sourcep);
     }
     else {
-      return FindSourceNode(root->left, w);
+      return findSourceNode(root->left, w);
     }
   }
 }
 // find target node with a given critical point w
-node *FindTargetNode(node *root, double w) {
+node *findTargetNode(node *root, double w) {
   w -= root->targetp;
   if (w <= 0) {
     return root;
   }
   else {
     if (w > root->left->total_targetp) {
-      return FindTargetNode(root->right, w - root->left->total_targetp);
+      return findTargetNode(root->right, w - root->left->total_targetp);
     }
     else {
-      return FindTargetNode(root->left, w);
+      return findTargetNode(root->left, w);
     }
   }
 }
 
 // sample a node from the tree
-node* SampleNode2(node *root, char type, deque<node*> &qm) {
+node* sampleNode2(node *root, char type, deque<node*> &qm) {
   double w;
   node *temp_node;
   while (true) {
@@ -138,11 +138,11 @@ node* SampleNode2(node *root, char type, deque<node*> &qm) {
     }
     if (type == 's') {
       w *= root->total_sourcep;
-      temp_node = FindSourceNode(root, w);
+      temp_node = findSourceNode(root, w);
     }
     else {
       w *= root->total_targetp;
-      temp_node = FindTargetNode(root, w);
+      temp_node = findTargetNode(root, w);
     }
     if (find(qm.begin(), qm.end(), temp_node) == qm.end()) {
       // if temp_node not in qm
@@ -152,7 +152,7 @@ node* SampleNode2(node *root, char type, deque<node*> &qm) {
 }
 
 // sample a node group
-int SampleGroup(double *group_dist) {
+int sampleGroup(double *group_dist) {
   double g = 0;
   int i = 0;
   while ((g == 0) | (g == 1)) {
@@ -166,7 +166,7 @@ int SampleGroup(double *group_dist) {
 }
 
 extern "C" {
-  void rpanet_directed_general_cpp(
+  void rpanet_general_directed_cpp(
       int *nstep_ptr, int *m, 
       int *new_node_id_ptr, int *new_edge_id_ptr, 
       int *source_node, int *target_node, 
@@ -193,20 +193,20 @@ extern "C" {
     int i, j, ks, kt, n_existing, current_scenario;
     node *node1, *node2;
     // initialize a tree from the seed graph
-    node *root = CreateNode2(0);
+    node *root = createNode2(0);
     root->outs = outs[0];
     root->ins = ins[0];
     root->group = node_group[0];
-    UpdatePreference2(root, source_params, target_params);
+    updatePreference2(root, source_params, target_params);
     queue<node*> q, q1;
     deque<node*> qm_source, qm_target;
     q.push(root);
     for (int i = 1; i < new_node_id; i++) {
-      node1 = InsertNode2(q, i);
+      node1 = insertNode2(q, i);
       node1->outs = outs[i];
       node1->ins = ins[i];
       node1->group = node_group[i];
-      UpdatePreference2(node1, source_params, target_params);
+      updatePreference2(node1, source_params, target_params);
     }
     // sample edges
     GetRNGstate();
@@ -270,21 +270,21 @@ extern "C" {
         }
         switch (current_scenario) {
           case 1:
-            node1 = InsertNode2(q, new_node_id);
+            node1 = insertNode2(q, new_node_id);
             if (sample_recip) {
-              node1->group = SampleGroup(group_dist);
+              node1->group = sampleGroup(group_dist);
             }
             new_node_id++;
-            node2 = SampleNode2(root, 't', qm_target);
+            node2 = sampleNode2(root, 't', qm_target);
             break;
           case 2:
-            node1 = SampleNode2(root, 's', qm_source);
+            node1 = sampleNode2(root, 's', qm_source);
             if (beta_loop) {
-              node2 = SampleNode2(root, 't', qm_target);
+              node2 = sampleNode2(root, 't', qm_target);
             }
             else {
               if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
-                node2 = SampleNode2(root, 't', qm_target);
+                node2 = sampleNode2(root, 't', qm_target);
               }
               else {
                 if (kt + 2 > n_existing) {
@@ -292,33 +292,33 @@ extern "C" {
                   break;
                 }
                 qm_target.push_back(node1);
-                node2 = SampleNode2(root, 't', qm_target);
+                node2 = sampleNode2(root, 't', qm_target);
                 qm_target.pop_back();
               }
             }
             break;
           case 3:
-            node1 = SampleNode2(root, 's', qm_source);
-            node2 = InsertNode2(q, new_node_id);
+            node1 = sampleNode2(root, 's', qm_source);
+            node2 = insertNode2(q, new_node_id);
             if (sample_recip) {
-              node2->group = SampleGroup(group_dist);
+              node2->group = sampleGroup(group_dist);
             }
             new_node_id++;
             break;
           case 4:
-            node1 = InsertNode2(q, new_node_id);
+            node1 = insertNode2(q, new_node_id);
             new_node_id++;
-            node2 = InsertNode2(q, new_node_id);
+            node2 = insertNode2(q, new_node_id);
             new_node_id++;
             if (sample_recip) {
-              node1->group = SampleGroup(group_dist);
-              node2->group = SampleGroup(group_dist);
+              node1->group = sampleGroup(group_dist);
+              node2->group = sampleGroup(group_dist);
             }
             break;
           case 5:
-            node1 = node2 = InsertNode2(q, new_node_id);
+            node1 = node2 = insertNode2(q, new_node_id);
             if (sample_recip) {
-              node1->group = SampleGroup(group_dist);
+              node1->group = sampleGroup(group_dist);
             }
             new_node_id++;
             break;
@@ -373,7 +373,7 @@ extern "C" {
         Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
       }
       while(! q1.empty()) {
-        UpdatePreference2(q1.front(), source_params, target_params);
+        updatePreference2(q1.front(), source_params, target_params);
         q1.pop();
       }
       qm_source.clear();

@@ -20,7 +20,7 @@
 NULL
 
 #' Get the nodel-level joint distributions and some empirical distributions with
-#' given edgelist. This function is defined for \code{directed_joint_dist}.
+#' given edgelist.
 #'
 #' @param edgelist A two column matrix represents the directed edges of a
 #'   network.
@@ -106,7 +106,7 @@ get_dist <- function(edgelist = NA, directed = TRUE,
 }
 
 #' Get the constraints for the optimization problem. This function is defined
-#' for \code{directed_joint_dist}.
+#' for \code{joint_dist_directed}.
 #'
 #' @param constrs A list of constraints.
 #' @param targetRho A list of target assortativity levels.
@@ -130,7 +130,7 @@ get_constrs <- function(constrs, targetRho, rho) {
 }
 
 #' Get the value of an object from the optimization problem. This function is
-#' defined for \code{directed_joint_dist}.
+#' defined for \code{joint_dist_directed}.
 #'
 #' @param object An object from the optimization problem.
 #' @param result A list returned from \code{CVXR::solve()}.
@@ -241,11 +241,11 @@ solver.control <- function(solver = "ECOS",
 #'     gamma = 0.3, xi = 0.3, delta_out = 1, delta_in = 1))$edgelist
 #' edge_assort(edgelist)
 #' targetRho <- list("out-out" = -0.1, "in-out" = 0.4)
-#' ret1 <- directed_joint_dist(edgelist, targetRho = targetRho,
+#' ret1 <- joint_dist_directed(edgelist, targetRho = targetRho,
 #'     whichRange = "in-in")
-#' ret2 <- directed_joint_dist(edgelist, targetRho = targetRho, f = CVXR::norm2)
+#' ret2 <- joint_dist_directed(edgelist, targetRho = targetRho, f = CVXR::norm2)
 #' 
-directed_joint_dist <- function(edgelist, 
+joint_dist_directed <- function(edgelist, 
                                 targetRho = list("out-out" = NULL, "out-in" = NULL,
                                                  "in-out" = NULL, "in-in" = NULL),
                                 targetRankRho = list("r-out-out" = NULL, "r-out-in" = NULL,
@@ -388,10 +388,10 @@ directed_joint_dist <- function(edgelist,
 #' @examples
 #' set.seed(1234)
 #' edgelist <- matrix(sample(1:10, 500, replace = TRUE), ncol = 2)
-#' ret1 <- undirected_joint_dist(edgelist, f = CVXR::norm2)
-#' ret2 <- undirected_joint_dist(edgelist, targetRho = 0.6, f = CVXR::norm2)
+#' ret1 <- joint_dist_undirected(edgelist, f = CVXR::norm2)
+#' ret2 <- joint_dist_undirected(edgelist, targetRho = 0.6, f = CVXR::norm2)
 #' 
-undirected_joint_dist <- function(edgelist, targetRho = NA, 
+joint_dist_undirected <- function(edgelist, targetRho = NA, 
                                   f = function(x) 0,
                                   control = solver.control()) {
   stopifnot((targetRho <= 1 & targetRho >= -1) | is.na(targetRho))

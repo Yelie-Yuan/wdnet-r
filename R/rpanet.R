@@ -37,16 +37,16 @@ NULL
 #' @param delta A tuning parameter related to growth rate for undirected
 #'   networks. Probability of choosing an existing node is proportional to node
 #'   strength + delta.
-#' @param mdist Distribution function or a constant for number of new
+#' @param m_dist Distribution function or a constant for number of new
 #'   edges per step. The default value is 0.
-#' @param mpar Additional parameters passed on to mdist.
-#' @param mconst A constant add to mdist. The number of newly added edges per step
-#'   then follows mdist(mpar) + mconst. The default value is 1.
-#' @param wdist Dsitribution function or a constant for edge weights. The
+#' @param m_par Additional parameters passed on to m_dist.
+#' @param m_const A constant add to m_dist. The number of newly added edges per step
+#'   then follows m_dist(m_par) + m_const. The default value is 1.
+#' @param w_dist Dsitribution function or a constant for edge weights. The
 #'   default value is 0.
-#' @param wpar Additional parameters passed on to wdist.
-#' @param wconst A constant add to wdist. Weight of new edges follow
-#'   distribution wdist(wpar) + wconst. Default value is 1.
+#' @param w_par Additional parameters passed on to w_dist.
+#' @param w_const A constant add to w_dist. Weight of new edges follow
+#'   distribution w_dist(w_par) + w_const. Default value is 1.
 #'
 #' @return List of parameters.
 #' @export
@@ -54,15 +54,15 @@ NULL
 
 panet.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0, xi = 0, rho = 0,
                            delta_out = 0.1, delta_in = 0.1, delta = 0.1,
-                           mdist = 0,
-                           mpar = list(), mconst = 1,
-                           wdist = 0,
-                           wpar = list(), wconst = 1) {
+                           m_dist = 0,
+                           m_par = list(), m_const = 1,
+                           w_dist = 0,
+                           w_par = list(), w_const = 1) {
   ## set default value here
   list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
        delta_out = delta_out, delta_in = delta_in, delta = delta,
-       mdist = mdist, mpar = mpar, mconst = mconst,
-       wdist = wdist, wpar = wpar, wconst = wconst)
+       m_dist = m_dist, m_par = m_par, m_const = m_const,
+       w_dist = w_dist, w_par = w_par, w_const = w_const)
 }
 
 
@@ -88,14 +88,20 @@ panet.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0, xi = 0, rho = 0,
 #' net <- rpanet(nstep = 100,
 #'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.6))
 #' net <- rpanet(edgelist = matrix(c(1:8), ncol = 2), nstep = 10^5,
-#'       control = panet.control(mdist = stats::rpois,
-#'       mpar = list(lambda = 1), mconst = 1,
-#'       wdist = stats::runif, wpar = list(min = 1, max = 10), wconst = 0))
+#'       control = panet.control(m_dist = stats::rpois,
+#'       m_par = list(lambda = 1), m_const = 1,
+#'       w_dist = stats::runif, w_par = list(min = 1, max = 10), w_const = 0))
 
 rpanet <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                    edgeweight = NA,
                    control = panet.control(),
                    directed = TRUE) {
+    if (is.null(control$delta_out)) {
+      control$delta_out <- 0
+    }
+    if (is.null(control$delta_in)) {
+      control$delta_in <- 0
+    }
     stopifnot("nstep must be greater than 0." = nstep > 0)
     stopifnot("alpha + beta + bamma + xi + rho must equals to 1." =
               round(control$alpha + control$beta + control$gamma +
@@ -108,20 +114,20 @@ rpanet <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
     if (is.na(edgeweight[1])) edgeweight[1:ex_edge] <- 1
     stopifnot(length(edgeweight) == ex_edge)
     ex_weight <- sum(edgeweight)
-    if (! is.numeric(control$mdist)) {
-        m <- do.call(control$mdist, c(nstep, control$mpar)) + control$mconst
+    if (! is.numeric(control$m_dist)) {
+        m <- do.call(control$m_dist, c(nstep, control$m_par)) + control$m_const
     } else {
-        m <- rep(control$mdist + control$mconst, nstep)
+        m <- rep(control$m_dist + control$m_const, nstep)
     }
     stopifnot("Number of new edges per step must be positive integers." =
               m %% 1 == 0)
     stopifnot("Number of new edges per step must be positive integers." =
               m > 0)
     sum_m <- sum(m)
-    if (! is.numeric(control$wdist)) {
-        w <- do.call(control$wdist, c(sum_m, control$wpar)) + control$wconst
+    if (! is.numeric(control$w_dist)) {
+        w <- do.call(control$w_dist, c(sum_m, control$w_par)) + control$w_const
     } else {
-        w <- rep(control$wdist + control$wconst, sum_m)
+        w <- rep(control$w_dist + control$w_const, sum_m)
     }
     stopifnot("Edge weight must be greater than 0." = w > 0)
 
