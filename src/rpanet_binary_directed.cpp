@@ -166,7 +166,7 @@ int sampleGroup(double *group_dist) {
 }
 
 extern "C" {
-  void rpanet_general_directed_cpp(
+  void rpanet_binary_directed_cpp(
       int *nstep_ptr, int *m, 
       int *new_node_id_ptr, int *new_edge_id_ptr, 
       int *source_node, int *target_node, 

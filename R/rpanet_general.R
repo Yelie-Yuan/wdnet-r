@@ -102,16 +102,14 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
     }
     if (any(m_unique, m_source_unique, m_target_unique)) {
         if (all(source_param[c(3, 5)] == 0)) {
-            stop("Zero out-strength (out-degree) nodes have no source
-                preference, please use a different 'source_param'.")
+            stop("Zero out-strength (out-degree) nodes have no source preference, please use a different 'source_param'.")
         }
         if (all(target_param[c(1, 5)] == 0)) {
-            stop("Zero in-strength (in-degree) nodes have no target 
-                preference, please use a different 'target_param'.")
+            stop("Zero in-strength (in-degree) nodes have no target preference, please use a different 'target_param'.")
         }
     }
     if (m_unique) {
-      m_source_unique <- m_target_unique <- FALSE
+      m_source_unique <- m_target_unique <- beta_loop <- FALSE
     }
     list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
         beta_loop = beta_loop,
@@ -127,7 +125,7 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
 }
 
 
-#' Generate a preferential attachment network using augument tree method.
+#' Generate a preferential attachment network with general preference functions.
 #'
 #' @param edgelist A two column matrix represents the seed graph.
 #' @param edgeweight A vector represents the weight of edges of the seed graph.
@@ -140,6 +138,8 @@ general.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0,
 #' @param node_group A integer vector presents the group of the nodes from the
 #'   seed graph. Only defined for directed networks. If \code{NA}, all the nodes
 #'   from the seed graph are labeled as group 1.
+#' @param method Which method used to generate PA network: "BinaryTree"
+#'   or "Naive".
 #'
 #' @return A list with the following components: edgelist, edgeweight, strength
 #'   for undirected networks, out- and in-strength for directed networks,
@@ -163,8 +163,10 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
                            edgeweight = NA,
                            node_group = NA,
                            control = general.control(),
-                           directed = TRUE) {
+                           directed = TRUE, 
+                           method = c("BinaryTree","Naive")) {
     stopifnot("nstep must be greater than 0." = nstep > 0)
+    method <- match.arg(method)
     temp <- c(edgelist)
     nnode <- max(temp)
     stopifnot("Nodes' index should be consecutive numbers start from 1." =
@@ -173,8 +175,9 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
         node_group <- rep(0, nnode)
     }
     else {
-        stopifnot("Value/length of 'node_group' is not valid." =
-            all(is.integer(node_group)) & length(node_group) == nnode)
+        node_group <- as.integer(node_group)
+        stopifnot("Length of 'node_group' is not valid." =
+            length(node_group) == nnode)
     }
     nedge <- nrow(edgelist)
     if (is.na(edgeweight[1])) edgeweight[1:nedge] <- 1
@@ -217,35 +220,68 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
             sample_recip <- TRUE
         }
         node_group <- c(node_group, integer(node_vec_length))
-        ret_c <- .C("rpanet_general_directed_cpp",
-            as.integer(nstep),
-            m = as.integer(m),
-            nnode = as.integer(nnode),
-            nedge = as.integer(nedge),
-            node_vec1 = as.integer(node_vec1),
-            node_vec2 = as.integer(node_vec2),
-            outstrength = as.double(outstrength),
-            instrength = as.double(instrength),
-            as.double(edgeweight),
-            scenario = as.integer(scenario),
-            as.double(control$alpha),
-            as.double(control$beta),
-            as.double(control$gamma),
-            as.double(control$xi),
-            as.integer(control$beta_loop),
-            as.integer(control$m_unique),
-            as.integer(control$m_source_unique),
-            as.integer(control$m_target_unique),
-            as.double(control$source_param),
-            as.double(control$target_param),
-            as.integer(sample_recip),
-            as.double(control$group_dist),
-            as.double(t(control$recip_matrix)),
-            node_group = as.integer(node_group),
-            as.integer(length(control$group_dist)),
-            source_pref = as.double(source_pref),
-            target_pref = as.double(target_pref),
-            PACKAGE = "wdnet")
+        if (method == "BinaryTree") {
+            ret_c <- .C("rpanet_binary_directed_cpp",
+                as.integer(nstep),
+                m = as.integer(m),
+                nnode = as.integer(nnode),
+                nedge = as.integer(nedge),
+                node_vec1 = as.integer(node_vec1),
+                node_vec2 = as.integer(node_vec2),
+                outstrength = as.double(outstrength),
+                instrength = as.double(instrength),
+                as.double(edgeweight),
+                scenario = as.integer(scenario),
+                as.double(control$alpha),
+                as.double(control$beta),
+                as.double(control$gamma),
+                as.double(control$xi),
+                as.integer(control$beta_loop),
+                as.integer(control$m_unique),
+                as.integer(control$m_source_unique),
+                as.integer(control$m_target_unique),
+                as.double(control$source_param),
+                as.double(control$target_param),
+                as.integer(sample_recip),
+                as.double(control$group_dist),
+                as.double(t(control$recip_matrix)),
+                node_group = as.integer(node_group),
+                as.integer(length(control$group_dist)),
+                source_pref = as.double(source_pref),
+                target_pref = as.double(target_pref),
+                PACKAGE = "wdnet")
+        } 
+        else {
+            ret_c <- .C("rpanet_naive_directed_cpp",
+                as.integer(nstep),
+                m = as.integer(m),
+                nnode = as.integer(nnode),
+                nedge = as.integer(nedge),
+                node_vec1 = as.integer(node_vec1),
+                node_vec2 = as.integer(node_vec2),
+                outstrength = as.double(outstrength),
+                instrength = as.double(instrength),
+                as.double(edgeweight),
+                scenario = as.integer(scenario),
+                as.double(control$alpha),
+                as.double(control$beta),
+                as.double(control$gamma),
+                as.double(control$xi),
+                as.integer(control$beta_loop),
+                as.integer(control$m_unique),
+                as.integer(control$m_source_unique),
+                as.integer(control$m_target_unique),
+                as.double(control$source_param),
+                as.double(control$target_param),
+                as.integer(sample_recip),
+                as.double(control$group_dist),
+                as.double(t(control$recip_matrix)),
+                node_group = as.integer(node_group),
+                as.integer(length(control$group_dist)),
+                source_pref = as.double(source_pref),
+                target_pref = as.double(target_pref),
+                PACKAGE = "wdnet")
+        }
         control$param <- NULL
     }
     else {
@@ -253,25 +289,48 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
         strength <- double(node_vec_length)
         strength[1:nnode] <- seed_strength$outstrength + seed_strength$instrength
         pref <- double(node_vec_length)
-        ret_c <- .C("rpanet_general_undirected_cpp",
-            as.integer(nstep),
-            m = as.integer(m),
-            nnode = as.integer(nnode),
-            nedge = as.integer(nedge),
-            node_vec1 = as.integer(node_vec1),
-            node_vec2 = as.integer(node_vec2),
-            strength = as.double(strength),
-            as.double(edgeweight),
-            scenario = as.integer(scenario),
-            as.double(control$alpha),
-            as.double(control$beta),
-            as.double(control$gamma),
-            as.double(control$xi),
-            as.integer(control$beta_loop),
-            as.integer(control$m_unique),
-            as.double(control$param),
-            pref = as.double(pref),
-            PACKAGE = "wdnet")
+        if (method == "BinaryTree") {
+            ret_c <- .C("rpanet_binary_undirected_cpp",
+                as.integer(nstep),
+                m = as.integer(m),
+                nnode = as.integer(nnode),
+                nedge = as.integer(nedge),
+                node_vec1 = as.integer(node_vec1),
+                node_vec2 = as.integer(node_vec2),
+                strength = as.double(strength),
+                as.double(edgeweight),
+                scenario = as.integer(scenario),
+                as.double(control$alpha),
+                as.double(control$beta),
+                as.double(control$gamma),
+                as.double(control$xi),
+                as.integer(control$beta_loop),
+                as.integer(control$m_unique),
+                as.double(control$param),
+                pref = as.double(pref),
+                PACKAGE = "wdnet")
+        }
+        else {
+            ret_c <- .C("rpanet_naive_undirected_cpp",
+                as.integer(nstep),
+                m = as.integer(m),
+                nnode = as.integer(nnode),
+                nedge = as.integer(nedge),
+                node_vec1 = as.integer(node_vec1),
+                node_vec2 = as.integer(node_vec2),
+                strength = as.double(strength),
+                as.double(edgeweight),
+                scenario = as.integer(scenario),
+                as.double(control$alpha),
+                as.double(control$beta),
+                as.double(control$gamma),
+                as.double(control$xi),
+                as.integer(control$beta_loop),
+                as.integer(control$m_unique),
+                as.double(control$param),
+                pref = as.double(pref),
+                PACKAGE = "wdnet")
+        }
         control$source_param <- control$target_param <- NULL
     }
     nnode <- ret_c$nnode
@@ -289,7 +348,8 @@ rpanet_general <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
         "edgeweight" = edgeweight,
         "scenario" = scenario,
         "control" = control,
-        "m" = m)
+        "m" = m, 
+        "method" = method)
     if (directed) {
         ret$outstrength <- ret_c$outstrength[1:nnode]
         ret$instrength <- ret_c$instrength[1:nnode]

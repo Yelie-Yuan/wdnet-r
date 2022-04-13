@@ -110,7 +110,7 @@ node *sampleNode(node *root, deque<node*> &qm) {
 //   rpanet_general_undirected_cpp(alpha, beta, gamma, ...)
 // }
 extern "C" {
-  void rpanet_general_undirected_cpp(
+  void rpanet_binary_undirected_cpp(
       int *nstep_ptr, int *m,
       int *new_node_id_ptr, int *new_edge_id_ptr, 
       int *node_vec1, int *node_vec2, 
