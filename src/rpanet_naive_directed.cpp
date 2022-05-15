@@ -2,7 +2,9 @@
 #include<queue>
 #include<math.h>
 #include<R.h>
-#include<bits/stdc++.h>
+// #include<bits/stdc++.h>
+#include<deque>
+#include<algorithm>
 using namespace std;
 
 // preference functions
