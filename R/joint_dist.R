@@ -237,8 +237,8 @@ solver.control <- function(solver = "ECOS",
 #'
 #' @examples
 #' edgelist <- rpanet(3000,
-#'     control = panet.control(alpha = 0.3, beta = 0.1,
-#'     gamma = 0.3, xi = 0.3, delta_out = 1, delta_in = 1))$edgelist
+#'     control = scenario.control(alpha = 0.3, beta = 0.1,
+#'     gamma = 0.3, xi = 0.3))$edgelist
 #' edge_assort(edgelist)
 #' targetRho <- list("out-out" = -0.1, "in-out" = 0.4)
 #' ret1 <- joint_dist_directed(edgelist, targetRho = targetRho,

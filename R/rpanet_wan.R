@@ -31,10 +31,9 @@
 #' 
 #' @return A list with the following components: in_degree,
 #'     out_degree, edge_start, edge_end, evolution
-#' @export
 #'
 #' @examples
-#' anet <- rpanet_wan(0.3, 0.6, 0.1, 0, 1, 1.5, 100000)
+#' anet <- wdnet:::rpanet_wan(0.3, 0.6, 0.1, 0, 1, 1.5, 100000)
 #' table(anet$evolution)
 
 

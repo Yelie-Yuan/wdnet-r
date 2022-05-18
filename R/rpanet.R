@@ -16,214 +16,152 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom stats runif rpois
+#' @importFrom utils modifyList
+#' @importFrom stats rgamma rpois
 NULL
 
-#' Parameter settings for function rpanet.
+#' Generate a PA network with non-linear preference functions
 #'
-#' @param alpha The probability of adding an edge from the new node to an
-#'   existing node.
-#' @param beta The probability of adding an edge between existing nodes.
-#' @param gamma The probability of adding an edge from an existing node to a new
-#'   node.
-#' @param xi The probability of adding an edge between two new nodes.
-#' @param rho The probability of introducing a new node with a self looped edge.
-#' @param delta_out A tuning parameter related to growth rate for directed
-#'   networks. Probability of choosing an existing node as the source node of
-#'   the newly added edge is proportional to node outstrength + outdelta.
-#' @param delta_in A tuning parameter related to growth rate for directed
-#'   networks. Probability of choosing an existing node as the target node of
-#'   the newly added edge is proportional to node instrength + indelta.
-#' @param delta A tuning parameter related to growth rate for undirected
-#'   networks. Probability of choosing an existing node is proportional to node
-#'   strength + delta.
-#' @param m_dist Distribution function or a constant for number of new
-#'   edges per step. The default value is 0.
-#' @param m_par Additional parameters passed on to m_dist.
-#' @param m_const A constant add to m_dist. The number of newly added edges per step
-#'   then follows m_dist(m_par) + m_const. The default value is 1.
-#' @param w_dist Dsitribution function or a constant for edge weights. The
-#'   default value is 0.
-#' @param w_par Additional parameters passed on to w_dist.
-#' @param w_const A constant add to w_dist. Weight of new edges follow
-#'   distribution w_dist(w_par) + w_const. Default value is 1.
-#'
-#' @return List of parameters.
-#' @export
-
-
-panet.control  <- function(alpha = 0.5, beta = 0.5, gamma = 0, xi = 0, rho = 0,
-                           delta_out = 0.1, delta_in = 0.1, delta = 0.1,
-                           m_dist = 0,
-                           m_par = list(), m_const = 1,
-                           w_dist = 0,
-                           w_par = list(), w_const = 1) {
-  ## set default value here
-  list(alpha = alpha, beta = beta, gamma = gamma, xi = xi, rho = rho,
-       delta_out = delta_out, delta_in = delta_in, delta = delta,
-       m_dist = m_dist, m_par = m_par, m_const = m_const,
-       w_dist = w_dist, w_par = w_par, w_const = w_const)
-}
-
-
-
-#' Generate a growing preferential attachment network.
-#'
-#' @param edgelist A two column matrix represents the seed graph.
-#' @param edgeweight A vector represents the weight of edges of the seed graph.
-#'   Its length equals the number of edges of the seed graph. If NA, all the
-#'   edges of the seed graph have weight 1.
 #' @param nstep Number of steps when generating a network.
-#' @param control A list of parameters to be used when generate network.
-#' @param directed Logical, whether to generate directed networks. When FALSE,
-#' the edge directions are omitted.
+#' @param seednetwork A list represents the seed network. If \code{NULL},
+#'   \code{seednetwork} will have one edge from node 1 to node 2 with weight 1.
+#'   It consists of the following components: a two column matrix
+#'   \code{edgelist} represents the edges; a vector \code{edgeweight} represents
+#'   the weight of edges; a integer vector \code{nodegroup} represents the group
+#'   of each node. \code{nodegroup} is defined for directed networks, if
+#'   \code{NULL}, all nodes from the seed graph are considered from group 1.
+#' @param control A list of parameters that controls the PA generation process.
+#'   The default value is \code{scenario.control() + edgeweight.control() +
+#'   newedge.control() + preference.control() + reciprocal.control()}. By
+#'   default, in each step, a new edge of weight 1 is added from a new node
+#'   \code{A} to an existing node \code{B} (\code{alpha} scenario), where
+#'   \code{B} is chosen with probability proportional to its in-strength + 1.
+#' @param directed Logical, whether to generate directed networks. If
+#'   \code{FALSE}, the edge directions are omitted.
+#' @param method Which method to use when generating PA networks: "binary" or
+#'   "naive". When \code{beta.loop = TRUE} is specified in
+#'   \code{scenario.control}, \code{node.unique = FALSE}, \code{tnode.unique =
+#'   FALSE}, \code{snode.unique = FALSE} are specified in \code{newedge.control}
+#'   and \code{sparams = (1, 1, 0, 0, c), tparams = c(0, 0, 1, 1, c)} are use in
+#'   \code{preference.control}, where \code{c} is a constant, the PA
+#'   configuration is simple, the function will switch to a more efficient
+#'   algorithm than \code{binary} and \code{naive}.
 #'
-#' @return A list with the following components: edgelist, edgeweight, out- and
-#'   in-strength, number of edges per step (m), scenario of each new edge
-#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho). The edges in the seed graph
-#'   are denoted as scenario 0.
+#'
+#' @return A list with the following components: edgelist, edgeweight, strength
+#'   for undirected networks, out- and in-strength for directed networks,
+#'   controlling parameters, node group (if applicable) and edge scenario
+#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho, 6~reciprocal). The scenario of
+#'   edges from the seed network \code{seednetwork} are denoted as 0.
+#'
 #' @export
 #'
 #' @examples
-#' net <- rpanet(nstep = 100,
-#'         control = panet.control(alpha = 0.4, beta = 0, gamma = 0.6))
-#' net <- rpanet(edgelist = matrix(c(1:8), ncol = 2), nstep = 10^5,
-#'       control = panet.control(m_dist = stats::rpois,
-#'       m_par = list(lambda = 1), m_const = 1,
-#'       w_dist = stats::runif, w_par = list(min = 1, max = 10), w_const = 0))
-
-rpanet <- function(nstep = 10^3, edgelist = matrix(c(1, 2), ncol = 2),
-                   edgeweight = NA,
-                   control = panet.control(),
-                   directed = TRUE) {
-    if (is.null(control$delta_out)) {
-      control$delta_out <- 0
-    }
-    if (is.null(control$delta_in)) {
-      control$delta_in <- 0
-    }
-    stopifnot("nstep must be greater than 0." = nstep > 0)
-    stopifnot("alpha + beta + bamma + xi + rho must equals to 1." =
-              round(control$alpha + control$beta + control$gamma +
-                    control$xi + control$rho, 2) == 1)
-    temp <- c(edgelist)
-    ex_node <- max(temp)
-    stopifnot("Nodes' index should start from 1." =
-              sum(! duplicated(temp)) == ex_node)
-    ex_edge <- nrow(edgelist)
-    if (is.na(edgeweight[1])) edgeweight[1:ex_edge] <- 1
-    stopifnot(length(edgeweight) == ex_edge)
-    ex_weight <- sum(edgeweight)
-    if (! is.numeric(control$m_dist)) {
-        m <- do.call(control$m_dist, c(nstep, control$m_par)) + control$m_const
-    } else {
-        m <- rep(control$m_dist + control$m_const, nstep)
-    }
-    stopifnot("Number of new edges per step must be positive integers." =
-              m %% 1 == 0)
-    stopifnot("Number of new edges per step must be positive integers." =
-              m > 0)
-    sum_m <- sum(m)
-    if (! is.numeric(control$w_dist)) {
-        w <- do.call(control$w_dist, c(sum_m, control$w_par)) + control$w_const
-    } else {
-        w <- rep(control$w_dist + control$w_const, sum_m)
-    }
-    stopifnot("Edge weight must be greater than 0." = w > 0)
-
-    edgeweight <- c(edgeweight, w)
-    scenario <- sample(1:5, size = sum_m, replace = TRUE,
-                       prob = c(control$alpha, control$beta,
-                       control$gamma, control$xi,
-                       control$rho))
-    if (! directed) {
-        control$delta_out <- control$delta_in <- control$delta / 2
-    }
-
-    if (all(edgeweight == edgeweight[1]) & all(m == 1)) {
-        control$delta_out <- control$delta_out / edgeweight[1]
-        control$delta_in <- control$delta_in / edgeweight[1]
-        start_node <- c(edgelist[, 1], rep(0, sum_m))
-        end_node <- c(edgelist[, 2], rep(0, sum_m))
-        ret <- rpanet_cpp(start_node, end_node,
-                          scenario,
-                          ex_node, ex_edge,
-                          control$delta_out, control$delta_in,
-                          directed)
-        start_node <- ret$start_node
-        end_node <- ret$end_node
-        nnode <- ret$nnode
-    }
-    else {
-        scenario1 <- scenario == 1
-        scenario4 <- scenario == 4
-
-        no_new_start <- !((scenario > 3) | scenario1)
-        no_new_end <- scenario < 3
-        total_node <- end_node <- cumsum(c((scenario != 2) + scenario4)) +
-            ex_node
-        start_node <- total_node - scenario4
-        end_node[no_new_end] <- 0
-        start_node[no_new_start] <- 0
-        nnode <- total_node[length(total_node)]
-
-        weight_intv <- cumsum(c(0, edgeweight))
-        temp_m <- cumsum(m[-nstep])
-        temp <- c(ex_weight, weight_intv[temp_m + ex_edge + 1])
-        total_weight <- rep(temp, m)
-        temp <- c(ex_node, total_node[temp_m])
-        rm(temp_m)
-        total_node <- rep(temp, m)
-        rm(temp)
-
-        rand_out <- runif(sum(no_new_start)) *
-            (total_weight + control$delta_out * total_node)[no_new_start]
-        rand_in <- runif(sum(no_new_end)) *
-            (total_weight + control$delta_in * total_node)[no_new_end]
-        temp_out <- rand_out <= total_weight[no_new_start]
-        if (! all(temp_out)) {
-            start_node[no_new_start][! temp_out] <- sampleNode_cpp(
-              total_node[no_new_start][! temp_out])
-        }
-        temp_in <- rand_in <= total_weight[no_new_end]
-        if (! all(temp_in)) {
-            end_node[no_new_end][! temp_in] <- sampleNode_cpp(
-              total_node[no_new_end][!temp_in])
-        }
-
-      start_node <- c(edgelist[, 1], start_node)
-      end_node <- c(edgelist[, 2], end_node)
-      start_edge <- findInterval(
-          rand_out[temp_out], weight_intv, left.open = TRUE)
-      end_edge <- findInterval(rand_in[temp_in], weight_intv, left.open = TRUE)
+#' # Control edge scenarios and edge weight through scenario.control()
+#' # and edgeweight.control(), respectively, while keeping newedge.control(),
+#' # preference.control() and reciprocal.control() as default.
+#' set.seed(123)
+#' control <- scenario.control(alpha = 0.5, beta = 0.5) +
+#'     edgeweight.control(distribution = rgamma,
+#'         dparams = list(shape = 5, scale = 0.2), shift = 0)
+#' ret1 <- rpanet(nstep = 1e3, control = control)
+#'
+#' control <- control + reciprocal.control(group.prob = c(0.4, 0.6),
+#'     recip.prob = matrix(runif(4), ncol = 2))
+#' ret2 <- rpanet(nstep = 1e3, control = control)
+#'
+#' control <- control + newedge.control(distribution = rpois,
+#'     dparams = list(lambda = 2), shift = 1)
+#' ret3 <- rpanet(nstep = 1e3, seednetwork = ret2, control = control)
+#' 
+rpanet <- function(nstep = 10^3, seednetwork = NULL,
+                   control = NULL,
+                   directed = TRUE,
+                   method = c("binary", "naive")) {
+  stopifnot("nstep must be greater than 0." = nstep > 0)
+  method <- match.arg(method)
+  if (is.null(seednetwork)) {
+    seednetwork <- list("edgelist" = matrix(1:2, ncol = 2),
+               "edgeweight" = NULL,
+               "nodegroup" = NULL)
+  }
+  temp <- c(seednetwork$edgelist)
+  nnode <- max(temp)
+  stopifnot("Nodes' index should be consecutive numbers starting from 1." =
+              sum(! duplicated(temp)) == nnode)
+  rm(temp)
+  if (is.null(seednetwork$nodegroup)) {
+    seednetwork$nodegroup <- rep(1, nnode)
+  }
+  else {
+    seednetwork$nodegroup <- as.integer(seednetwork$nodegroup)
+    stopifnot('"nodegroup" is not valid.' =
+                all(seednetwork$nodegroup > 0) &
+                length(seednetwork$nodegroup) == nnode &
+                max(seednetwork$nodegroup) > length(control$reciprocal.control$group.prob))
+  }
+  nedge <- nrow(seednetwork$edgelist)
+  if (is.null(seednetwork$edgeweight)) {
+    seednetwork$edgeweight[1:nedge] <- 1
+  }
+  stopifnot(length(seednetwork$edgeweight) == nedge)
+  
+  default.control <- scenario.control() + edgeweight.control() +
+    newedge.control() + preference.control() + reciprocal.control()
+  if (! is.list(control)) {
+    control <- list()
+  }
+  control <- modifyList(default.control, control, keep.null = TRUE)
+  rm(default.control)
+  
+  if (is.function(control$newedge$distribution)) {
+    m <- do.call(control$newedge$distribution, c(nstep, control$newedge$dparams)) + 
+      control$newedge$shift
+  } else {
+    m <- rep(control$newedge$shift, nstep)
+  }
+  stopifnot("Number of new edges per step must be positive integers." =
+              all(m %% 1 == 0))
+  stopifnot("Number of new edges per step must be positive integers." =
+              all(m > 0))
+  sum_m <- sum(m)
+  if (is.function(control$edgeweight$distribution)) {
+    w <- do.call(control$edgeweight$distribution,
+                 c(sum_m * 2, control$edgeweight$dparams)) +
+      control$edgeweight$shift
+  } else {
+    w <- rep(control$edgeweight$shift, sum_m * 2)
+  }
+  stopifnot("Edgeweight must be greater than 0." = w > 0)
+  
+  simplecase <- FALSE
+  if (! any(control$newedge$node.unique, control$newedge$snode.unique, 
+            control$newedge$tnode.unique)) {
+    if (control$scenario$beta.loop & is.null(control$reciprocal$group.prob) & 
+        is.null(control$reciprocal$recip.prob)) {
       if (directed) {
-          start_node <- findNode_cpp(start_node, start_edge)
-          end_node <- findNode_cpp(end_node, end_edge)
+        if (all(control$preference$sparams[1:2] == 1,
+                control$preference$sparams[3:4] == 0,
+                control$preference$tparams[1:2] == 0,
+                control$preference$tparams[3:4] == 1)) {
+          simplecase <- TRUE
+        }
       }
       else {
-          ret <- findNode_undirected_cpp(
-            start_node, end_node, start_edge, end_edge)
-          start_node <- ret$start_node
-          end_node <- ret$end_node
+        if(control$preference$params[1] == 1) {
+          simplecase <- TRUE
+        }
       }
     }
-    edgelist <- cbind(start_node, end_node)
-    strength <- nodeStrength_cpp(start_node, end_node,
-                                 edgeweight, nnode, weighted = TRUE)
-    colnames(edgelist) <- NULL
-    ret <- list(edgelist = edgelist,
-                edgeweight = edgeweight,
-                scenario = c(rep(0, ex_edge), scenario),
-                m = m)
-    if (directed) {
-        ret$outstrength <- c(strength$outstrength)
-        ret$instrength <- c(strength$instrength)
-        control$delta <- NULL
-    }
-    else {
-        ret$strength <- c(strength$outstrength) + c(strength$instrength)
-        control$delta_out <- control$delta_in <- NULL
-    }
-    ret$control <- control
-    return(ret)
+  }
+  if (simplecase) {
+    cat("PA generation setup is simple. Switch to a more efficient method. \n")
+    ret <- rpanet_simple(nstep, seednetwork, control, directed, 
+                         m, sum_m, w, nnode, nedge)
+  }
+  else {
+    ret <- rpanet_general(nstep, seednetwork, control, directed, 
+                          m, sum_m, w, nnode, nedge, method)
+  }
+  return(ret)
 }

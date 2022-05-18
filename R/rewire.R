@@ -42,9 +42,8 @@ NULL
 #'
 #' @examples
 #' set.seed(1234)
-#' edgelist <- rpanet(10000, control = panet.control(
-#'    alpha = 0.3, beta = 0.1, gamma = 0.3, xi = 0.3,
-#'    delta_out = 1, delta_in = 1))$edgelist
+#' edgelist <- rpanet(10000, control = scenario.control(
+#'    alpha = 0.3, beta = 0.1, gamma = 0.3, xi = 0.3))$edgelist
 #' targetRho <- list("out-out" = -0.1, "out-in" = 0.3, "in-out" = 0.2, "in-in" = 0.1)
 #' ret1 <- joint_dist_directed(edgelist, targetRho = targetRho)
 #' ret2 <- rewire_directed(edgelist, eta = ret1$eta, iteration = 200)
