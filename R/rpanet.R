@@ -32,27 +32,30 @@ NULL
 #'   \code{NULL}, all nodes from the seed graph are considered from group 1.
 #' @param control A list of parameters that controls the PA generation process.
 #'   The default value is \code{scenario.control() + edgeweight.control() +
-#'   newedge.control() + preference.control() + reciprocal.control()}. By
-#'   default, in each step, a new edge of weight 1 is added from a new node
-#'   \code{A} to an existing node \code{B} (\code{alpha} scenario), where
+#'   newedge.control() + preference.control() + reciprocal.control()}. Under the
+#'   default setup, in each step, a new edge of weight 1 is added from a new
+#'   node \code{A} to an existing node \code{B} (\code{alpha} scenario), where
 #'   \code{B} is chosen with probability proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
 #' @param method Which method to use when generating PA networks: "binary" or
-#'   "naive". When \code{beta.loop = TRUE} is specified in
-#'   \code{scenario.control}, \code{node.unique = FALSE}, \code{tnode.unique =
-#'   FALSE}, \code{snode.unique = FALSE} are specified in \code{newedge.control}
-#'   and \code{sparams = (1, 1, 0, 0, c), tparams = c(0, 0, 1, 1, c)} are use in
-#'   \code{preference.control}, where \code{c} is a constant, the PA
-#'   configuration is simple, the function will switch to a more efficient
-#'   algorithm than \code{binary} and \code{naive}.
+#'   "naive". When the configuration setup is simple: (1) self-loop under beta
+#'   scenarios is allowed (\code{beta.loop = TRUE}), and (2) unique node in the
+#'   same step is not required (\code{node.unique = FALSE}, \code{tnode.unique =
+#'   FALSE}, \code{snode.unique = FALSE}), and (3) \code{reciprocal.control()}
+#'   is set as default, and (4) \code{sparams = (1, 1, 0, 0, c), tparams = c(0,
+#'   0, 1, 1, c)}, where \code{c} is a constant, the the function will switch to
+#'   a more efficient algorithm than \code{binary} and \code{naive}.
 #'
 #'
-#' @return A list with the following components: edgelist, edgeweight, strength
-#'   for undirected networks, out- and in-strength for directed networks,
-#'   controlling parameters, node group (if applicable) and edge scenario
-#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho, 6~reciprocal). The scenario of
-#'   edges from the seed network \code{seednetwork} are denoted as 0.
+#' @return A list with the following components: \code{edgelist},
+#'   \code{edgeweight}, \code{strength} for undirected networks,
+#'   \code{outstrength} and \code{instrength} for directed networks, number of
+#'   new edges in each step \code{newedge}, controlling parameters
+#'   \code{control}, node group \code{nodegroup} (if applicable) and edge
+#'   scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
+#'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as
+#'   0.
 #'
 #' @export
 #'
@@ -66,10 +69,13 @@ NULL
 #'         dparams = list(shape = 5, scale = 0.2), shift = 0)
 #' ret1 <- rpanet(nstep = 1e3, control = control)
 #'
+#' # In addition, set node groups and probability of creating reciprocal edges.
 #' control <- control + reciprocal.control(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
 #' ret2 <- rpanet(nstep = 1e3, control = control)
 #'
+#' # Further, set the number of new edges in each step as Poisson(2) + 1 and use
+#' # ret2 as a seed network.
 #' control <- control + newedge.control(distribution = rpois,
 #'     dparams = list(lambda = 2), shift = 1)
 #' ret3 <- rpanet(nstep = 1e3, seednetwork = ret2, control = control)
@@ -155,7 +161,7 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
     }
   }
   if (simplecase) {
-    cat("PA generation setup is simple. Switch to a more efficient method. \n")
+    cat("Generation setup in control list is simple. Switch to a more efficient method.\n")
     ret <- rpanet_simple(nstep, seednetwork, control, directed, 
                          m, sum_m, w, nnode, nedge)
   }
