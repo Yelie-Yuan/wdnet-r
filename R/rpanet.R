@@ -112,13 +112,13 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   }
   stopifnot(length(seednetwork$edgeweight) == nedge)
   
-  default.control <- scenario.control() + edgeweight.control() +
+  control.default <- scenario.control() + edgeweight.control() +
     newedge.control() + preference.control() + reciprocal.control()
   if (! is.list(control)) {
     control <- list()
   }
-  control <- modifyList(default.control, control, keep.null = TRUE)
-  rm(default.control)
+  control <- control.default + control
+  rm(control.default)
   
   if (is.function(control$newedge$distribution)) {
     m <- do.call(control$newedge$distribution, c(nstep, control$newedge$dparams)) + 
