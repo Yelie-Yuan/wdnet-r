@@ -3,15 +3,16 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 
-/* FIXME: 
+/* FIXME:
    Check these declarations against the C/Fortran source code.
 */
 
 /* .C calls */
 extern void netSim(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_binary_directed_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void rpanet_binary_directed_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, 
+void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void rpanet_binary_undirected_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_naive_directed_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void rpanet_naive_directed_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void rpanet_naive_undirected_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 /* .Call calls */
@@ -27,9 +28,9 @@ extern SEXP _wdnet_sampleNode_cpp(SEXP);
 
 static const R_CMethodDef CEntries[] = {
     {"netSim",                       (DL_FUNC) &netSim,                       12},
-    {"rpanet_binary_directed_cpp",   (DL_FUNC) &rpanet_binary_directed_cpp,   27},
+    {"rpanet_binary_directed_cpp",   (DL_FUNC) &rpanet_binary_directed_cpp,   28},
     {"rpanet_binary_undirected_cpp", (DL_FUNC) &rpanet_binary_undirected_cpp, 17},
-    {"rpanet_naive_directed_cpp",    (DL_FUNC) &rpanet_naive_directed_cpp,    27},
+    {"rpanet_naive_directed_cpp",    (DL_FUNC) &rpanet_naive_directed_cpp,    28},
     {"rpanet_naive_undirected_cpp",  (DL_FUNC) &rpanet_naive_undirected_cpp,  17},
     {NULL, NULL, 0}
 };

@@ -176,8 +176,9 @@ extern "C" {
       double *edgeweight, int *scenario,
       double *alpha_ptr, double *beta_ptr, 
       double *gamma_ptr, double *xi_ptr, 
-      int *beta_loop_ptr, int *m_unique_ptr,
-      int *m_source_unique_ptr, int *m_target_unique_ptr,
+      int *beta_loop_ptr, int *source_first_ptr,
+      int *node_unique_ptr,
+      int *snode_unique_ptr, int *tnode_unique_ptr,
       double *source_params, double *target_params, 
       int *sample_recip_ptr,
       double *group_dist, double *recip, 
@@ -187,11 +188,13 @@ extern "C" {
     int nstep = *nstep_ptr, new_node_id = *new_node_id_ptr,
       new_edge_id = *new_edge_id_ptr, ngroup = *ngroup_ptr;
     double alpha = *alpha_ptr, beta = *beta_ptr, gamma = *gamma_ptr, xi = *xi_ptr;
-    bool beta_loop = *beta_loop_ptr, m_unique = *m_unique_ptr, 
-      m_source_unique = *m_source_unique_ptr,
-      m_target_unique = *m_target_unique_ptr, 
+    bool beta_loop = *beta_loop_ptr, 
+      source_first = *source_first_ptr,
+      node_unique = *node_unique_ptr, 
+      snode_unique = *snode_unique_ptr,
+      tnode_unique = *tnode_unique_ptr, 
       m_error, sample_recip = *sample_recip_ptr, 
-      check_unique = m_unique | m_source_unique | m_target_unique;
+      check_unique = node_unique | snode_unique | tnode_unique;
     int i, j, ks, kt, n_existing, current_scenario;
     node *node1, *node2;
     // initialize a tree from the seed graph
@@ -242,18 +245,18 @@ extern "C" {
               }
               break;
             case 2:
-              if (m_unique) {
+              if (node_unique) {
                 if (ks + 2 - int(beta_loop) > n_existing) {
                   m_error = true;
                 }
               }
               else {
-                if (m_source_unique) {
+                if (snode_unique) {
                   if (ks + 1 > n_existing) {
                     m_error = true;
                   }
                 }
-                if (m_target_unique) {
+                if (tnode_unique) {
                   if (kt + 1 > n_existing) {
                     m_error = true;
                   }
@@ -280,22 +283,44 @@ extern "C" {
             node2 = sampleNode2(root, 't', qm_target);
             break;
           case 2:
-            node1 = sampleNode2(root, 's', qm_source);
-            if (beta_loop) {
-              node2 = sampleNode2(root, 't', qm_target);
-            }
-            else {
-              if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
+            if (source_first) {
+              node1 = sampleNode2(root, 's', qm_source);
+              if (beta_loop) {
                 node2 = sampleNode2(root, 't', qm_target);
               }
               else {
-                if (kt + 2 > n_existing) {
-                  m_error = true;
-                  break;
+                if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
+                  node2 = sampleNode2(root, 't', qm_target);
                 }
-                qm_target.push_back(node1);
-                node2 = sampleNode2(root, 't', qm_target);
-                qm_target.pop_back();
+                else {
+                  if (kt + 2 > n_existing) {
+                    m_error = true;
+                    break;
+                  }
+                  qm_target.push_back(node1);
+                  node2 = sampleNode2(root, 't', qm_target);
+                  qm_target.pop_back();
+                }
+              }
+            }
+            else {
+              node2 = sampleNode2(root, 't', qm_target);
+              if (beta_loop) {
+                node1 = sampleNode2(root, 's', qm_source);
+              }
+              else {
+                if (find(qm_source.begin(), qm_source.end(), node2) != qm_source.end()) {
+                  node1 = sampleNode2(root, 's', qm_source);
+                }
+                else {
+                  if (ks + 2 > n_existing) {
+                    m_error = true;
+                    break;
+                  }
+                  qm_source.push_back(node2);
+                  node1 = sampleNode2(root, 's', qm_source);
+                  qm_source.pop_back();
+                }
               }
             }
             break;
@@ -329,7 +354,7 @@ extern "C" {
           break;
         }
         // handle duplicate nodes
-        if (m_unique) {
+        if (node_unique) {
           if (node1->id < n_existing) {
             qm_source.push_back(node1);
             qm_target.push_back(node1);
@@ -340,10 +365,10 @@ extern "C" {
           }
         }
         else {
-          if (m_source_unique & (node1->id < n_existing)) {
+          if (snode_unique & (node1->id < n_existing)) {
             qm_source.push_back(node1);
           }
-          if (m_target_unique & (node2->id < n_existing)) {
+          if (tnode_unique & (node2->id < n_existing)) {
             qm_target.push_back(node2);
           }
         }

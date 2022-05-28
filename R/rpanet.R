@@ -39,13 +39,13 @@ NULL
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
 #' @param method Which method to use when generating PA networks: "binary" or
-#'   "naive". When the configuration setup is simple: (1) self-loop under beta
-#'   scenarios is allowed (\code{beta.loop = TRUE}), and (2) unique node in the
-#'   same step is not required (\code{node.unique = FALSE}, \code{tnode.unique =
-#'   FALSE}, \code{snode.unique = FALSE}), and (3) \code{reciprocal.control()}
-#'   is set as default, and (4) \code{sparams = (1, 1, 0, 0, c), tparams = c(0,
-#'   0, 1, 1, c)}, where \code{c} is a constant, the the function will switch to
-#'   a more efficient algorithm than \code{binary} and \code{naive}.
+#'   "naive". The function will switch to a more efficient algorithm than
+#'   \code{binary} and \code{naive} when the configuration setup is simple: (1)
+#'   self-loop under beta scenarios is allowed (\code{beta.loop = TRUE}), and
+#'   (2) node replacement in the \code{TRUE} (\code{node.replace = TRUE},
+#'   \code{tnode.replace = TRUE}, \code{snode.replace = TRUE}), and (3)
+#'   {reciprocal.control} is set as default, and (4) \code{sparams = (1, 1, 0,
+#'   0, c), tparams = c(0, 0, 1, 1, d)}, where \code{c, d} are constants.
 #'
 #'
 #' @return A list with the following components: \code{edgelist},
@@ -118,6 +118,10 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
     control <- list()
   }
   control <- control.default + control
+  if (! control$newedge$node.replace) {
+    control$scenario$beta.loop <- FALSE
+    control$newedge$snode.replace <- control$newedge$tnode.replace <- FALSE
+  }
   rm(control.default)
   
   if (is.function(control$newedge$distribution)) {
@@ -141,8 +145,8 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   stopifnot("Edgeweight must be greater than 0." = w > 0)
   
   simplecase <- FALSE
-  if (! any(control$newedge$node.unique, control$newedge$snode.unique, 
-            control$newedge$tnode.unique)) {
+  if (all(control$newedge$node.replace, control$newedge$snode.replace, 
+            control$newedge$tnode.replace)) {
     if (control$scenario$beta.loop & is.null(control$reciprocal$group.prob) & 
         is.null(control$reciprocal$recip.prob)) {
       if (directed) {

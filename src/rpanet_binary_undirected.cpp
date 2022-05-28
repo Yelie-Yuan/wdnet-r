@@ -120,14 +120,14 @@ extern "C" {
       int *scenario,
       double *alpha_ptr, double *beta_ptr, 
       double *gamma_ptr, double *xi_ptr, 
-      int *beta_loop_ptr, int *m_unique_ptr,
+      int *beta_loop_ptr, int *node_unique_ptr,
       double *params, double *pref) {
     double u;
     int nstep = *nstep_ptr, new_node_id = *new_node_id_ptr, 
       new_edge_id = *new_edge_id_ptr;
     double alpha = *alpha_ptr, beta = *beta_ptr, 
       gamma = *gamma_ptr, xi = *xi_ptr;
-    bool beta_loop = *beta_loop_ptr, m_unique = *m_unique_ptr,
+    bool beta_loop = *beta_loop_ptr, node_unique = *node_unique_ptr,
       m_error;
     int i, j, k, n_existing, current_scenario;
     node *node1, *node2;
@@ -165,7 +165,7 @@ extern "C" {
         else {
           current_scenario = 5;
         }
-        if (m_unique) {
+        if (node_unique) {
           k = qm.size();
           switch (current_scenario) {
             case 1:
@@ -222,7 +222,7 @@ extern "C" {
             break;
         }
         // handle duplicate nodes
-        if (m_unique) {
+        if (node_unique) {
           if (node1->id < n_existing) {
             qm.push_back(node1);
           }

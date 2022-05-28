@@ -43,8 +43,13 @@ NULL
 #' @param xi Probability of adding an edge between two new nodes. \code{rho = 1
 #'   - alpha - beta - gamma - xi} represents the probability of introducing a
 #'   new node with a self looped edge.
-#' @param beta.loop Logical, wheter self-loops are allowed in beta scenario.
-#'   Default is \code{TRUE}.
+#' @param beta.loop Logical, whether self-loops are allowed under beta scenario.
+#'   Default value is \code{TRUE}.
+#' @param source.first Logical. Defined for \code{beta} scenario edges of
+#'   directed networks. If \code{TRUE}, the source node of a new edge is sampled
+#'   from existing nodes before the target node is sampled; if \code{FALSE}, the
+#'   target node is sampled from existing nodes before the source node is
+#'   sampled. Default value is \code{TRUE}.
 #'
 #' @export
 #'
@@ -52,7 +57,7 @@ NULL
 #' scenario.control(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
 #' 
 scenario.control <- function(alpha = 1, beta = 0, gamma = 0, xi = 0,
-                             beta.loop = TRUE) {
+                             beta.loop = TRUE, source.first = TRUE) {
   stopifnot('"alpha + beta + gamma + xi" must be smaller or equal to 1.' =
               alpha + beta + gamma + xi <= 1)
   scenario <- list("alpha" = alpha, 
@@ -60,7 +65,8 @@ scenario.control <- function(alpha = 1, beta = 0, gamma = 0, xi = 0,
                    "gamma" = gamma, 
                    "xi" = xi,
                    "rho" = 1 - alpha - beta - gamma - xi,
-                   "beta.loop" = beta.loop)
+                   "beta.loop" = beta.loop, 
+                   "source.first" = source.first)
   structure(list("scenario" = scenario),
             class = "panet.control")
 }
@@ -111,14 +117,15 @@ edgeweight.control <- function(distribution = NA,
 #'   name of parameters must be specified.
 #' @param shift A constant add to the specified distribution. Default value is
 #'   1.
-#' @param snode.unique Logical, whether the sampled source nodes in the same
-#'   step should be different. Defined for directed networks.
-#' @param tnode.unique Logical, whether the sampled target nodes in the same
-#'   step should be different. Defined for directed networks.
-#' @param node.unique Logical, whether the sampled nodes in the same step should
-#'   be different. Defined for undirected and directed networks. For directed
-#'   networks, when \code{node.unique} is \code{TRUE}, the sampled source and
-#'   target nodes in the same step are all different.
+#' @param snode.replace Logical, whether the source nodes in the same step
+#'   should be sampled with replacement. Defined for directed networks.
+#' @param tnode.replace Logical, whether the target nodes in the same step
+#'   should be sampled with replacement. Defined for directed networks.
+#' @param node.replace Logical, whether the nodes in the same step should be
+#'   sampled with replacement. Defined for undirected and directed networks. For
+#'   directed networks, when \code{node.replace} is \code{FALSE}, sampled
+#'   source and target nodes in the same step are all different from each other,
+#'   \code{beta.loop} will be set as \code{FALSE}.
 #'
 #' @export
 #'
@@ -126,26 +133,26 @@ edgeweight.control <- function(distribution = NA,
 #' newedge.control(distribution = rpois,
 #'     dparams = list(lambda = 2),
 #'     shift = 1,
-#'     node.unique = TRUE)
+#'     node.replace = FALSE)
 newedge.control <- function(distribution = NA,
                             dparams = list(),
                             shift = 1,
-                            snode.unique = FALSE,
-                            tnode.unique = FALSE,
-                            node.unique = FALSE) {
-  if (node.unique) {
-    snode.unique <- tnode.unique <- FALSE
+                            snode.replace = TRUE,
+                            tnode.replace = TRUE,
+                            node.replace = TRUE) {
+  if (! node.replace) {
+    snode.replace <- tnode.replace <- FALSE
   }
   newedge <- list("distribution" = distribution,
                   "dparams" = dparams,
                   "shift" = shift,
-                  "snode.unique" = snode.unique,
-                  "tnode.unique" = tnode.unique,
-                  "node.unique" = node.unique)
-  if (length(newedge$dparams) > 0) {
-    stopifnot("Please specify the name of distribution parameters" = 
-                all(! is.null(names(newedge$dparams))))
-  }
+                  "snode.replace" = snode.replace,
+                  "tnode.replace" = tnode.replace,
+                  "node.replace" = node.replace)
+  # if (length(newedge$dparams) > 0) {
+  #   stopifnot("Please specify the name of distribution parameters" = 
+  #               all(! is.null(names(newedge$dparams))))
+  # }
   structure(list("newedge" = newedge), class = "panet.control")
 }
 
