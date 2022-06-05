@@ -66,7 +66,7 @@ extern "C" {
       int *node_unique_ptr,
       int *snode_unique_ptr, int *tnode_unique_ptr,
       double *source_params, double *target_params, 
-      int *sample_recip_ptr,
+      int *sample_recip_ptr, int *selfloop_recip_ptr,
       double *group_dist, double *recip, 
       int *node_group, int *ngroup_ptr, 
       double *source_pref, double *target_pref) {
@@ -80,6 +80,7 @@ extern "C" {
       snode_unique = *snode_unique_ptr,
       tnode_unique = *tnode_unique_ptr, 
       m_error, sample_recip = *sample_recip_ptr, 
+      selfloop_recip = *selfloop_recip_ptr,
       check_unique = node_unique | snode_unique | tnode_unique;
     int i, j, ks, kt, n_existing, current_scenario;
     int node1, node2, temp_node;
@@ -260,8 +261,8 @@ extern "C" {
         q1.push(node2);
         // handel reciprocal
         if (sample_recip) {
-          p = unif_rand();
-          if (scenario[new_edge_id] != 5) {
+          if ((node1 != node2) | selfloop_recip) {
+            p = unif_rand();
             if (p <= recip[node_group[node2] * ngroup + node_group[node1]]) {
               new_edge_id++;
               outs[node2] += edgeweight[new_edge_id];

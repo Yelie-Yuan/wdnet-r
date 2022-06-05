@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2022  Yelie Yuan, Panpan Zhang and Jun Yan
-## Jun Yan <jun.yan@uconn.edu>
+## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Yelie Yuan <yelie.yuan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -20,7 +20,7 @@
 #' @importFrom stats rgamma rpois
 NULL
 
-#' Generate a PA network with non-linear preference functions
+#' Generate PA networks with non-linear preference functions
 #'
 #' @param nstep Number of steps when generating a network.
 #' @param seednetwork A list represents the seed network. If \code{NULL},

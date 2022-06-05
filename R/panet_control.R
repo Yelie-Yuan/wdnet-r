@@ -1,3 +1,21 @@
+##
+## wdnet: Weighted directed network
+## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Yelie Yuan <yelie.yuan@uconn.edu>
+##
+## This file is part of the R package wdnet.
+##
+## The R package wdnet is free software: You can redistribute it and/or
+## modify it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or any later
+## version (at your option). See the GNU General Public License at
+## <https://www.gnu.org/licenses/> for details.
+##
+## The R package wdnet is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+##
+
 #' @importFrom utils modifyList
 NULL
 
@@ -198,6 +216,8 @@ preference.control <- function(sparams = c(1, 1, 0, 0, 1),
 #'   node \code{B}, which belongs to group \code{j}, immediately after a
 #'   directed edge from \code{B} to \code{A} is added. Note that reciprocal
 #'   edges are not considered for rho-scenario (self-loop) edges.
+#' @param selfloop.recip Logical, whether the reciprocal edge of self-loops are
+#'   allowed.
 #'
 #' @export
 #'
@@ -205,7 +225,8 @@ preference.control <- function(sparams = c(1, 1, 0, 0, 1),
 #' reciprocal.control(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
 reciprocal.control <- function(group.prob = NULL,
-                               recip.prob = NULL) {
+                               recip.prob = NULL, 
+                               selfloop.recip = FALSE) {
   if (! is.null(group.prob)) {
     stopifnot('"group.prob" must sum to 1.' = 
                 round(sum(group.prob), 10) == 1)
@@ -231,7 +252,8 @@ reciprocal.control <- function(group.prob = NULL,
     }
   }
   reciprocal <- list("group.prob" = group.prob,
-                "recip.prob" = recip.prob)
+                "recip.prob" = recip.prob, 
+                "selfloop.recip" = selfloop.recip)
   structure(list("reciprocal" = reciprocal),
             class = "panet.control")
 }

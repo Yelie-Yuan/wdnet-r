@@ -1,10 +1,12 @@
 Package: wdnet
 Title: Weighted Directed Network
 Version: 0.0-3
-Date: 2022-05-15
+Date: 2022-06-05
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
-           role = c("aut")),
+           role = "aut"),
+    person("Tiandong", "Wang", email = "twang@stat.tamu.edu",
+           role = "aut"),
     person("Jun", "Yan", email = "jun.yan@uconn.edu",
            role = c("aut", "cre")),
     person("Panpan", "Zhang", email = "panpan.zhang@pennmedicine.upenn.edu",

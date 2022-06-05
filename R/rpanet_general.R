@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2022  Yelie Yuan, Panpan Zhang and Jun Yan
-## Jun Yan <jun.yan@uconn.edu>
+## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Yelie Yuan <yelie.yuan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -117,6 +117,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                   as.double(control$preference$sparams),
                   as.double(control$preference$tparams),
                   as.integer(sample_recip),
+                  as.integer(control$reciprocal$selfloop.recip),
                   as.double(control$reciprocal$group.prob),
                   as.double(t(control$reciprocal$recip.prob)),
                   nodegroup = as.integer(nodegroup),
@@ -149,6 +150,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                   as.double(control$preference$sparams),
                   as.double(control$preference$tparams),
                   as.integer(sample_recip),
+                  as.integer(control$reciprocal$selfloop.recip),
                   as.double(control$reciprocal$group.prob),
                   as.double(t(control$reciprocal$recip.prob)),
                   nodegroup = as.integer(nodegroup),
