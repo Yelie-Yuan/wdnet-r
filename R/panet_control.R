@@ -126,7 +126,7 @@ edgeweight.control <- function(distribution = NA,
             class = "panet.control")
 }
 
-#' Set parameters for controlling new independent edges in each step
+#' Set parameters for controlling new edges in each step
 #'
 #' @param distribution Distribution function for number of new edges. Default is
 #'   \code{NA}. If specified, its first argument must be the number of
@@ -167,14 +167,14 @@ newedge.control <- function(distribution = NA,
                   "snode.replace" = snode.replace,
                   "tnode.replace" = tnode.replace,
                   "node.replace" = node.replace)
-  # if (length(newedge$dparams) > 0) {
-  #   stopifnot("Please specify the name of distribution parameters" = 
-  #               all(! is.null(names(newedge$dparams))))
-  # }
+  if (length(newedge$dparams) > 0) {
+    stopifnot("Please specify the name of distribution parameters" = 
+                all(! is.null(names(newedge$dparams))))
+  }
   structure(list("newedge" = newedge), class = "panet.control")
 }
 
-#' Set parameters for source and target preference functions
+#' Set parameters for source and target preference function
 #'
 #' @param sparams Parameters of the source preference function for directed
 #'   networks. Probability of choosing an exising node as the source node is
@@ -214,9 +214,8 @@ preference.control <- function(sparams = c(1, 1, 0, 0, 1),
 #'   networks. Its element \code{p_{ij}} represents the probability of adding a
 #'   reciprocal edge from node \code{A}, which belongs to group \code{i}, to
 #'   node \code{B}, which belongs to group \code{j}, immediately after a
-#'   directed edge from \code{B} to \code{A} is added. Note that reciprocal
-#'   edges are not considered for rho-scenario (self-loop) edges.
-#' @param selfloop.recip Logical, whether the reciprocal edge of self-loops are
+#'   directed edge from \code{B} to \code{A} is added.
+#' @param selfloop.recip Logical, whether reciprocal edge of self-loops are
 #'   allowed.
 #'
 #' @export

@@ -380,7 +380,7 @@ extern "C" {
         scenario[new_edge_id] = current_scenario;
         q1.push(node1);
         q1.push(node2);
-        // handel reciprocal
+        // handle reciprocal
         if (sample_recip) {
           if ((node1->id != node2->id) | selfloop_recip) {
             p = unif_rand();

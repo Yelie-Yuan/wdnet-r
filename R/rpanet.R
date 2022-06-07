@@ -167,7 +167,7 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   if (simplecase) {
     cat("Generation setup in control list is simple. Switch to a more efficient method.\n")
     ret <- rpanet_simple(nstep, seednetwork, control, directed, 
-                         m, sum_m, w, nnode, nedge)
+                         m, sum_m, w[1 : sum_m], nnode, nedge)
   }
   else {
     ret <- rpanet_general(nstep, seednetwork, control, directed, 
