@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -22,10 +22,13 @@
 ##' \itemize{
 ##' \item Assortativity, centrality, clustering coefficient
 ##' for weighted and directed networks
-##' \item Network rewiring
+##' \item Rewiring a network with given assortativity coefficient(s)
 ##' \item Preferential attachment (PA) network generation
 ##' }
 ##'
+##' The development version of this package is avaliable on Gitlab 
+##' (https://gitlab.com/wdnetwork/wdnet).
+##' 
 ##' @docType package
 ##' @name wdnet
 ##' @useDynLib wdnet, .registration = TRUE

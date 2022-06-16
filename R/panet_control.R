@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -58,9 +58,8 @@ NULL
 #' @param beta Probability of adding an edge between existing nodes.
 #' @param gamma Probability of adding an edge from an existing node to a new
 #'   node.
-#' @param xi Probability of adding an edge between two new nodes. \code{rho = 1
-#'   - alpha - beta - gamma - xi} represents the probability of introducing a
-#'   new node with a self looped edge.
+#' @param xi Probability of adding an edge between two new nodes.
+#' @param rho Probability of adding a new node with a self-loop.
 #' @param beta.loop Logical, whether self-loops are allowed under beta scenario.
 #'   Default value is \code{TRUE}.
 #' @param source.first Logical. Defined for \code{beta} scenario edges of
@@ -74,15 +73,15 @@ NULL
 #' @examples
 #' scenario.control(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
 #' 
-scenario.control <- function(alpha = 1, beta = 0, gamma = 0, xi = 0,
+scenario.control <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
                              beta.loop = TRUE, source.first = TRUE) {
-  stopifnot('"alpha + beta + gamma + xi" must be smaller or equal to 1.' =
-              alpha + beta + gamma + xi <= 1)
+  stopifnot('"alpha + beta + gamma + xi + rho" must equal to 1.' =
+            round(alpha + beta + gamma + xi + rho, 10) == 1)
   scenario <- list("alpha" = alpha, 
                    "beta" = beta,
                    "gamma" = gamma, 
                    "xi" = xi,
-                   "rho" = 1 - alpha - beta - gamma - xi,
+                   "rho" = rho,
                    "beta.loop" = beta.loop, 
                    "source.first" = source.first)
   structure(list("scenario" = scenario),
@@ -141,9 +140,10 @@ edgeweight.control <- function(distribution = NA,
 #'   should be sampled with replacement. Defined for directed networks.
 #' @param node.replace Logical, whether the nodes in the same step should be
 #'   sampled with replacement. Defined for undirected and directed networks. For
-#'   directed networks, when \code{node.replace} is \code{FALSE}, sampled
-#'   source and target nodes in the same step are all different from each other,
-#'   \code{beta.loop} will be set as \code{FALSE}.
+#'   directed networks, when \code{node.replace} is \code{FALSE}, sampled source
+#'   and target nodes in the same step are all different from each other,
+#'   \code{beta.loop}, \code{snode.replace} and \code{tnode.replace} will be set
+#'   as \code{FALSE}.
 #'
 #' @export
 #'
@@ -177,15 +177,15 @@ newedge.control <- function(distribution = NA,
 #' Set parameters for source and target preference function
 #'
 #' @param sparams Parameters of the source preference function for directed
-#'   networks. Probability of choosing an exising node as the source node is
+#'   networks. Probability of choosing an existing node as the source node is
 #'   proportional to \code{sparams[1] * out-strength^sparams[2] + sparams[3] *
 #'   in-strength^sparams[4] + sparams[5]}.
 #' @param tparams Parameters of the target preference function for directed
-#'   networks. Probability of choosing an exising node as the source node is
+#'   networks. Probability of choosing an existing node as the source node is
 #'   proportional to \code{tparams[1] * out-strength^tparams[2] + tparams[3] *
 #'   in-strength^tparams[4] + tparams[5]}.
 #' @param params Parameters of the preference function for undirected networks.
-#'   Probability of choosing an exising node is proportional to
+#'   Probability of choosing an existing node is proportional to
 #'   \code{strength^param[1] + param[2]}.
 #'
 #' @export
@@ -199,6 +199,7 @@ preference.control <- function(sparams = c(1, 1, 0, 0, 1),
   preference <- list("sparams" = sparams,
                "tparams" = tparams,
                "params" = params)
+  stopifnot(sparams[5] >= 0 & tparams[5] >= 0 & params[2] >= 0)
   structure(list("preference" = preference), 
             class = "panet.control")
 }

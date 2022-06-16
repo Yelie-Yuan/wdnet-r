@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -22,13 +22,13 @@ NULL
 #' Generate a PA network with non-linear preference functions
 #'
 #' @param nstep Number of steps when generating a network.
-#' @param seednetwork A list represents the seed network. If \code{NULL}, \code{seednetwork} will
-#'   have one edge from node 1 to node 2 with weight 1. It consists of the
-#'   following components: a two column matrix \code{edgelist} represents the
-#'   edges; a vector \code{edgeweight} represents the weight of edges; a integer
-#'   vector \code{nodegroup} represents the group of each node. \code{nodegroup}
-#'   is defined for directed networks, if \code{NULL}, all nodes from the seed
-#'   graph are considered from group 1.
+#' @param seednetwork A list represents the seed network. If \code{NULL},
+#'   \code{seednetwork} will have one edge from node 1 to node 2 with weight 1.
+#'   It consists of the following components: a two column matrix
+#'   \code{edgelist} represents the edges; a vector \code{edgeweight} represents
+#'   the weight of edges; a integer vector \code{nodegroup} represents the group
+#'   of each node. \code{nodegroup} is defined for directed networks, if
+#'   \code{NULL}, all nodes from the seed graph are considered from group 1.
 #' @param control A list of parameters that controls the PA generation process.
 #'   The default value is \code{scenario.control() + edgeweight.control() +
 #'   newedge.control() + preference.control() + reciprocal.control()}. By
@@ -216,9 +216,6 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
   node_vec1 <- ret_c$node_vec1[1:nedge] + 1
   node_vec2 <- ret_c$node_vec2[1:nedge] + 1
   scenario <- ret_c$scenario[1:nedge]
-  # scenario <- dplyr::recode(scenario, "0" = "NA", "1" = "alpha",
-  #    "2" = "beta",
-  #    "3" = "gamma", "4" = "xi", "5" = "rho", "6" = "reciprocal")
   m <- ret_c$m
   edgeweight <- edgeweight[1:nedge]
   edgelist <- cbind(node_vec1, node_vec2)
@@ -228,20 +225,20 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
               "scenario" = scenario, 
               "newedge" = m,
               "control" = control,
-              "seednetwork" = seednetwork[c("edgelist", "edgeweight", "nodegroup")])
+              "seednetwork" = seednetwork[c("edgelist", "edgeweight", "nodegroup")], 
+              "directed" = directed)
   if (directed) {
     ret$outstrength <- ret_c$outstrength[1:nnode]
     ret$instrength <- ret_c$instrength[1:nnode]
     # ret$source_pref <- ret_c$source_pref[1:nnode]
     # ret$target_pref <- ret_c$target_pref[1:nnode]
-    # if (ret$control$newedge$node.replace) {
-    #   ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
-    # }
+    ret$control$preference$params <- NULL
   }
   else {
     ret$strength <- ret_c$strength[1:nnode]
     # ret$pref <- ret_c$pref[1:nnode]
     ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
+    ret$control$preference$sparams <- ret$control$preference$tparams <- NULL
   }
   if (sample_recip) {
     ret$nodegroup <- ret_c$nodegroup[1:nnode] + 1

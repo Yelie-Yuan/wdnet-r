@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -19,7 +19,7 @@
 #' @importFrom CVXR Variable sum_entries Minimize Maximize Problem solve
 NULL
 
-#' Get the nodel-level joint distributions and some empirical distributions with
+#' Get the node-level joint distributions and some empirical distributions with
 #' given edgelist.
 #'
 #' @param edgelist A two column matrix represents the directed edges of a
@@ -33,8 +33,8 @@ get_dist <- function(edgelist = NA, directed = TRUE,
                      joint_dist = FALSE) {
   if (! directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
   edgelist <- as.matrix(edgelist)
-  temp <- nodeStrength_cpp(start_node = edgelist[, 1], 
-                           end_node = edgelist[, 2], 
+  temp <- nodeStrength_cpp(snode = edgelist[, 1], 
+                           tnode = edgelist[, 2], 
                            nnode = max(edgelist), 
                            weight = 1,
                            weighted = FALSE)
@@ -47,25 +47,24 @@ get_dist <- function(edgelist = NA, directed = TRUE,
   d_out <- as.numeric(rownames(nu))
   d_in <- as.numeric(colnames(nu))
   
-  get_rank <- function(d, degree_seq) {
-    degree_seq <- sort(degree_seq)
-    temp <- data.frame(degree_seq = unique(degree_seq),
-                       degree_rank = unique(rank(degree_seq, ties.method = "average")))
-    unlist(sapply(d, function(d1) {
-      n <- which(temp$degree_seq %in% d1)
-      ifelse(length(n) == 0, 0, temp$degree_rank[n])
-    }))
-  }
-  
-  r_s_out <- get_rank(d_out, outd[edgelist[, 1]])
-  r_t_out <- get_rank(d_out, outd[edgelist[, 2]])
-  r_s_in <- get_rank(d_in, ind[edgelist[, 1]])
-  r_t_in <- get_rank(d_in, ind[edgelist[, 2]])
-  denom <- max(r_s_out, r_t_out, r_s_in, r_t_in) / 1e4
-  r_s_out <- r_s_out / denom
-  r_t_out <- r_t_out / denom
-  r_s_in <- r_s_in / denom
-  r_t_in <- r_t_in / denom
+  # get_rank <- function(d, degree_seq) {
+  #   degree_seq <- sort(degree_seq)
+  #   temp <- data.frame(degree_seq = unique(degree_seq),
+  #                      degree_rank = unique(rank(degree_seq, ties.method = "average")))
+  #   unlist(sapply(d, function(d1) {
+  #     n <- which(temp$degree_seq %in% d1)
+  #     ifelse(length(n) == 0, 0, temp$degree_rank[n])
+  #   }))
+  # }
+  # r_s_out <- get_rank(d_out, outd[edgelist[, 1]])
+  # r_t_out <- get_rank(d_out, outd[edgelist[, 2]])
+  # r_s_in <- get_rank(d_in, ind[edgelist[, 1]])
+  # r_t_in <- get_rank(d_in, ind[edgelist[, 2]])
+  # denom <- max(r_s_out, r_t_out, r_s_in, r_t_in) / 1e4
+  # r_s_out <- r_s_out / denom
+  # r_t_out <- r_t_out / denom
+  # r_s_in <- r_s_in / denom
+  # r_t_in <- r_t_in / denom
   
   p_out <- as.numeric(rowSums(nu))
   p_in <- as.numeric(colSums(nu))
@@ -83,13 +82,13 @@ get_dist <- function(edgelist = NA, directed = TRUE,
   # other joint distributions
   if (joint_dist) {
     e <- list(
-      "out-out" = table(data.frame(
+      "outout" = table(data.frame(
         "source" = outd[edgelist[, 1]], "target" = outd[edgelist[, 2]])) / nedge,
-      "out-in" = table(data.frame(
+      "outin" = table(data.frame(
         "source" = outd[edgelist[, 1]], "target" = ind[edgelist[, 2]])) / nedge,
-      "in-out" = table(data.frame(
+      "inout" = table(data.frame(
         "source" = ind[edgelist[, 1]], "target" = outd[edgelist[, 2]]))/ nedge,
-      "in-in" = table(data.frame(
+      "inin" = table(data.frame(
         "source" = ind[edgelist[, 1]], "target" = ind[edgelist[, 2]])) / nedge)
     eta <- table(data.frame(
       "source" = paste(outd[edgelist[, 1]], ind[edgelist[, 1]], sep = "-"),
@@ -99,30 +98,30 @@ get_dist <- function(edgelist = NA, directed = TRUE,
   list(nu  = nu, e = e, eta = eta,
        d_out = d_out, d_in = d_in,
        p_out = p_out, p_in = p_in, 
-       r_s_out = r_s_out, r_s_in = r_s_in, 
-       r_t_in = r_t_in, r_t_out = r_t_out,
+       #  r_s_out = r_s_out, r_s_in = r_s_in, 
+       #  r_t_in = r_t_in, r_t_out = r_t_out,
        q_s_out = q_s_out, q_s_in = q_s_in,
        q_t_out = q_t_out, q_t_in = q_t_in)
 }
 
 #' Get the constraints for the optimization problem. This function is defined
-#' for \code{joint_dist_directed}.
+#' for \code{get_jointdist_directed}.
 #'
 #' @param constrs A list of constraints.
-#' @param targetRho A list of target assortativity levels.
+#' @param target_assortcoeff A list of target assortativity levels.
 #' @param rho A list of variable objects.
 #'
 #' @return A list of constraints.
 #'   
-get_constrs <- function(constrs, targetRho, rho) {
-  for (type in names(targetRho)) {
-    if (! is.null(targetRho[[type]])) {
-      if (length(targetRho[[type]]) == 1) {
-        constrs[[type]] <- rho[[type]] == targetRho[[type]]
+get_constrs <- function(constrs, target_assortcoeff, rho) {
+  for (type in names(target_assortcoeff)) {
+    if (! is.null(target_assortcoeff[[type]])) {
+      if (length(target_assortcoeff[[type]]) == 1) {
+        constrs[[type]] <- rho[[type]] == target_assortcoeff[[type]]
       }
       else {
-        constrs[[paste0(type, "_max")]] <- rho[[type]] <= max(targetRho[[type]])
-        constrs[[paste0(type, "_min")]] <- rho[[type]] >= min(targetRho[[type]])
+        constrs[[paste0(type, "_max")]] <- rho[[type]] <= max(target_assortcoeff[[type]])
+        constrs[[paste0(type, "_min")]] <- rho[[type]] >= min(target_assortcoeff[[type]])
       }
     }
   }
@@ -130,7 +129,7 @@ get_constrs <- function(constrs, targetRho, rho) {
 }
 
 #' Get the value of an object from the optimization problem. This function is
-#' defined for \code{joint_dist_directed}.
+#' defined for \code{get_jointdist_directed}.
 #'
 #' @param object An object from the optimization problem.
 #' @param result A list returned from \code{CVXR::solve()}.
@@ -139,18 +138,18 @@ get_constrs <- function(constrs, targetRho, rho) {
 #' @return Value of the object.
 #'   
 get_values <- function(object, result, mydist) {
-  if ("r-out-out" %in% names(object)) {
-    return(list(
-      "r-out-out" = result$getValue(object[["r-out-out"]]),
-      "r-out-in" = result$getValue(object[["r-out-in"]]),
-      "r-in-out" = result$getValue(object[["r-in-out"]]),
-      "r-in-in" = result$getValue(object[["r-in-in"]])
-    ))
-  }
-  out_out = result$getValue(object[["out-out"]])
-  out_in = result$getValue(object[["out-in"]])
-  in_out = result$getValue(object[["in-out"]])
-  in_in = result$getValue(object[["in-in"]])
+  # if ("r-out-out" %in% names(object)) {
+  #   return(list(
+  #     "r-out-out" = result$getValue(object[["r-out-out"]]),
+  #     "r-out-in" = result$getValue(object[["r-out-in"]]),
+  #     "r-in-out" = result$getValue(object[["r-in-out"]]),
+  #     "r-in-in" = result$getValue(object[["r-in-in"]])
+  #   ))
+  # }
+  out_out <- result$getValue(object[["outout"]])
+  out_in <- result$getValue(object[["outin"]])
+  in_out <- result$getValue(object[["inout"]])
+  in_in <- result$getValue(object[["inin"]])
   if (deparse(substitute(object)) == "e" & 
       ! any(is.na(out_out), is.na(out_in), 
             is.na(in_out), is.na(in_in))) {
@@ -159,11 +158,14 @@ get_values <- function(object, result, mydist) {
     rownames(in_out) <- rownames(in_in) <- mydist$d_in
     colnames(out_in) <- colnames(in_in) <- mydist$d_in
   }
-  list("out-out" = out_out, "out-in" = out_in,
-       "in-out" = in_out, "in-in" = in_in)
+  list("outout" = out_out, "outin" = out_in,
+       "inout" = in_out, "inin" = in_in)
 }
 
 #' Parameters passed to CVXR::solver().
+#'
+#' Defined for the convex optimization problems for solving \code{eta}. The
+#' control list is passed to \code{rewire} and \code{assortcoeff_range}.
 #'
 #' @param solver (Optional) A string indicating the solver to use. Defaults to
 #'   "ECOS".
@@ -213,49 +215,50 @@ solver.control <- function(solver = "ECOS",
               ...))
 }
 
-#' Edge-level distributions for directed networks with respect to desired
-#' assortativity level(s).
+#' Compute edge-level distributions for directed networks with respect to
+#' desired assortativity level(s).
 #'
 #' @param edgelist A two column matrix represents the directed edges of a
 #'   network.
-#' @param targetRho List, represents the predetermined values or ranges of
-#'   assortativity coefficients.
-#' @param targetRankRho List, represents the predetermined values or ranges of
-#'   rank based assortativity coefficients.
-#' @param f The convex function of the joint edge-level distribution to be
+#' @param target_assortcoeff List, represents the predetermined values or ranges
+#'   of assortativity coefficients.
+#' @param FUN A convex function of the joint edge-level distribution to be
 #'   minimized when \code{whichRange} is \code{NA}. Defaults to 0.
-#' @param whichRange Character, "out-out", "out-in", "in-out", "in-in",
-#'   "r-out-out", "r-out-in", "r-in-out" or "r-in-in". Represents the interested
-#'   degree or rank based assortativity coefficient. Default is \code{NA}.
+#' @param whichRange Character, "outout", "outin", "inout" or "inin". 
+#'   Represents the interested
+#'   degree based assortativity coefficient. Default is \code{NA}.
 #' @param control A list of parameters passed to \code{CVXR::solve()}.
 #'   predetermined assortativity level(s) are satisfied.
-#' @return Assortativity levels and joint distributions. If \code{whichRange} is
-#'   specified, the range of the interested coefficient and the corresponding
-#'   joint distributions will be returned, provided the predetermined
-#'   \code{targetRho} and \code{targetRankRho} are satisfied.
-#' @export
+#' @return Assortativity coefficients and joint distributions. If
+#'   \code{whichRange} is specified, the range of the interested coefficient and
+#'   the corresponding joint distributions will be returned, provided the
+#'   predetermined \code{target_assortcoeff} and \code{target_rank_assortcoeff}
+#'   are satisfied.
 #'
 #' @examples
+#' \dontrun{
 #' edgelist <- rpanet(3000,
 #'     control = scenario.control(alpha = 0.3, beta = 0.1,
 #'     gamma = 0.3, xi = 0.3))$edgelist
-#' edge_assort(edgelist)
-#' targetRho <- list("out-out" = -0.1, "in-out" = 0.4)
-#' ret1 <- joint_dist_directed(edgelist, targetRho = targetRho,
-#'     whichRange = "in-in")
-#' ret2 <- joint_dist_directed(edgelist, targetRho = targetRho, f = CVXR::norm2)
+#' assortcoeff(edgelist)
+#' target_assortcoeff <- list("outout" = -0.1, "inout" = 0.4)
+#' ret1 <- wdnet:::get_jointdist_directed(edgelist, target_assortcoeff = target_assortcoeff,
+#'         whichRange = "inin")
+#' ret2 <- wdnet:::get_jointdist_directed(edgelist, target_assortcoeff = target_assortcoeff,
+#'         FUN = CVXR::norm2)
+#' }
 #' 
-joint_dist_directed <- function(edgelist, 
-                                targetRho = list("out-out" = NULL, "out-in" = NULL,
-                                                 "in-out" = NULL, "in-in" = NULL),
-                                targetRankRho = list("r-out-out" = NULL, "r-out-in" = NULL,
-                                                     "r-in-out" = NULL, "r-in-in" = NULL),
-                                f = function(x) 0, whichRange = NA, 
-                                control = solver.control()) {
-  stopifnot(all(names(targetRankRho) %in% c("r-out-out", "r-out-in", 
-                                            "r-in-out", "r-in-in")))
-  stopifnot(all(names(targetRho) %in% c("out-out", "out-in", 
-                                        "in-out", "in-in")))
+get_jointdist_directed <- function(edgelist, 
+                                   target_assortcoeff = list("outout" = NULL, "outin" = NULL,
+                                                             "inout" = NULL, "inin" = NULL),
+                                   # target_rank_assortcoeff = list("r-out-out" = NULL, "r-out-in" = NULL,
+                                   #                      "r-in-out" = NULL, "r-in-in" = NULL),
+                                   FUN = function(x) 0, whichRange = NULL, 
+                                   control = solver.control()) {
+  # stopifnot(all(names(target_rank_assortcoeff) %in% c("r-out-out", "r-out-in", 
+  #                                           "r-in-out", "r-in-in")))
+  stopifnot(all(names(target_assortcoeff) %in% c("outout", "outin", 
+                                                 "inout", "inin")))
   mydist <- get_dist(edgelist = edgelist, directed = TRUE)
   m <- length(mydist$d_out)
   n <- length(mydist$d_in)
@@ -273,10 +276,10 @@ joint_dist_directed <- function(edgelist,
   
   mat1 <- kronecker(diag(rep(1, m)), t(rep(1, n)))
   mat2 <- kronecker(rep(1, m), diag(rep(1, n)))
-  e <- list("out-out" = mat1[, index_s] %*% eMat %*% t(mat1[, index_t]),
-            "out-in"  = mat1[, index_s] %*% eMat %*% mat2[index_t, ],
-            "in-out"  = t(mat2[index_s, ]) %*% eMat %*% t(mat1[, index_t]),
-            "in-in"   = t(mat2[index_s, ]) %*% eMat %*% mat2[index_t, ])
+  e <- list("outout" = mat1[, index_s] %*% eMat %*% t(mat1[, index_t]),
+            "outin"  = mat1[, index_s] %*% eMat %*% mat2[index_t, ],
+            "inout"  = t(mat2[index_s, ]) %*% eMat %*% t(mat1[, index_t]),
+            "inin"   = t(mat2[index_s, ]) %*% eMat %*% mat2[index_t, ])
   rm(mat1, mat2, m, n)
   
   my_sigma <- function(j, q) {
@@ -286,38 +289,38 @@ joint_dist_directed <- function(edgelist,
               s_in  = my_sigma(mydist$d_in, mydist$q_s_in),
               t_out = my_sigma(mydist$d_out, mydist$q_t_out),
               t_in  = my_sigma(mydist$d_in, mydist$q_t_in))
-  rankSig <- list(s_out = my_sigma(mydist$r_s_out, mydist$q_s_out),
-                  s_in  = my_sigma(mydist$r_s_in, mydist$q_s_in),
-                  t_out = my_sigma(mydist$r_t_out, mydist$q_t_out),
-                  t_in  = my_sigma(mydist$r_t_in, mydist$q_t_in))
+  # rankSig <- list(s_out = my_sigma(mydist$r_s_out, mydist$q_s_out),
+  #                 s_in  = my_sigma(mydist$r_s_in, mydist$q_s_in),
+  #                 t_out = my_sigma(mydist$r_t_out, mydist$q_t_out),
+  #                 t_in  = my_sigma(mydist$r_t_in, mydist$q_t_in))
   
   rho <- list(
-    "out-out" = t(mydist$d_out) %*% 
-      (e$"out-out" - mydist$q_s_out %*% t(mydist$q_t_out)) %*% 
+    "outout" = t(mydist$d_out) %*% 
+      (e$"outout" - mydist$q_s_out %*% t(mydist$q_t_out)) %*% 
       mydist$d_out / sig$s_out / sig$t_out, 
-    "out-in"  = t(mydist$d_out) %*% 
-      (e$"out-in" - mydist$q_s_out %*% t(mydist$q_t_in)) %*% 
+    "outin"  = t(mydist$d_out) %*% 
+      (e$"outin" - mydist$q_s_out %*% t(mydist$q_t_in)) %*% 
       mydist$d_in / sig$s_out / sig$t_in, 
-    "in-out"  = t(mydist$d_in) %*% 
-      (e$"in-out" - mydist$q_s_in %*% t(mydist$q_t_out)) %*% 
+    "inout"  = t(mydist$d_in) %*% 
+      (e$"inout" - mydist$q_s_in %*% t(mydist$q_t_out)) %*% 
       mydist$d_out / sig$s_in / sig$t_out, 
-    "in-in"   = t(mydist$d_in) %*% 
-      (e$"in-in" - mydist$q_s_in %*% t(mydist$q_t_in)) %*% 
+    "inin"   = t(mydist$d_in) %*% 
+      (e$"inin" - mydist$q_s_in %*% t(mydist$q_t_in)) %*% 
       mydist$d_in / sig$s_in / sig$t_in)
   
-  rankRho <- list(
-    "r-out-out" = t(mydist$r_s_out) %*% 
-      (e$"out-out" - mydist$q_s_out %*% t(mydist$q_t_out)) %*% 
-      mydist$r_t_out / rankSig$s_out / rankSig$t_out, 
-    "r-out-in"  = t(mydist$r_s_out) %*% 
-      (e$"out-in" - mydist$q_s_out %*% t(mydist$q_t_in)) %*% 
-      mydist$r_t_in / rankSig$s_out / rankSig$t_in, 
-    "r-in-out"  = t(mydist$r_s_in) %*% 
-      (e$"in-out" - mydist$q_s_in %*% t(mydist$q_t_out)) %*% 
-      mydist$r_t_out / rankSig$s_in / rankSig$t_out, 
-    "r-in-in"   = t(mydist$r_s_in) %*% 
-      (e$"in-in" - mydist$q_s_in %*% t(mydist$q_t_in)) %*% 
-      mydist$r_t_in / rankSig$s_in / rankSig$t_in)
+  # rankRho <- list(
+  #   "r-out-out" = t(mydist$r_s_out) %*% 
+  #     (e$"outout" - mydist$q_s_out %*% t(mydist$q_t_out)) %*% 
+  #     mydist$r_t_out / rankSig$s_out / rankSig$t_out, 
+  #   "r-out-in"  = t(mydist$r_s_out) %*% 
+  #     (e$"outin" - mydist$q_s_out %*% t(mydist$q_t_in)) %*% 
+  #     mydist$r_t_in / rankSig$s_out / rankSig$t_in, 
+  #   "r-in-out"  = t(mydist$r_s_in) %*% 
+  #     (e$"inout" - mydist$q_s_in %*% t(mydist$q_t_out)) %*% 
+  #     mydist$r_t_out / rankSig$s_in / rankSig$t_out, 
+  #   "r-in-in"   = t(mydist$r_s_in) %*% 
+  #     (e$"inin" - mydist$q_s_in %*% t(mydist$q_t_in)) %*% 
+  #     mydist$r_t_in / rankSig$s_in / rankSig$t_in)
   
   name_eMat <- function(eMat, a = mydist$d_out, b = mydist$d_in, 
                         index_a = index_s, index_b = index_t) {
@@ -328,23 +331,21 @@ joint_dist_directed <- function(edgelist,
     names(attributes(eMat)$dimnames) <- c("source", "target")
     eMat
   }
-  constrs <- get_constrs(constrs, targetRho, rho)
-  constrs <- get_constrs(constrs, targetRankRho, rankRho)
-  if (is.na(whichRange)) {
-    problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
+  constrs <- get_constrs(constrs, target_assortcoeff, rho)
+  # constrs <- get_constrs(constrs, target_rank_assortcoeff, rankRho)
+  if (is.null(whichRange)) {
+    problem <- CVXR::Problem(CVXR::Minimize(do.call(FUN, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
     if (result$status == "solver_error") stop("SOLVER ERROR.")
     if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
-    return(list(rho = get_values(rho, result, mydist),
-                rankRho = get_values(rankRho, result, mydist),
-                e = get_values(e, result, mydist),
-                eta = name_eMat(result$getValue(eMat)))) 
+    return(list("assortcoeff" = get_values(rho, result, mydist),
+                # rankRho = get_values(rankRho, result, mydist),
+                "e" = get_values(e, result, mydist),
+                "eta" = name_eMat(result$getValue(eMat)))) 
   } else {
-    # whichRange <- switch (whichRange,
-    #                       "out-out" = 1, "out-in" = 2, 
-    #                       "in-out" = 3, "in-in" = 4)
-    tempRho <- append(rho, rankRho)
+    # tempRho <- append(rho, rankRho)
+    tempRho <- rho
     stopifnot("'whichRange' is not valid." = whichRange %in% names(tempRho))
     problem1 <- CVXR::Problem(CVXR::Minimize(tempRho[[whichRange]]), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
@@ -357,44 +358,44 @@ joint_dist_directed <- function(edgelist,
     if (result2$status == "solver_error") stop("SOLVER ERROR.")
     if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
-    return(list(range = c(result1$getValue(tempRho[[whichRange]]), 
-                          result2$getValue(tempRho[[whichRange]])),
-                lbound = list(rho = get_values(rho, result1, mydist),
-                              rankRho = get_values(rankRho, result1, mydist),
-                              e = get_values(e, result1, mydist),
-                              eta = name_eMat(result1$getValue(eMat))),
-                ubound = list(rho = get_values(rho, result2, mydist),
-                              rankRho = get_values(rankRho, result2, mydist),
-                              e = get_values(e, result2, mydist),
-                              eta = name_eMat(result2$getValue(eMat)))))
+    return(list("range" = c(result1$getValue(tempRho[[whichRange]]), 
+                            result2$getValue(tempRho[[whichRange]])),
+                "lbound" = list("assortcoeff" = get_values(rho, result1, mydist),
+                                # rankRho = get_values(rankRho, result1, mydist),
+                                "e" = get_values(e, result1, mydist),
+                                "eta" = name_eMat(result1$getValue(eMat))),
+                "ubound" = list("assortcoeff" = get_values(rho, result2, mydist),
+                                # rankRho = get_values(rankRho, result2, mydist),
+                                "e" = get_values(e, result2, mydist),
+                                "eta" = name_eMat(result2$getValue(eMat)))))
   }
 }
 
-#' Edge-level distribution for undirected networks with respect to desired
-#' assortativity level.
+#' Compute edge-level distribution for undirected networks with respect to
+#' desired assortativity level.
 #'
 #' @param edgelist A two column matrix represents the undirected edges of a
 #'   network.
-#' @param targetRho Numeric, represents the predetermined assortativity
+#' @param target_assortcoeff Numeric, represents the predetermined assortativity
 #'   coefficient. If \code{NA}, the range of assortativity coefficient and
 #'   corresponding joint distribution are returned.
-#' @param f The convex function of the edge-level distribution to be minimized
-#'   when \code{targetRho} is not \code{NA}. Default is 0.
+#' @param FUN A convex function of the edge-level distribution to be minimized
+#'   when \code{target_assortcoeff} is not \code{NA}. Default is 0.
 #' @param control A list of parameters passed to \code{CVXR::solve()}.
 #'
 #' @return Assortativity level and corresponding edge-level distribution.
-#' @export
 #'
 #' @examples
 #' set.seed(1234)
 #' edgelist <- matrix(sample(1:10, 500, replace = TRUE), ncol = 2)
-#' ret1 <- joint_dist_undirected(edgelist, f = CVXR::norm2)
-#' ret2 <- joint_dist_undirected(edgelist, targetRho = 0.6, f = CVXR::norm2)
+#' ret1 <- wdnet:::get_jointdist_undirected(edgelist, FUN = CVXR::norm2)
+#' ret2 <- wdnet:::get_jointdist_undirected(edgelist, target_assortcoeff = 0.6, 
+#'         FUN = CVXR::norm2)
 #' 
-joint_dist_undirected <- function(edgelist, targetRho = NA, 
-                                  f = function(x) 0,
-                                  control = solver.control()) {
-  stopifnot((targetRho <= 1 & targetRho >= -1) | is.na(targetRho))
+get_jointdist_undirected <- function(edgelist, target_assortcoeff = NULL, 
+                                     FUN = function(x) 0,
+                                     control = solver.control()) {
+  stopifnot((target_assortcoeff <= 1 & target_assortcoeff >= -1) | is.null(target_assortcoeff))
   mydist <- get_dist(edgelist = edgelist, directed = FALSE)
   k <- mydist$d_out
   q_k <- mydist$q_s_out
@@ -403,9 +404,11 @@ joint_dist_undirected <- function(edgelist, targetRho = NA,
     colnames(eMat) <- rownames(eMat) <- k
     eMat
   }
-  if ((! is.na(targetRho)) & targetRho == 0) {
-    return(list(rho = 0, 
-                e = name_eMat(q_k %*% t(q_k), k)))
+  if (! is.null(target_assortcoeff)) {
+    if (target_assortcoeff == 0) {
+      return(list("assortcoeff" = 0, 
+                  "eta" = name_eMat(q_k %*% t(q_k), k)))
+    }
   }
   n <- length(k)
   sig2 <- sum(k^2 * q_k) - (sum(k * q_k))^2
@@ -414,14 +417,14 @@ joint_dist_undirected <- function(edgelist, targetRho = NA,
   constrs <- list(CVXR::sum_entries(eMat, 1) == q_k, 
                   eMat == t(eMat))
   
-  if (! is.na(targetRho)) {
-    constrs$"rho" <- rho == targetRho
-    problem <- CVXR::Problem(CVXR::Minimize(do.call(f, list(eMat))), constrs)
+  if (! is.null(target_assortcoeff)) {
+    constrs$"rho" <- rho == target_assortcoeff
+    problem <- CVXR::Problem(CVXR::Minimize(do.call(FUN, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
     if (result$status == "solver_error") stop("SOLVER ERROR.")
     if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
-    return(list(rho = result$getValue(rho),
-                e = name_eMat(result$getValue(eMat), k)))
+    return(list("assortcoeff" = result$getValue(rho),
+                "eta" = name_eMat(result$getValue(eMat), k)))
   } else {
     # constrs$"rho" <- rho <= 1
     problem1 <- CVXR::Problem(CVXR::Minimize(rho), constrs)
@@ -434,10 +437,10 @@ joint_dist_undirected <- function(edgelist, targetRho = NA,
     if (result2$status == "solver_error") stop("SOLVER ERROR.")
     if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
-    return(list(range = c(result1$getValue(rho), result2$getValue(rho)),
-                lbound = list(rho = result1$getValue(rho),
-                              e = name_eMat(result1$getValue(eMat), k)),
-                ubound = list(rho = result2$getValue(rho),
-                              e = name_eMat(result2$getValue(eMat), k))))
+    return(list("range" = c(result1$getValue(rho), result2$getValue(rho)),
+                "lbound" = list("assortcoeff" = result1$getValue(rho),
+                                "eta" = name_eMat(result1$getValue(eMat), k)),
+                "ubound" = list("assortcoeff" = result2$getValue(rho),
+                                "eta" = name_eMat(result2$getValue(eMat), k))))
   }
 }

@@ -2,17 +2,18 @@
 #include<queue>
 #include<math.h>
 #include<R.h>
-// #include<bits/stdc++.h>
 #include<deque>
 #include<algorithm>
 using namespace std;
 
-// 1. user defined preference functions
-// 2. w can not equal to 1 in function sampleNode, otherwise findNode returns error 
-//    because of numeric precision
-// 3. add a parameter m to control number of new edges per step
-
-// node structure
+/**
+ * Node structure.
+ * id: node id
+ * strength: node strength
+ * p: preference of being chosen from the existing nodes
+ * totalp: sum of preference of current node and its children
+ * *left, *right, *parent: pointers to its left, right and parent
+ */
 struct node {
   int id;
   double strength;
@@ -20,12 +21,26 @@ struct node {
   node *left, *right, *parent;
 };
 
-// preference function; import from R
+/**
+ * Preference function.
+ *
+ * @param strength Node strength.
+ * @param params Parameters passed to the preference function.
+ * 
+ * @return Preference of a node.
+ * 
+ */
 double preferenceFunc(double strength, double *params) {
   return pow(strength, params[0]) + params[1];
 }
 
-// update total preference from current node to root
+/**
+ * Update total preference from current node to root.
+ *
+ * @param current_node The current node.
+ * @param increment Value to be added to the total preference.
+ * 
+ */
 void addIncrement(node *current_node, double increment) {
   current_node->totalp += increment;
   while(current_node->id > 0) {
@@ -33,14 +48,26 @@ void addIncrement(node *current_node, double increment) {
   }
 }
 
-// update strength and preference of from the sampled node to root
+/**
+ * Update node preference and total preference from the sampled node to root.
+ *
+ * @param temp_node The sampled node.
+ * @param params Parameters passed to the preference function.
+ * 
+ */
 void updatePreference(node *temp_node, double *params) {
   double temp_p = temp_node->p;
   temp_node->p = preferenceFunc(temp_node->strength, params);
   addIncrement(temp_node, temp_node->p - temp_p);
 }
 
-// create a new node
+/**
+ * Create a new node.
+ *
+ * @param id Node ID.
+ * 
+ * @return The new node.
+ */
 node *createNode(int id) {
   node *new_node = new node();
   new_node->id = id;
@@ -50,7 +77,14 @@ node *createNode(int id) {
   return new_node;
 }
 
-// may need a better way to construct the complete tree
+/**
+ * Insert a new node to the tree.
+ *
+ * @param q Sequence of nodes that have less than 2 children.
+ * @param id New node ID.
+ * 
+ * @return The new node.
+ */
 node *insertNode(queue<node*> &q, int id) {
   node *new_node = createNode(id);
   node *temp_node = q.front();
@@ -68,7 +102,14 @@ node *insertNode(queue<node*> &q, int id) {
   return new_node;
 }
 
-// find node with a given critical point w
+/**
+ * Find a node with a given cutoff point w.
+ *
+ * @param root Root node of the tree.
+ * @param w A cutoff point.
+ * 
+ * @return Sampled node.
+ */
 node *findNode(node *root, double w) {
   w -= root->p;
   if (w <= 0) {
@@ -84,7 +125,14 @@ node *findNode(node *root, double w) {
   }
 }
 
-// sample a node from the tree
+/**
+ * Sample a node from the tree.
+ *
+ * @param root Root node of the tree.
+ * @param qm Nodes to be excluded from the sampling process.
+ * 
+ * @return Sampled node.
+ */
 node *sampleNode(node *root, deque<node*> &qm) {
   double w;
   node *temp_node;
@@ -102,16 +150,31 @@ node *sampleNode(node *root, deque<node*> &qm) {
   }
 }
 
-// sample edges with a given seed graph
-// alpha and gamma scenarios are kept for interfacing with R
-// alpha: (new, existing); gamma: (existing, new)
-// if (directed) {
-//   rpanet_general_directed_cpp(alpha, beta, gamma, ...)
-// }
-// else {
-//   rpanet_general_undirected_cpp(alpha, beta, gamma, ...)
-// }
 extern "C" {
+    /**
+   * Preferential attachment algorithm.
+   *
+   * @param nstep_ptr Number of steps.
+   * @param m Number of new edges in each step.
+   * @param new_node_id_ptr New node ID.
+   * @param new_edge_id_ptr New edge ID.
+   * @param node_vec1 Sequence of nodes in the first column of edgelist.
+   * @param node_vec2 Sequence of nodes in the second column of edgelist.
+   * @param strength Sequence of node strength.
+   * @param edgeweight Weight of existing and new edges.
+   * @param scenario Scenario of existing and new edges.
+   * @param alpha_ptr Probability of alpha acenario.
+   * @param beta_ptr Probability of beta acenario.
+   * @param gamma_ptr Probability of gamma acenario.
+   * @param xi_ptr Probability of xi acenario.
+   * @param beta_loop_ptr Whether self loops are allowed under beta scenario.
+   * @param node_unique_ptr Logical, whether the nodes in the same step should bedifferent from
+   *   each other.
+   * @param params Parameters of the preference function for undirected networks. 
+   *   Probability of choosing an existing node is proportional to strength^param[1] + param[2].
+   * @param pref Sequence of node preference.
+   * 
+   */
   void rpanet_binary_undirected_cpp(
       int *nstep_ptr, int *m,
       int *new_node_id_ptr, int *new_edge_id_ptr, 

@@ -2,22 +2,49 @@
 #include<queue>
 #include<math.h>
 #include<R.h>
-// #include<bits/stdc++.h>
 #include<deque>
 #include<algorithm>
 using namespace std;
 
-// preference functions
+/**
+ * Source preference function.
+ *
+ * @param outs Node out-strength.
+ * @param ins Node in-strength.
+ * @param source_params Parameters passed to the source preference function.
+ * 
+ * @return Source preference of a node.
+ * 
+ */
 double sourcePreferenceFuncNaive(double outs, double ins, double *source_params) {
   return source_params[0] * pow(outs, source_params[1]) + 
     source_params[2] * pow(ins, source_params[3]) + source_params[4];
 }
+
+/**
+ * Target preference function.
+ *
+ * @param outs Node out-strength.
+ * @param ins Node in-strength.
+ * @param target_params Parameters passed to the target preference function.
+ * 
+ * @return Target preference of a node.
+ * 
+ */
 double targetPreferenceFuncNaive(double outs, double ins, double *target_params) {
   return target_params[0] * pow(outs, target_params[1]) + 
     target_params[2] * pow(ins, target_params[3]) + target_params[4];
 }
 
-// sample a node from the tree
+/**
+ * Sample a source/target node.
+ *
+ * @param pref Sequence of node source/target preference.
+ * @param total_pref Total source/target preference of existing nodes.
+ * @param qm Nodes to be excluded from the sampling process.
+ * 
+ * @return Sampled source/target node.
+ */
 int sampleNodeNaive2(double *pref, double total_pref, deque<int> &qm) {
   double w;
   int i;
@@ -39,7 +66,13 @@ int sampleNodeNaive2(double *pref, double total_pref, deque<int> &qm) {
   }
 }
 
-// sample a node group
+/**
+ * Sample a node group.
+ *
+ * @param group_dist Probability weights for sampling the group of new nodes.
+ * 
+ * @return Sampled group for the new node.
+ */
 int sampleGroupNaive(double *group_dist) {
   double g = 0;
   int i = 0;
@@ -54,6 +87,54 @@ int sampleGroupNaive(double *group_dist) {
 }
 
 extern "C" {
+  /**
+   * Preferential attachment algorithm.
+   *
+   * @param nstep_ptr Number of steps.
+   * @param m Number of new edges in each step.
+   * @param new_node_id_ptr New node ID.
+   * @param new_edge_id_ptr New edge ID.
+   * @param source_node Sequence of source nodes.
+   * @param target_node Sequence of target nodes.
+   * @param outs Sequence of out-strength.
+   * @param ins Sequence of in-strength.
+   * @param edgeweight Weight of existing and new edges.
+   * @param scenario Scenario of existing and new edges.
+   * @param alpha_ptr Probability of alpha acenario.
+   * @param beta_ptr Probability of beta acenario.
+   * @param gamma_ptr Probability of gamma acenario.
+   * @param xi_ptr Probability of xi acenario.
+   * @param beta_loop_ptr Whether self loops are allowed under beta scenario.
+   * @param source_first_ptr Logical, wheter the source node is sampled prior to the target
+   *   node when adding beta scenario edges.
+   * @param node_unique_ptr Logical, whether the nodes in the same step should bedifferent from
+   *   each other. Defined for undirected and directed networks. For directed networks, when 
+   *   node.unique is TRUE, sampled source and target nodes in the same step are all different 
+   *   from each other, beta.loop will be FALSE, snode.unique and tnode.unique will 
+   *   be TRUE.
+   * @param snode_unique_ptr Logical, whether the source nodes in the same step should 
+   *   be sampled different from each other. Defined for directed networks.
+   * @param tnode_unique_ptr Logical, whether the target nodes in the same step should 
+   *   be sampled different from each other. Defined for directed networks.
+   * @param source_params Parameters of the source preference function for directed networks. 
+   *   Probability of choosing an existing node as the source node is proportional 
+   *   to sparams[1] * out-strength^sparams[2] + sparams[3] * in-strength^sparams[4] + sparams[5].
+   * @param target_params  Parameters of the target preference function for directed networks. 
+   *   Probability of choosing an existing node as the source node is proportional to 
+   *   tparams[1] * out-strength^tparams[2] + tparams[3] * in-strength^tparams[4] + tparams[5].
+   * @param sample_recip_ptr Logical, whether reciprocal edges will be added.
+   * @param selfloop_recip_ptr Logical, whether reciprocal of self loops are allowed.
+   * @param group_dist Probability weights for sampling the group of new nodes. Defined for 
+   *   directed networks. Groups are 1:length(group_dist) in R, and 0:(length(group_dist) - 1)
+   *   in c. length(group_dist) must equal to the square root of length(recip).
+   * @param recip The probability of adding a reciprocal edge after a new edge is introduced.
+   *   Vectorized from the matrix recip.prob.
+   * @param node_group Sequence of node group.
+   * @param ngroup_ptr Number of groups.
+   * @param source_pref Sequence of node source preference.
+   * @param target_pref Sequence of node target preference.
+   * 
+   */
   void rpanet_naive_directed_cpp(
       int *nstep_ptr, int *m, 
       int *new_node_id_ptr, int *new_edge_id_ptr, 

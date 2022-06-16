@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -26,10 +26,10 @@ NULL
 #' network represented through its adjacency matrix.
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network
-#' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
+#' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convention, 
 #' alpha takes a value from 0 to 1 (default).
 #' @param mode which mode to compute: "out" (default) or "in"? For undirected networks, this
-#' setting is irrelavent.
+#' setting is irrelevant.
 #'
 #' @return a list of node names and associated degree centrality measures
 #'
@@ -44,7 +44,7 @@ NULL
 #'
 #' @note 
 #' Function \code{degree_c} is an extension of function \code{strength} 
-#' in package \code{igraph} and an altertanive of function \code{degree_w} in 
+#' in package \code{igraph} and an alternative of function \code{degree_w} in 
 #' package \code{tnet}. Function \code{degree_c} uses adjacency matrix as
 #' input.
 #'
@@ -97,10 +97,10 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' network represented through its adjacency matrix.
 #' 
 #' @param adj is an adjacency matrix of an weighted and directed network
-#' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convetion, 
+#' @param alpha is a tuning parameter. The value of alpha must be nonnegative. By convention, 
 #' alpha takes a value from 0 to 1 (default).
 #' @param mode which mode to compute: "out" (default) or "in"? For undirected networks, this
-#' setting is irrelavent.
+#' setting is irrelevant.
 #' @param method which method to use: "harmonic" (default) or "standard"?
 #' @param distance whether to consider the entries in the adjacency matrix as distances or
 #' strong connections. The default setting is \code{FALSE}.
@@ -123,7 +123,7 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' @note 
 #' Function \code{closeness_c} is an extension of function \code{closeness} 
 #' in package \code{igraph} and function \code{closeness_w} in 
-#' package \code{tnet}. The method of computing distances between verticies
+#' package \code{tnet}. The method of computing distances between vertices
 #' is the \emph{Dijkstra's algorithm}.
 #'
 #' @examples

@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -26,7 +26,7 @@
 #'     node to a new node.
 #' @param xi Scalar probability of ...
 #' @param delta_in Growth rate parameter for nodes' instrength
-#' @param delta_out Growth rate parameter for nodes' outtrength
+#' @param delta_out Growth rate parameter for nodes' outstrength
 #' @param nedge The number of edges to be generated
 #' 
 #' @return A list with the following components: in_degree,

@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted Directed Network
 Version: 0.0-3
-Date: 2022-06-07
+Date: 2022-06-16
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = "aut"),
@@ -11,13 +11,15 @@ Authors@R: c(
            role = c("aut", "cre")),
     person("Panpan", "Zhang", email = "panpan.zhang@pennmedicine.upenn.edu",
            role = "aut"))
-Description: Assortativitity and centrality measures for weighted directed
-    network, most of which are not covered by other R packages.
-Depends: R (>= 4.1.0)
+Description: Assortativity, centrality measures for weighted directed
+    network, most of which are not covered by other R packages. Generate 
+    preferential attachment networks with nonlinear preference functions.
+    Rewire a given network to obtain desired assortativity levels.
+Depends: R (>= 4.2.0)
 License: GPL (>= 3.0)
 Encoding: UTF-8
 Imports: stats, igraph, wdm, Rcpp, rARPACK, Matrix, CVXR
 LinkingTo: Rcpp, RcppArmadillo
-BugReports: https://gitlab.com/wdnetwork/wdnet/issues
-URL: https://githlab.com/wdnetwork/wdnet
+BugReports: https://gitlab.com/wdnetwork/wdnet/-/issues
+URL: https://gitlab.com/wdnetwork/wdnet
 RoxygenNote: 7.2.0

@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -38,14 +38,16 @@ NULL
 #'   \code{B} is chosen with probability proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
-#' @param method Which method to use when generating PA networks: "binary" or
-#'   "naive". The function will switch to a more efficient algorithm than
-#'   \code{binary} and \code{naive} when the configuration setup is simple: (1)
-#'   self-loop under beta scenarios is allowed (\code{beta.loop = TRUE}), and
-#'   (2) node replacement in the \code{TRUE} (\code{node.replace = TRUE},
-#'   \code{tnode.replace = TRUE}, \code{snode.replace = TRUE}), and (3)
-#'   {reciprocal.control} is set as default, and (4) \code{sparams = (1, 1, 0,
-#'   0, c), tparams = c(0, 0, 1, 1, d)}, where \code{c, d} are constants.
+#' @param method Which method to use: \code{binary}, \code{naive},
+#'   \code{edgesampler} or \code{nodelist}. For \code{nodelist} and
+#'   \code{edgesampler} methods, the source preference function must be
+#'   out-degree (out-strength) plus a nonnegative constant, the target
+#'   preference function must be in-degree (in-strength) plus a nonnegative
+#'   constant, \code{beta.loop} must be TRUE. Besides, \code{nodelist} method
+#'   only works for unweighted networks, \code{edgeweight.control},
+#'   \code{newedge.control}, \code{reciprocal.control} must set as default;
+#'   \code{node.replace}, \code{snode.replace}, \code{tnode.replace} must be
+#'   TRUE for \code{edgesampler} method.
 #'
 #'
 #' @return A list with the following components: \code{edgelist},
@@ -55,12 +57,20 @@ NULL
 #'   \code{control}, node group \code{nodegroup} (if applicable) and edge
 #'   scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
 #'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as
-#'   0.
+#'   0 unless specified in the seed network.
+#'
+#' @note The \code{nodelist} method implements the algorithm from Wan et al.
+#'   (2017). The \code{edgesampler} first samples edges then find the
+#'   source/target node of the sampled edge.
+#'
+#' @references \itemize{ \item Wan P, Wang T, Davis RA, Resnick SI (2017).
+#'   Fitting the Linear Preferential Attachment Model. Electronic Journal of
+#'   Statistics, 11(2), 3738–3780.}
 #'
 #' @export
 #'
 #' @examples
-#' # Control edge scenarios and edge weight through scenario.control()
+#' # Control edge scenario and edge weight through scenario.control()
 #' # and edgeweight.control(), respectively, while keeping newedge.control(),
 #' # preference.control() and reciprocal.control() as default.
 #' set.seed(123)
@@ -83,39 +93,35 @@ NULL
 rpanet <- function(nstep = 10^3, seednetwork = NULL,
                    control = NULL,
                    directed = TRUE,
-                   method = c("binary", "naive")) {
-  stopifnot("nstep must be greater than 0." = nstep > 0)
+                   method = c("binary", "naive", "edgesampler", "nodelist")) {
   method <- match.arg(method)
+  stopifnot("nstep must be greater than 0." = nstep > 0)
   if (is.null(seednetwork)) {
     seednetwork <- list("edgelist" = matrix(1:2, ncol = 2),
-               "edgeweight" = NULL,
-               "nodegroup" = NULL)
+                        "edgeweight" = NULL,
+                        "nodegroup" = NULL)
   }
-  temp <- c(seednetwork$edgelist)
-  nnode <- max(temp)
-  stopifnot("Nodes' index should be consecutive numbers starting from 1." =
-              sum(! duplicated(temp)) == nnode)
-  rm(temp)
-  if (is.null(seednetwork$nodegroup)) {
-    seednetwork$nodegroup <- rep(1, nnode)
-  }
-  else {
-    seednetwork$nodegroup <- as.integer(seednetwork$nodegroup)
-    stopifnot('"nodegroup" is not valid.' =
-                all(seednetwork$nodegroup > 0) &
-                length(seednetwork$nodegroup) == nnode &
-                max(seednetwork$nodegroup) > length(control$reciprocal.control$group.prob))
-  }
+  nnode <- max(seednetwork$edgelist)
   nedge <- nrow(seednetwork$edgelist)
   if (is.null(seednetwork$edgeweight)) {
     seednetwork$edgeweight[1:nedge] <- 1
   }
   stopifnot(length(seednetwork$edgeweight) == nedge)
-  
+  if (is.null(seednetwork$nodegroup)) {
+    seednetwork$nodegroup <- rep(1, nnode)
+  }
+  else {
+    seednetwork$nodegroup <- as.integer(seednetwork$nodegroup)
+    stopifnot('"nodegroup" of seednetwork is not valid.' =
+                all(seednetwork$nodegroup > 0) &
+                length(seednetwork$nodegroup) == nnode &
+                max(seednetwork$nodegroup) <= length(control$reciprocal$group.prob))
+  }
+
   control.default <- scenario.control() + edgeweight.control() +
     newedge.control() + preference.control() + reciprocal.control()
   if (! is.list(control)) {
-    control <- list()
+    control <- structure(list(), class = "panet.control")
   }
   control <- control.default + control
   if (! control$newedge$node.replace) {
@@ -123,7 +129,7 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
     control$newedge$snode.replace <- control$newedge$tnode.replace <- FALSE
   }
   rm(control.default)
-  
+
   if (is.function(control$newedge$distribution)) {
     m <- do.call(control$newedge$distribution, c(nstep, control$newedge$dparams)) + 
       control$newedge$shift
@@ -134,44 +140,60 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
               all(m %% 1 == 0))
   stopifnot("Number of new edges per step must be positive integers." =
               all(m > 0))
+  
   sum_m <- sum(m)
+  temp <- 1
+  if (! identical(control$reciprocal, reciprocal.control()$reciprocal)) {
+    temp <- 2
+  }
   if (is.function(control$edgeweight$distribution)) {
     w <- do.call(control$edgeweight$distribution,
-                 c(sum_m * 2, control$edgeweight$dparams)) +
+                 c(sum_m * temp, control$edgeweight$dparams)) +
       control$edgeweight$shift
   } else {
-    w <- rep(control$edgeweight$shift, sum_m * 2)
+    w <- rep(control$edgeweight$shift, sum_m * temp)
   }
+  rm(temp)
   stopifnot("Edgeweight must be greater than 0." = w > 0)
-  
-  simplecase <- FALSE
-  if (all(control$newedge$node.replace, control$newedge$snode.replace, 
-            control$newedge$tnode.replace)) {
-    if (control$scenario$beta.loop & is.null(control$reciprocal$group.prob) & 
-        is.null(control$reciprocal$recip.prob)) {
-      if (directed) {
-        if (all(control$preference$sparams[1:2] == 1,
-                control$preference$sparams[3:4] == 0,
-                control$preference$tparams[1:2] == 0,
-                control$preference$tparams[3:4] == 1)) {
-          simplecase <- TRUE
-        }
-      }
-      else {
-        if(control$preference$params[1] == 1) {
-          simplecase <- TRUE
-        }
-      }
+
+  if (method == "nodelist" | method == "edgesampler") {
+    if (directed) {
+      stopifnot('Source preference must be out-degree plus a constant for "nodelist" and "edgesampler" methods.' = 
+                  all(control$preference$sparams[1:2] == 1,
+                      control$preference$sparams[3:4] == 0))
+      stopifnot('Target preference must be in-degree plus a constant for "nodelist" and "edgesampler" methods.' = 
+                  all(control$preference$tparams[1:2] == 0,
+                      control$preference$tparams[3:4] == 1))
     }
+    else {
+      stopifnot('Preference must be degree plus a constant for "nodelist" and "edgesampler" methods.' = 
+                  control$preference$params[1] == 1)
+    }
+    stopifnot('"reciprocal.control" must set as default for "nodelist" and "edgesampler" methods.' = 
+                identical(control$reciprocal, reciprocal.control()$reciprocal))
+    stopifnot('"beta.loop" must be TRUE for "nodelist" and "edgesampler" methods.' = 
+                control$scenario$beta.loop)
   }
-  if (simplecase) {
-    cat("Generation setup in control list is simple. Switch to a more efficient method.\n")
-    ret <- rpanet_simple(nstep, seednetwork, control, directed, 
-                         m, sum_m, w[1 : sum_m], nnode, nedge)
+  if (method == "nodelist") {
+    stopifnot('"edgeweight.control" must set as default for "nodelist" method.' = 
+                identical(control$edgeweight, edgeweight.control()$edgeweight))
+    stopifnot('Weight of existing edges must be 1 for "nodelist" method.' =
+                all(seednetwork$edgeweight == 1))
+    stopifnot('"newedge.control" must set as default for "nodelist" method.' = 
+                identical(control$newedge, newedge.control()$newedge))
+    return(rpanet_simple(nstep, seednetwork, control, directed,
+                         m, sum_m, w, nnode, nedge, method))
   }
-  else {
-    ret <- rpanet_general(nstep, seednetwork, control, directed, 
-                          m, sum_m, w, nnode, nedge, method)
+  if (method == "edgesampler") {
+    stopifnot('"node.replace" must be TRUE for "edgesampler" method.' = 
+                control$newedge$node.replace)
+    stopifnot('"snode.replace" must be TRUE for "edgesampler" method.' = 
+                control$newedge$snode.replace)
+    stopifnot('"tnode.replace" must be TRUE for "edgesampler" method.' = 
+                control$newedge$tnode.replace)
+    return(rpanet_simple(nstep, seednetwork, control, directed,
+                         m, sum_m, w, nnode, nedge, method))
   }
-  return(ret)
+  return(rpanet_general(nstep, seednetwork, control, directed, 
+                        m, sum_m, w, nnode, nedge, method))
 }

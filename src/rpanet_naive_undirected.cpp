@@ -2,17 +2,32 @@
 #include<queue>
 #include<math.h>
 #include<R.h>
-// #include<bits/stdc++.h>
 #include<deque>
 #include<algorithm>
 using namespace std;
 
-// preference function; import from R
+/**
+ * Preference function.
+ *
+ * @param strength Node strength.
+ * @param params Parameters passed to the preference function.
+ * 
+ * @return Preference of a node.
+ * 
+ */
 double preferenceFuncNaive(double strength, double *params) {
   return pow(strength, params[0]) + params[1];
 }
 
-// sample a node from the tree
+/**
+ * Sample an existing node.
+ *
+ * @param pref Sequence of node preference.
+ * @param total_pref Total preference of existing nodes.
+ * @param qm Nodes to be excluded from the sampling process.
+ * 
+ * @return Sampled node.
+ */
 int sampleNodeNaive(double *pref, double total_pref, deque<int> &qm) {
   double w;
   int i;
@@ -35,6 +50,30 @@ int sampleNodeNaive(double *pref, double total_pref, deque<int> &qm) {
 }
 
 extern "C" {
+  /**
+   * Preferential attachment algorithm.
+   *
+   * @param nstep_ptr Number of steps.
+   * @param m Number of new edges in each step.
+   * @param new_node_id_ptr New node ID.
+   * @param new_edge_id_ptr New edge ID.
+   * @param node_vec1 Sequence of nodes in the first column of edgelist.
+   * @param node_vec2 Sequence of nodes in the second column of edgelist.
+   * @param strength Sequence of node strength.
+   * @param edgeweight Weight of existing and new edges.
+   * @param scenario Scenario of existing and new edges.
+   * @param alpha_ptr Probability of alpha acenario.
+   * @param beta_ptr Probability of beta acenario.
+   * @param gamma_ptr Probability of gamma acenario.
+   * @param xi_ptr Probability of xi acenario.
+   * @param beta_loop_ptr Whether self loops are allowed under beta scenario.
+   * @param node_unique_ptr Logical, whether the nodes in the same step should bedifferent from
+   *   each other.
+   * @param params Parameters of the preference function for undirected networks. 
+   *   Probability of choosing an existing node is proportional to strength^param[1] + param[2].
+   * @param pref Sequence of node preference.
+   * 
+   */
   void rpanet_naive_undirected_cpp(
       int *nstep_ptr, int *m,
       int *new_node_id_ptr, int *new_edge_id_ptr, 

@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -23,7 +23,7 @@ NULL
 #'
 #' Compute the clustering coefficient of a weighted and directed network.
 #'
-#' @usage dw_clustcoeff(adj, method = c("Clemente","Fagiolo"), isolates = "zero")
+#' @usage clustcoeff(adj, method = c("Clemente","Fagiolo"), isolates = "zero")
 #'
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
@@ -49,9 +49,9 @@ NULL
 #'   026107. }
 #'
 #' @note Self-loops (if exist) are removed prior to the computation of
-#'   clustering oefficient. When the adjacency matrix is symmetric (i.e.,
-#'   undirected but possibly unweighted networks), \code{dw_clustcoeff} returns
-#'   local and global clustering coefficients proposedy by Barrat et al. (2010).
+#'   clustering coefficient. When the adjacency matrix is symmetric (i.e.,
+#'   undirected but possibly unweighted networks), \code{clustcoeff} returns
+#'   local and global clustering coefficients proposed by Barrat et al. (2010).
 #'
 #' @examples
 #' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
@@ -59,12 +59,12 @@ NULL
 #' edge_ER <- rbinom(400,1,0.3)
 #' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 #' adj_ER <- matrix(weight_ER,20,20)
-#' mycc <- dw_clustcoeff(adj_ER, method = "Clemente")
+#' mycc <- clustcoeff(adj_ER, method = "Clemente")
 #' system.time(mycc)
 #'
 #' @export
 
-dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo"), 
+clustcoeff <- function(adj, method = c("Clemente", "Fagiolo"), 
                           isolates = "zero") {
   stopifnot(dim(adj)[1] == dim(adj)[2])
   method <- match.arg(method)
@@ -100,12 +100,12 @@ dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo"),
     denomIn <- s_in * (d_in - 1)
     denomOut <- s_out * (d_out - 1)
     denomMiddle <- (s_in * d_out + s_out * d_in) / 2 - s_bil
-    numTriangles <- list('total' = (W_A_A + W_A_At + W_At_A + W_At_At + 
+    numTriangles <- list("total" = (W_A_A + W_A_At + W_At_A + W_At_At + 
                                       Wt_A_A + Wt_A_At + Wt_At_A + Wt_At_At) / 2, 
-                         'in' = (Wt_A_A + Wt_At_A) / 2, 
-                         'out' = (W_A_At + W_At_At) / 2,
-                         'middle' = (Wt_A_At + W_At_A) / 2,
-                         'cycle' = (W_A_A + Wt_At_At) / 2)
+                         "in" = (Wt_A_A + Wt_At_A) / 2, 
+                         "out" = (W_A_At + W_At_At) / 2,
+                         "middle" = (Wt_A_At + W_At_A) / 2,
+                         "cycle" = (W_A_A + Wt_At_At) / 2)
   }
   if (method == "Fagiolo"){
     # W is adjhat
@@ -121,39 +121,39 @@ dw_clustcoeff <- function(adj, method = c("Clemente", "Fagiolo"),
     denomOut <- d_out * (d_out - 1)
     denomMiddle <- d_in * d_out - d_bil
     
-    numTriangles <- list('total' = (W_W_W + W_W_Wt + W_Wt_W + Wt_W_W), 
-                         'in' = Wt_W_W, 
-                         'out' = W_W_Wt,
-                         'middle' = W_Wt_W,
-                         'cycle' = W_W_W)
+    numTriangles <- list("total" = (W_W_W + W_W_Wt + W_Wt_W + Wt_W_W), 
+                         "in" = Wt_W_W, 
+                         "out" = W_W_Wt,
+                         "middle" = W_Wt_W,
+                         "cycle" = W_W_W)
   }
-  localcc <- list('total' = numTriangles$'total' / denomTotal, 
-                  'in' = numTriangles$'in' / denomIn, 
-                  'out' = numTriangles$'out' / denomOut, 
-                  'middle' = numTriangles$'middle' / denomMiddle, 
-                  'cycle' = numTriangles$'cycle' / denomMiddle)
+  localcc <- list("total" = numTriangles$"total" / denomTotal, 
+                  "in" = numTriangles$"in" / denomIn, 
+                  "out" = numTriangles$"out" / denomOut, 
+                  "middle" = numTriangles$"middle" / denomMiddle, 
+                  "cycle" = numTriangles$"cycle" / denomMiddle)
   if (isolates == "zero") {
     localcc <- rapply(localcc, function(i) ifelse(is.na(i), 0, i), 
-                      how = 'replace')
+                      how = "replace")
   }
-  globalcc <- list('total' = mean(localcc$'total', na.rm = TRUE), 
-                   'in' = mean(localcc$'in', na.rm = TRUE), 
-                   'out' = mean(localcc$'out', na.rm = TRUE), 
-                   'middle' = mean(localcc$'middle', na.rm = TRUE), 
-                   'cycle' = mean(localcc$'cycle', na.rm = TRUE))
-  return(list('total' = list('localcc' = localcc$'total', 
-                             'globalcc' = globalcc$'total', 
-                             'numtriangles' = numTriangles$'total'), 
-              'out' = list('localcc' = localcc$'out', 
-                           'globalcc' = globalcc$'out', 
-                           'numtriangles' = numTriangles$'out'), 
-              'in' = list('localcc' = localcc$'in', 
-                          'globalcc' = globalcc$'in', 
-                          'numtriangles' = numTriangles$'in'), 
-              'middle' = list('localcc' = localcc$'middle', 
-                              'globalcc' = globalcc$'middle', 
-                              'numtriangles' = numTriangles$'middle'), 
-              'cycle' = list('localcc' = localcc$'cycle', 
-                             'globalcc' = globalcc$'cycle', 
-                             'numtriangles' = numTriangles$'cycle')))
+  globalcc <- list("total" = mean(localcc$"total", na.rm = TRUE), 
+                   "in" = mean(localcc$"in", na.rm = TRUE), 
+                   "out" = mean(localcc$"out", na.rm = TRUE), 
+                   "middle" = mean(localcc$"middle", na.rm = TRUE), 
+                   "cycle" = mean(localcc$"cycle", na.rm = TRUE))
+  return(list("total" = list("localcc" = localcc$"total", 
+                             "globalcc" = globalcc$"total", 
+                             "numtriangles" = numTriangles$"total"), 
+              "out" = list("localcc" = localcc$"out", 
+                           "globalcc" = globalcc$"out", 
+                           "numtriangles" = numTriangles$"out"), 
+              "in" = list("localcc" = localcc$"in", 
+                          "globalcc" = globalcc$"in", 
+                          "numtriangles" = numTriangles$"in"), 
+              "middle" = list("localcc" = localcc$"middle", 
+                              "globalcc" = globalcc$"middle", 
+                              "numtriangles" = numTriangles$"middle"), 
+              "cycle" = list("localcc" = localcc$"cycle", 
+                             "globalcc" = globalcc$"cycle", 
+                             "numtriangles" = numTriangles$"cycle")))
 }

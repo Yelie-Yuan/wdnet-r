@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
 ## Copyright (C) 2022  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
 ##
@@ -19,7 +19,11 @@
 #' @importFrom stats runif
 NULL
 
-#' Generate a PA network with linear preference functions
+#' Generate a PA network with linear preference functions.
+#'
+#' Source preference function must be out-degree (out-strength) plus a
+#' nonnegative constant; target preference function must be in-degree
+#' (in-strength) plus a nonnegative constant.
 #'
 #' @param nstep Number of steps when generating a network.
 #' @param seednetwork A list represents the seed network. If \code{NULL},
@@ -35,8 +39,9 @@ NULL
 #' @param m Integer vector, number of new edges in each step.
 #' @param sum_m Integer, summation of \code{m}.
 #' @param w Vector, weight of new edges.
-#' @param nnode Integer, number of nodes in \code{seednetwork}.
-#' @param nedge Integer, number of edges in \code{seednetwork}.
+#' @param ex_node Integer, number of nodes in \code{seednetwork}.
+#' @param ex_edge Integer, number of edges in \code{seednetwork}.
+#' @param method Which method to use, \code{nodelist} or \code{edgesampler}.
 #'
 #' @return A list with the following components: edgelist, edgeweight, out- and
 #'   in-strength, number of edges per step (m), scenario of each new edge
@@ -45,13 +50,10 @@ NULL
 #'   
 
 rpanet_simple <- function(nstep, seednetwork, control, directed,
-                          m, sum_m, w, nnode, nedge) {
+                          m, sum_m, w, ex_node, ex_edge, method) {
   delta <- control$preference$params[2]
   delta_out <- control$preference$sparams[5]
   delta_in <- control$preference$tparams[5]
-  temp <- c(seednetwork$edgelist)
-  ex_node <- max(temp)
-  ex_edge <- nrow(seednetwork$edgelist)
   ex_weight <- sum(seednetwork$edgeweight)
   
   edgeweight <- c(seednetwork$edgeweight, w)
@@ -62,19 +64,17 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
   if (! directed) {
     delta_out <- delta_in <- delta / 2
   }
-  
-  if (all(edgeweight == edgeweight[1]) & all(m == 1)) {
-    delta_out <- delta_out / edgeweight[1]
-    delta_in <- delta_in / edgeweight[1]
-    start_node <- c(seednetwork$edgelist[, 1], rep(0, sum_m))
-    end_node <- c(seednetwork$edgelist[, 2], rep(0, sum_m))
-    ret <- rpanet_cpp(start_node, end_node,
+  if (method == "nodelist") {
+    # stopifnot(all(edgeweight == 1) & all(m == 1))
+    snode <- c(seednetwork$edgelist[, 1], rep(0, sum_m))
+    tnode <- c(seednetwork$edgelist[, 2], rep(0, sum_m))
+    ret <- rpanet_cpp(snode, tnode,
                       scenario,
                       ex_node, ex_edge,
                       delta_out, delta_in,
                       directed)
-    start_node <- ret$start_node
-    end_node <- ret$end_node
+    snode <- ret$snode
+    tnode <- ret$tnode
     nnode <- ret$nnode
   }
   else {
@@ -83,11 +83,11 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
     
     no_new_start <- !((scenario > 3) | scenario1)
     no_new_end <- scenario < 3
-    total_node <- end_node <- cumsum(c((scenario != 2) + scenario4)) +
+    total_node <- tnode <- cumsum(c((scenario != 2) + scenario4)) +
       ex_node
-    start_node <- total_node - scenario4
-    end_node[no_new_end] <- 0
-    start_node[no_new_start] <- 0
+    snode <- total_node - scenario4
+    tnode[no_new_end] <- 0
+    snode[no_new_start] <- 0
     nnode <- total_node[length(total_node)]
     
     weight_intv <- cumsum(c(0, edgeweight))
@@ -105,33 +105,33 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
       (total_weight + delta_in * total_node)[no_new_end]
     temp_out <- rand_out <= total_weight[no_new_start]
     if (! all(temp_out)) {
-      start_node[no_new_start][! temp_out] <- sampleNode_cpp(
+      snode[no_new_start][! temp_out] <- sampleNode_cpp(
         total_node[no_new_start][! temp_out])
     }
     temp_in <- rand_in <= total_weight[no_new_end]
     if (! all(temp_in)) {
-      end_node[no_new_end][! temp_in] <- sampleNode_cpp(
+      tnode[no_new_end][! temp_in] <- sampleNode_cpp(
         total_node[no_new_end][!temp_in])
     }
     
-    start_node <- c(seednetwork$edgelist[, 1], start_node)
-    end_node <- c(seednetwork$edgelist[, 2], end_node)
+    snode <- c(seednetwork$edgelist[, 1], snode)
+    tnode <- c(seednetwork$edgelist[, 2], tnode)
     start_edge <- findInterval(
       rand_out[temp_out], weight_intv, left.open = TRUE)
     end_edge <- findInterval(rand_in[temp_in], weight_intv, left.open = TRUE)
     if (directed) {
-      start_node <- findNode_cpp(start_node, start_edge)
-      end_node <- findNode_cpp(end_node, end_edge)
+      snode <- findNode_cpp(snode, start_edge)
+      tnode <- findNode_cpp(tnode, end_edge)
     }
     else {
       ret <- findNode_undirected_cpp(
-        start_node, end_node, start_edge, end_edge)
-      start_node <- ret$start_node
-      end_node <- ret$end_node
+        snode, tnode, start_edge, end_edge)
+      snode <- ret$node1
+      tnode <- ret$node2
     }
   }
-  edgelist <- cbind(start_node, end_node)
-  strength <- nodeStrength_cpp(start_node, end_node,
+  edgelist <- cbind(snode, tnode)
+  strength <- nodeStrength_cpp(snode, tnode,
                                edgeweight, nnode, weighted = TRUE)
   colnames(edgelist) <- NULL
   ret <- list("edgelist" = edgelist,
@@ -139,13 +139,17 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
               "scenario" = c(rep(0, ex_edge), scenario),
               "newedge" = m,
               "control" = control,
-              "seednetwork" = seednetwork[c("edgelist", "edgeweight")])
+              "seednetwork" = seednetwork[c("edgelist", "edgeweight")], 
+              "directed" = directed)
   if (directed) {
     ret$outstrength <- c(strength$outstrength)
     ret$instrength <- c(strength$instrength)
+    ret$control$preference$params <- NULL
   }
   else {
     ret$strength <- c(strength$outstrength) + c(strength$instrength)
+    ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
+    ret$control$preference$sparams <- ret$control$preference$tparams <- NULL
   }
   return(ret)
 }
