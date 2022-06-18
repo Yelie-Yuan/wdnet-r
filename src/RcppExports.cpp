@@ -33,9 +33,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rewire_directed_cpp
-Rcpp::List rewire_directed_cpp(int iteration, int nattempts, arma::uvec targetNode, arma::vec sourceOut, arma::vec sourceIn, arma::vec targetOut, arma::vec targetIn, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewire_history);
-RcppExport SEXP _wdnet_rewire_directed_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP targetNodeSEXP, SEXP sourceOutSEXP, SEXP sourceInSEXP, SEXP targetOutSEXP, SEXP targetInSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewire_historySEXP) {
+// dprewire_directed_cpp
+Rcpp::List dprewire_directed_cpp(int iteration, int nattempts, arma::uvec targetNode, arma::vec sourceOut, arma::vec sourceIn, arma::vec targetOut, arma::vec targetIn, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewire_history);
+RcppExport SEXP _wdnet_dprewire_directed_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP targetNodeSEXP, SEXP sourceOutSEXP, SEXP sourceInSEXP, SEXP targetOutSEXP, SEXP targetInSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewire_historySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -50,13 +50,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::uvec >::type index_t(index_tSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type eta(etaSEXP);
     Rcpp::traits::input_parameter< bool >::type rewire_history(rewire_historySEXP);
-    rcpp_result_gen = Rcpp::wrap(rewire_directed_cpp(iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, index_s, index_t, eta, rewire_history));
+    rcpp_result_gen = Rcpp::wrap(dprewire_directed_cpp(iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, index_s, index_t, eta, rewire_history));
     return rcpp_result_gen;
 END_RCPP
 }
-// rewire_undirected_cpp
-Rcpp::List rewire_undirected_cpp(int iteration, int nattempts, Rcpp::IntegerVector node1, Rcpp::IntegerVector node2, arma::vec degree1, arma::vec degree2, arma::vec index1, arma::vec index2, arma::mat e, bool rewire_history);
-RcppExport SEXP _wdnet_rewire_undirected_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP node1SEXP, SEXP node2SEXP, SEXP degree1SEXP, SEXP degree2SEXP, SEXP index1SEXP, SEXP index2SEXP, SEXP eSEXP, SEXP rewire_historySEXP) {
+// dprewire_undirected_cpp
+Rcpp::List dprewire_undirected_cpp(int iteration, int nattempts, Rcpp::IntegerVector node1, Rcpp::IntegerVector node2, arma::vec degree1, arma::vec degree2, arma::vec index1, arma::vec index2, arma::mat e, bool rewire_history);
+RcppExport SEXP _wdnet_dprewire_undirected_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP node1SEXP, SEXP node2SEXP, SEXP degree1SEXP, SEXP degree2SEXP, SEXP index1SEXP, SEXP index2SEXP, SEXP eSEXP, SEXP rewire_historySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -70,7 +70,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type index2(index2SEXP);
     Rcpp::traits::input_parameter< arma::mat >::type e(eSEXP);
     Rcpp::traits::input_parameter< bool >::type rewire_history(rewire_historySEXP);
-    rcpp_result_gen = Rcpp::wrap(rewire_undirected_cpp(iteration, nattempts, node1, node2, degree1, degree2, index1, index2, e, rewire_history));
+    rcpp_result_gen = Rcpp::wrap(dprewire_undirected_cpp(iteration, nattempts, node1, node2, degree1, degree2, index1, index2, e, rewire_history));
     return rcpp_result_gen;
 END_RCPP
 }

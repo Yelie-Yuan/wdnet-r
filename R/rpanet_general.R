@@ -27,16 +27,16 @@ NULL
 #'   It consists of the following components: a two column matrix
 #'   \code{edgelist} represents the edges; a vector \code{edgeweight} represents
 #'   the weight of edges; a integer vector \code{nodegroup} represents the group
-#'   of each node. \code{nodegroup} is defined for directed networks, if
+#'   of nodes. \code{nodegroup} is defined for directed networks, if
 #'   \code{NULL}, all nodes from the seed graph are considered from group 1.
 #' @param control A list of parameters that controls the PA generation process.
-#'   The default value is \code{scenario.control() + edgeweight.control() +
-#'   newedge.control() + preference.control() + reciprocal.control()}. By
+#'   The default value is \code{rpactl.scenario() + rpactl.edgeweight() +
+#'   rpactl.newedge() + rpactl.preference() + rpactl.reciprocal()}. By
 #'   default, in each step, a new edge of weight 1 is added from a new node
 #'   \code{A} to an existing node \code{B} (\code{alpha} scenario), where
 #'   $\code{B} is chosen with probability proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate directed networks. If
-#'   \code{FALSE}, the edge directions are omitted.
+#'   \code{FALSE}, the edge directions are ignored.
 #' @param m Integer vector, number of new edges in each step.
 #' @param sum_m Integer, summation of \code{m}.
 #' @param w Vector, weight of new edges.
@@ -44,16 +44,21 @@ NULL
 #' @param nedge Integer, number of edges in \code{seednetwork}.
 #' @param method Which method to use when generating PA networks: "binary" or
 #'   "naive".
+#' @param sample.recip Whether reciprocal edges will be added.
 #'
-#' @return A list with the following components: edgelist, edgeweight, strength
-#'   for undirected networks, out- and in-strength for directed networks,
-#'   controlling parameters, node group (if applicable) and edge scenario
-#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho, 6~reciprocal). The scenario of
-#'   edges from the seed network \code{seednetwork} are denoted as 0.
+#' @return A list with the following components: \code{edgelist},
+#'   \code{edgeweight}, \code{strength} for undirected networks,
+#'   \code{outstrength} and \code{instrength} for directed networks, number of
+#'   new edges in each step \code{newedge} (reciprocal edges are not included),
+#'   control list
+#'   \code{control}, node group \code{nodegroup} (if applicable) and edge
+#'   scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
+#'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as
+#'   0.
 #'   
 rpanet_general <- function(nstep, seednetwork, control, directed,
                            m, sum_m, w,
-                           nnode, nedge, method) {
+                           nnode, nedge, method, sample.recip) {
   
   if (! all(control$newedge$snode.replace, control$newedge$tnode.replace, 
           control$newedge$node.replace)) {
@@ -84,13 +89,9 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
     outstrength[1:nnode] <- seed_strength$outstrength
     instrength[1:nnode] <- seed_strength$instrength
     source_pref <- target_pref <- double(node_vec_length)
-    if (is.null(control$reciprocal$group.prob)) {
-      sample_recip <- FALSE
+    if (! sample.recip) {
       control$reciprocal$group.prob <- 1
       control$reciprocal$recip.prob <- matrix(0)
-    }
-    else {
-      sample_recip <- TRUE
     }
     nodegroup <- c(seednetwork$nodegroup - 1, integer(node_vec_length))
     if (method == "binary") {
@@ -116,7 +117,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                   as.integer(! control$newedge$tnode.replace),
                   as.double(control$preference$sparams),
                   as.double(control$preference$tparams),
-                  as.integer(sample_recip),
+                  as.integer(sample.recip),
                   as.integer(control$reciprocal$selfloop.recip),
                   as.double(control$reciprocal$group.prob),
                   as.double(t(control$reciprocal$recip.prob)),
@@ -149,7 +150,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                   as.integer(! control$newedge$tnode.replace),
                   as.double(control$preference$sparams),
                   as.double(control$preference$tparams),
-                  as.integer(sample_recip),
+                  as.integer(sample.recip),
                   as.integer(control$reciprocal$selfloop.recip),
                   as.double(control$reciprocal$group.prob),
                   as.double(t(control$reciprocal$recip.prob)),
@@ -162,7 +163,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
     control$preference$params <- NULL
   }
   else {
-    sample_recip <- FALSE
+    sample.recip <- FALSE
     strength <- double(node_vec_length)
     strength[1:nnode] <- seed_strength$outstrength +
       seed_strength$instrength
@@ -240,7 +241,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
     ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
     ret$control$preference$sparams <- ret$control$preference$tparams <- NULL
   }
-  if (sample_recip) {
+  if (sample.recip) {
     ret$nodegroup <- ret_c$nodegroup[1:nnode] + 1
   }
   else {

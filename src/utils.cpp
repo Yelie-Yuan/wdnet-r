@@ -3,9 +3,9 @@
 
 //' Fill missing nodes in the node sequence. Defined for \code{wdnet::rpanet}.
 //'
-//' @param nodes Sequence of source/target nodes, missing nodes are denoted as 0.
+//' @param nodes Source/target nodes, missing nodes are denoted as 0.
 //' @param edges Sampled edges according to preferential attachment.
-//' @return Sequence of source/target nodes.
+//' @return Source/target nodes.
 // [[Rcpp::export]]
 arma::vec findNode_cpp(arma::vec nodes, 
                        arma::vec edges) {
@@ -21,11 +21,11 @@ arma::vec findNode_cpp(arma::vec nodes,
 
 //' Fill missing values in node sequence. Defined for \code{wdnet::rpanet}.
 //'
-//' @param node1 Sequence of nodes in the first column of edgelist, i.e., \code{edgelist[, 1]}.
-//' @param node2 Sequence of nodes in the second column of edgelist, i.e., \code{edgelist[, 2]}.
+//' @param node1 Nodes in the first column of edgelist, i.e., \code{edgelist[, 1]}.
+//' @param node2 Nodes in the second column of edgelist, i.e., \code{edgelist[, 2]}.
 //' @param start_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 //' @param end_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
-//' @return Sequence of source/target nodes.
+//' @return Node sequence.
 // [[Rcpp::export]]
 Rcpp::List findNode_undirected_cpp(arma::vec node1, 
                        arma::vec node2, 
@@ -64,13 +64,13 @@ Rcpp::List findNode_undirected_cpp(arma::vec node1,
 
 //' Aggregate edgeweight into nodes' strength.
 //'
-//' @param snode Sequence of source nodes.
-//' @param tnode Sequence of target nodes.
-//' @param weight Sequence of edgeweight.
-//' @param nnode Number of nodes of sampled network.
+//' @param snode Source nodes.
+//' @param tnode Target nodes.
+//' @param weight Edgeweight.
+//' @param nnode Number of nodes.
 //' @param weighted Logical, true if the edges are weighted, 
 //'   false if not.
-//' @return Sequence of outstrength/instrength.
+//' @return Out-strength and in-strength.
 // [[Rcpp::export]]
 Rcpp::List nodeStrength_cpp(arma::vec snode, 
                             arma::vec tnode,
@@ -98,11 +98,11 @@ Rcpp::List nodeStrength_cpp(arma::vec snode,
   return ret;
 }
 
-//' Sample nodes with respect to the number of nodes at each step.
+//' Uniformly draw a node from existing nodes for each time step.
 //' Defined for \code{wdnet::rpanet}.
 //'
-//' @param total_node Number of nodes at each step.
-//' @return Sequence of sampled nodes.
+//' @param total_node Number of existing nodes at each time step.
+//' @return Sampled nodes.
 // [[Rcpp::export]]
 arma::vec sampleNode_cpp(arma::vec total_node) {
   GetRNGstate();
@@ -116,12 +116,12 @@ arma::vec sampleNode_cpp(arma::vec total_node) {
 }
 
 //' Fill edgeweight into the adjacency matrix.
-//' Defined for \code{wdnet:::edges_to_adj}.
+//' Defined for \code{wdnet:::edge_to_adj}.
 //'
 //' @param adj An adjacency matrix.
 //' @param edgelist A two column matrix represents the edgelist.
 //' @param edgeweight A vector represents the weight of edges.
-//' @return The adjacency matrix with edge weight.
+//' @return Adjacency matrix with edge weight.
 // [[Rcpp::export]]
 arma::mat fillWeight_cpp(arma::mat adj, arma::mat edgelist, arma::vec edgeweight) {
   GetRNGstate();

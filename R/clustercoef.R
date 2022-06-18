@@ -23,7 +23,7 @@ NULL
 #'
 #' Compute the clustering coefficient of a weighted and directed network.
 #'
-#' @usage clustcoeff(adj, method = c("Clemente","Fagiolo"), isolates = "zero")
+#' @usage clustcoef(adj, method = c("Clemente","Fagiolo"), isolates = "zero")
 #'
 #'
 #' @param adj is an adjacency matrix of an weighted and directed network.
@@ -35,22 +35,27 @@ NULL
 #'   is NaN and are excluded in the averaging. Default value is "zero".
 #'
 #' @return lists of local clustering coefficients (in terms of a vector), global
-#'   clustering coefficient (in terms of a scalar) and number of actual weighted
+#'   clustering coefficient (in terms of a scalar) and number of weighted
 #'   directed triangles (in terms of a vector) base on \code{total}, \code{in},
 #'   \code{out}, middleman (\code{middle}), or \code{cycle} triplets.
 #'
-#' @references \itemize{ \item Barrat, A., Barth\'{e}lemy, M., Pastor-Satorras,
+#' @references 
+#' \itemize{ 
+#'   \item Barrat, A., Barth\'{e}lemy, M., Pastor-Satorras,
 #'   R. and Vespignani, A. (2004). The architecture of complex weighted
 #'   networks. \emph{Proceddings of National Academy of Sciences of the United
-#'   States of America}, 101(11), 3747--3752. \item Clemente, G.P. and Grassi,
+#'   States of America}, 101(11), 3747--3752. 
+#'   \item Clemente, G.P. and Grassi,
 #'   R. (2018). Directed clustering in weighted networks: A new perspective.
-#'   \emph{Chaos, Solitons & Fractals}, 107, 26--38. \item Fagiolo, G. (2007).
+#'   \emph{Chaos, Solitons & Fractals}, 107, 26--38. 
+#'   \item Fagiolo, G. (2007).
 #'   Clustering in complex directed networks. \emph{Physical Review E}, 76,
-#'   026107. }
+#'   026107. 
+#' }
 #'
 #' @note Self-loops (if exist) are removed prior to the computation of
 #'   clustering coefficient. When the adjacency matrix is symmetric (i.e.,
-#'   undirected but possibly unweighted networks), \code{clustcoeff} returns
+#'   undirected but possibly unweighted networks), \code{clustcoef} returns
 #'   local and global clustering coefficients proposed by Barrat et al. (2010).
 #'
 #' @examples
@@ -59,12 +64,13 @@ NULL
 #' edge_ER <- rbinom(400,1,0.3)
 #' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
 #' adj_ER <- matrix(weight_ER,20,20)
-#' mycc <- clustcoeff(adj_ER, method = "Clemente")
+#' mycc <- clustcoef(adj_ER, method = "Clemente")
 #' system.time(mycc)
 #'
 #' @export
+#' 
 
-clustcoeff <- function(adj, method = c("Clemente", "Fagiolo"), 
+clustcoef <- function(adj, method = c("Clemente", "Fagiolo"), 
                           isolates = "zero") {
   stopifnot(dim(adj)[1] == dim(adj)[2])
   method <- match.arg(method)

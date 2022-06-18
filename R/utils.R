@@ -22,18 +22,25 @@ NULL
 #' Convert adjacency matrix to edgelist and edgeweight.
 #'
 #' @param adj Adjacency matrix of a network.
-#' @param directed Logical, whether the network is directed.
+#' @param directed Logical, whether the network is directed. Passed to
+#'   \code{igraph::graph_from_adjacency_matrix}.
+#' @param weighted Passed to \code{igraph::graph_from_adjacency_matrix}. This
+#'   argument specifies whether to create a weighted graph from an adjacency
+#'   matrix. If it is NULL then an unweighted graph is created and the elements
+#'   of the adjacency matrix gives the number of edges between the vertices. If
+#'   it is TRUE then a weighted graph is created and the name of the edge
+#'   attribute will be weight.
 #'
 #' @return A list of edgelist and edgeweight.
-#'
-adj_to_edges <- function(adj, directed = TRUE) {
+#'   
+adj_to_edge <- function(adj, directed = TRUE, weighted = TRUE) {
   if (! directed) {
     stopifnot('"adj" must be symmetric if the network is undirected.' = 
                 isSymmetric(adj))
   }
   mode <- ifelse(directed, "directed", "undirected")
   g <- igraph::graph_from_adjacency_matrix(adj, mode = mode, 
-                                           weighted = TRUE, diag = TRUE)
+                                           weighted = weighted, diag = TRUE)
   edgelist <- igraph::as_edgelist(g)
   edgeweight <- igraph::E(g)$weight
   return(list("edgelist" = edgelist, 
@@ -42,16 +49,14 @@ adj_to_edges <- function(adj, directed = TRUE) {
 
 #' Convert edgelist and edgeweight to adjacency matrix.
 #'
-#' @param edgelist A two column matrix represents edges. If \code{NULL},
-#'   \code{edgelist} and \code{edgeweight} will be extracted from the adjacency
-#'   matrix \code{adj}.
+#' @param edgelist A two column matrix represents edges.
 #' @param edgeweight A vector represents the weight of edges. If \code{NULL},
 #'   all the edges are considered have weight 1.
 #' @param directed Logical, whether the network is directed.
 #'
 #' @return An adjacency matrix.
 #'
-edges_to_adj <- function(edgelist, edgeweight = NULL, directed = TRUE) {
+edge_to_adj <- function(edgelist, edgeweight = NULL, directed = TRUE) {
   nnode <- max(edgelist)
   adj <- matrix(0, nrow = nnode, ncol = nnode)
   if (is.null(edgeweight)) {

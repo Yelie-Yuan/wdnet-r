@@ -26,7 +26,7 @@
 ##' \item Preferential attachment (PA) network generation
 ##' }
 ##'
-##' The development version of this package is avaliable on Gitlab 
+##' The development version of this package is available on Gitlab 
 ##' (https://gitlab.com/wdnetwork/wdnet).
 ##' 
 ##' @docType package

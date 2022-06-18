@@ -22,9 +22,9 @@ NULL
 #' Add components to the control list
 #'
 #' `+` is used to combine components to control the PA network generation
-#' process. Available components are \code{scenario.control()},
-#' \code{edgeweight.control()}, \code{newedge.control()},
-#' \code{preference.control()} and \code{reciprocal.control()}.
+#' process. Available components are \code{rpactl.scenario()},
+#' \code{rpactl.edgeweight()}, \code{rpactl.newedge()},
+#' \code{rpactl.preference()} and \code{rpactl.reciprocal()}.
 #'
 #' @param e1 An object of class \code{panet.control}.
 #' @param e2 An object of class \code{panet.control}.
@@ -32,16 +32,16 @@ NULL
 #' @export
 #'
 #' @examples
-#' scenario.control(alpha = 0.5, beta = 0.5) +
-#'     preference.control(sparams = c(1, 1, 0, 0, 1),
+#' rpactl.scenario(alpha = 0.5, beta = 0.5) +
+#'     rpactl.preference(sparams = c(1, 1, 0, 0, 1),
 #'         tparams = c(0, 0, 1, 1, 1))
 #'
-#' scenario.control(alpha = 1) +
-#'     edgeweight.control(distribution = rgamma,
+#' rpactl.scenario(alpha = 1) +
+#'     rpactl.edgeweight(distribution = rgamma,
 #'         dparams = list(shape = 5, scale = 0.2),
 #'         shift = 1)
 "+.panet.control" <- function(e1, e2) {
-  e1 <- structure(modifyList(e1, e2, keep.null = TRUE), class = "panet.control")
+  e1 <- structure(utils::modifyList(e1, e2, keep.null = TRUE), class = "panet.control")
   if (is.list(e2$edgeweight$dparams)) {
     e1$edgeweight$dparams <- e2$edgeweight$dparams
   }
@@ -71,9 +71,9 @@ NULL
 #' @export
 #'
 #' @examples
-#' scenario.control(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
+#' rpactl.scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
 #' 
-scenario.control <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
+rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
                              beta.loop = TRUE, source.first = TRUE) {
   stopifnot('"alpha + beta + gamma + xi + rho" must equal to 1.' =
             round(alpha + beta + gamma + xi + rho, 10) == 1)
@@ -102,14 +102,14 @@ scenario.control <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
 #'
 #' @examples
 #' # Edge weight follows Gamma(5, 0.2).
-#' edgeweight.control(distribution = rgamma,
+#' rpactl.edgeweight(distribution = rgamma,
 #'     dparams = list(shape = 5, scale = 0.2),
 #'     shift = 0)
 #'
 #' # Constant edge weight
-#' edgeweight.control(shift = 2)
+#' rpactl.edgeweight(shift = 2)
 #' 
-edgeweight.control <- function(distribution = NA,
+rpactl.edgeweight <- function(distribution = NA,
                                dparams = list(),
                                shift = 1) {
   edgeweight <- list("distribution" = distribution,
@@ -148,11 +148,11 @@ edgeweight.control <- function(distribution = NA,
 #' @export
 #'
 #' @examples
-#' newedge.control(distribution = rpois,
+#' rpactl.newedge(distribution = rpois,
 #'     dparams = list(lambda = 2),
 #'     shift = 1,
 #'     node.replace = FALSE)
-newedge.control <- function(distribution = NA,
+rpactl.newedge <- function(distribution = NA,
                             dparams = list(),
                             shift = 1,
                             snode.replace = TRUE,
@@ -191,9 +191,9 @@ newedge.control <- function(distribution = NA,
 #' @export
 #'
 #' @examples
-#' preference.control(sparams = c(1, 2, 0, 0, 0.1),
+#' rpactl.preference(sparams = c(1, 2, 0, 0, 0.1),
 #'     tparams = c(0, 0, 1, 2, 0.1))
-preference.control <- function(sparams = c(1, 1, 0, 0, 1),
+rpactl.preference <- function(sparams = c(1, 1, 0, 0, 1),
                                tparams = c(0, 0, 1, 1, 1),
                                params = c(1, 1)) {
   preference <- list("sparams" = sparams,
@@ -222,9 +222,9 @@ preference.control <- function(sparams = c(1, 1, 0, 0, 1),
 #' @export
 #'
 #' @examples
-#' reciprocal.control(group.prob = c(0.4, 0.6),
+#' rpactl.reciprocal(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
-reciprocal.control <- function(group.prob = NULL,
+rpactl.reciprocal <- function(group.prob = NULL,
                                recip.prob = NULL, 
                                selfloop.recip = FALSE) {
   if (! is.null(group.prob)) {

@@ -2,14 +2,13 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 //' Preferential attachment algorithm for simple situations, 
-//' e.g., edge weights are constant, 
-//' number of new edges per step is 1.
+//' e.g., edge weight equals to 1, number of new edges per step is 1.
 //'
-//' @param snode Sequence of source nodes.
-//' @param tnode Sequence of target nodes.
+//' @param snode Source nodes.
+//' @param tnode Target nodes.
 //' @param scenario Sequence of alpha, beta, gamma, xi, rho scenarios.
-//' @param nnode Number of nodes at current step.
-//' @param nedge Number of edges at current step.
+//' @param nnode Number of nodes in seed network.
+//' @param nedge Number of edges in seed network.
 //' @param delta_out Tuning parameter.
 //' @param delta_in Tuning parameter.
 //' @param directed Whether the network is directed.

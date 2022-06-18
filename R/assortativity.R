@@ -76,7 +76,9 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
   return(weighted.cor(x, y, weight))
 }
 
-#' Compute the assortativity coefficient for a network.
+#' Assortativity coefficient
+#' 
+#' Compute the assortativity coefficient of a network.
 #'
 #' @param edgelist A two column matrix represents edges. If \code{NULL},
 #'   \code{edgelist} and \code{edgeweight} will be extracted from the adjacency
@@ -84,7 +86,7 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
 #' @param edgeweight A vector represents the weight of edges. If \code{edgelist}
 #'   is provided and \code{edgeweight} is \code{NULL}, all the edges will be
 #'   considered have weight 1.
-#' @param adj An adjacency matrix of a network.
+#' @param adj An adjacency matrix.
 #' @param directed Logical. Whether the edges will be considered as directed.
 #' @param f1 A vector, represents the first feature of existing nodes. Number of
 #'   nodes \code{= length(f1) = length(f2)}. Defined for directed networks. If
@@ -103,25 +105,25 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
 #'   \emph{Journal of Complex Networks}, 9(2), cnab017.}
 #'
 #' @note When the adjacency matrix is binary (i.e., directed but unweighted
-#'   networks), \code{assort} returns the assortativity coefficient proposed in
-#'   Foster et al. (2010).
+#'   networks), \code{assortcoef} returns the assortativity coefficient proposed 
+#'   in Foster et al. (2010).
 #'
 #' @export
 #'
 #' @examples
 #' set.seed(123)
-#' control <- edgeweight.control(distribution = rgamma,
+#' control <- rpactl.edgeweight(distribution = rgamma,
 #'     dparams = list(shape = 5, scale = 0.2), shift = 0)
 #' netwk <- rpanet(nstep = 10^4, control = control)
-#' result <- assortcoeff(netwk$edgelist, edgeweight = netwk$edgeweight, directed = TRUE)
+#' result <- assortcoef(netwk$edgelist, edgeweight = netwk$edgeweight, directed = TRUE)
 #' 
-assortcoeff <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed = TRUE, 
+assortcoef <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed = TRUE, 
                         f1 = NULL, f2 = NULL) {
   if (is.null(edgelist)) {
     if (is.null(adj)) {
       stop('"edgelist" and "adj" can not both be NULL.')
     }
-    temp <- adj_to_edges(adj = adj, directed = directed)
+    temp <- adj_to_edge(adj = adj, directed = directed)
     edgelist <- temp$edgelist
     edgeweight <- temp$edgeweight
     rm(temp)
@@ -176,6 +178,8 @@ assortcoeff <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed
                                  weights = edgeweight, method = "pearson")))
 }
 
+#' Feature based assortativity coefficient
+#' 
 #' Node feature based assortativity coefficients of a weighted and directed
 #' network.
 #'
@@ -198,7 +202,7 @@ assortcoeff <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed
 #' adj <- matrix(rbinom(400, 1, 0.2) * sample(1:3, 400, replace = TRUE), 20, 20)
 #' f1 <- runif(20)
 #' f2 <- abs(rnorm(20))
-#' ret <- assortcoeff(adj = adj, f1 = f1, f2 = f2)
+#' ret <- assortcoef(adj = adj, f1 = f1, f2 = f2)
 #' 
 dw_feature_assort <- function(edgelist, edgeweight, f1, f2) {
   nnode <- max(edgelist)
@@ -235,65 +239,4 @@ dw_feature_assort <- function(edgelist, edgeweight, f1, f2) {
   ret$"f2-f2" <- wdm::wdm(x = sourceF2, y = targetF2,
                           weights = edgeweight, method = "pearson")
   return(ret)
-}
-
-
-#' Range of assortativity coefficient of a given unweighted network.
-#'
-#' Compute range of assortativity coefficients through convex optimization. The
-#' problems are defined and solved via the \code{R} package \code{CVXR}. For
-#' undirected networks, the function returns the range of the assortativity
-#' coefficient. For directed networks, the function computes the range of an
-#' assortativity coefficient while other assortativity coefficients are fixed.
-#'
-#' @param edgelist A two column matrix, each row represents an edge of the
-#'   network.
-#' @param directed Logical, whether the network is directed or not.
-#' @param type The type of interested assortativity coefficient. For directed
-#'   networks, it takes one of the values: "outout", "outin", "inout" and
-#'   "inin". It will be ignored if the network is undirected.
-#' @param constr A list represents the predetermined value or range imposed on
-#'   other assortativity coefficients. It will be ignored if the network is 
-#'   undirected.
-#' @param control A list of parameters passed to \code{CVXR::solve()} for
-#'   solving an appropriate \code{eta} when \code{target_assortcoeff} is
-#'   provided. It will be ignored if \code{eta} is provided.
-#'
-#' @return Range of the interested assortativity coefficient; solved \code{eta}
-#'   and its corresponding assortativity coefficients.
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' set.seed(123)
-#' edgelist <- rpanet(5e3, control = 
-#'         scenario.control(alpha = 0.5, beta = 0.5))$edgelist
-#' ret1 <- assortcoeff_range(edgelist, directed = TRUE, type = "outin", 
-#'         constr = list("outout" = c(-0.3, 0.3), "inout" = 0.1))
-#' ret2 <- rewire(edgelist, eta = ret1$lbound$eta, iteration = 100)
-#' plot(ret2$assortcoeff$Iteration, ret2$assortcoeff$"outin")
-#' ret3 <- rewire(edgelist, eta = ret1$ubound$eta, iteration = 500)
-#' plot(ret3$assortcoeff$Iteration, ret3$assortcoeff$"outin")
-#' }
-#' 
-assortcoeff_range <- function(edgelist, directed = TRUE, 
-                              type = c("outout", "outin", "inout", "inin"),
-                              control = solver.control(),
-                              constr = list("outout" = NULL,
-                                            "outin" = NULL,
-                                            "inout" = NULL,
-                                            "inin" = NULL)) {
-  type <- match.arg(type)
-  if (directed) {
-    result <- get_jointdist_directed(edgelist = edgelist, 
-                                     target_assortcoeff = constr,
-                                     whichRange = type,
-                                     control = control)
-  }
-  else {
-    result <- get_jointdist_undirected(edgelist = edgelist,
-                                       control = control)
-  }
-  result$lbound$e <- result$ubound$e <- NULL
-  result
 }

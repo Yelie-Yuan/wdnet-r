@@ -105,23 +105,23 @@ get_dist <- function(edgelist = NA, directed = TRUE,
 }
 
 #' Get the constraints for the optimization problem. This function is defined
-#' for \code{get_jointdist_directed}.
+#' for \code{get_eta_directed}.
 #'
 #' @param constrs A list of constraints.
-#' @param target_assortcoeff A list of target assortativity levels.
+#' @param target.assortcoef A list of target assortativity levels.
 #' @param rho A list of variable objects.
 #'
 #' @return A list of constraints.
-#'   
-get_constrs <- function(constrs, target_assortcoeff, rho) {
-  for (type in names(target_assortcoeff)) {
-    if (! is.null(target_assortcoeff[[type]])) {
-      if (length(target_assortcoeff[[type]]) == 1) {
-        constrs[[type]] <- rho[[type]] == target_assortcoeff[[type]]
+#' 
+get_constr <- function(constrs, target.assortcoef, rho) {
+  for (type in names(target.assortcoef)) {
+    if (! is.null(target.assortcoef[[type]])) {
+      if (length(target.assortcoef[[type]]) == 1) {
+        constrs[[type]] <- rho[[type]] == target.assortcoef[[type]]
       }
       else {
-        constrs[[paste0(type, "_max")]] <- rho[[type]] <= max(target_assortcoeff[[type]])
-        constrs[[paste0(type, "_min")]] <- rho[[type]] >= min(target_assortcoeff[[type]])
+        constrs[[paste0(type, "_max")]] <- rho[[type]] <= max(target.assortcoef[[type]])
+        constrs[[paste0(type, "_min")]] <- rho[[type]] >= min(target.assortcoef[[type]])
       }
     }
   }
@@ -129,7 +129,7 @@ get_constrs <- function(constrs, target_assortcoeff, rho) {
 }
 
 #' Get the value of an object from the optimization problem. This function is
-#' defined for \code{get_jointdist_directed}.
+#' defined for \code{get_eta_directed}.
 #'
 #' @param object An object from the optimization problem.
 #' @param result A list returned from \code{CVXR::solve()}.
@@ -165,7 +165,7 @@ get_values <- function(object, result, mydist) {
 #' Parameters passed to CVXR::solver().
 #'
 #' Defined for the convex optimization problems for solving \code{eta}. The
-#' control list is passed to \code{rewire} and \code{assortcoeff_range}.
+#' control list is passed to \code{dprewire} and \code{dprewire.range}.
 #'
 #' @param solver (Optional) A string indicating the solver to use. Defaults to
 #'   "ECOS".
@@ -190,18 +190,18 @@ get_values <- function(object, result, mydist) {
 #' @export
 #'
 #' @examples
-#' control <- solver.control(solver = "OSQP", abstol = 1e-5)
-solver.control <- function(solver = "ECOS", 
-                           ignore_dcp = FALSE,
-                           warm_start = FALSE,
-                           verbose = FALSE,
-                           parallel = FALSE,
-                           gp = FALSE,
-                           feastol = NULL,
-                           reltol = NULL,
-                           abstol = NULL,
-                           num_iter = NULL,
-                           ...) {
+#' control <- cvxr.control(solver = "OSQP", abstol = 1e-5)
+cvxr.control <- function(solver = "ECOS", 
+                         ignore_dcp = FALSE,
+                         warm_start = FALSE,
+                         verbose = FALSE,
+                         parallel = FALSE,
+                         gp = FALSE,
+                         feastol = NULL,
+                         reltol = NULL,
+                         abstol = NULL,
+                         num_iter = NULL,
+                         ...) {
   return(list(solver = solver,
               ignore_dcp = ignore_dcp,
               warm_start = warm_start,
@@ -220,45 +220,44 @@ solver.control <- function(solver = "ECOS",
 #'
 #' @param edgelist A two column matrix represents the directed edges of a
 #'   network.
-#' @param target_assortcoeff List, represents the predetermined values or ranges
+#' @param target.assortcoef List, represents the predetermined value or range
 #'   of assortativity coefficients.
-#' @param FUN A convex function of the joint edge-level distribution to be
-#'   minimized when \code{whichRange} is \code{NA}. Defaults to 0.
-#' @param whichRange Character, "outout", "outin", "inout" or "inin". 
-#'   Represents the interested
-#'   degree based assortativity coefficient. Default is \code{NA}.
-#' @param control A list of parameters passed to \code{CVXR::solve()}.
-#'   predetermined assortativity level(s) are satisfied.
+#' @param eta.obj A convex function of \code{eta} to be minimized when
+#'   \code{which.range} is \code{NULL}. Defaults to 0.
+#' @param which.range Character, "outout", "outin", "inout" or "inin".
+#'   Represents the interested degree based assortativity coefficient. Default
+#'   is \code{NA}.
+#' @param control A list of parameters passed to \code{CVXR::solve()} when
+#'   solving for \code{eta} or computing the range of assortativity coefficient.
 #' @return Assortativity coefficients and joint distributions. If
-#'   \code{whichRange} is specified, the range of the interested coefficient and
-#'   the corresponding joint distributions will be returned, provided the
-#'   predetermined \code{target_assortcoeff} and \code{target_rank_assortcoeff}
-#'   are satisfied.
+#'   \code{which.range} is specified, the range of the interested coefficient
+#'   and the corresponding joint distributions will be returned, provided the
+#'   predetermined \code{target.assortcoef} is satisfied.
 #'
 #' @examples
 #' \dontrun{
 #' edgelist <- rpanet(3000,
-#'     control = scenario.control(alpha = 0.3, beta = 0.1,
+#'     control = rpactl.scenario(alpha = 0.3, beta = 0.1,
 #'     gamma = 0.3, xi = 0.3))$edgelist
-#' assortcoeff(edgelist)
-#' target_assortcoeff <- list("outout" = -0.1, "inout" = 0.4)
-#' ret1 <- wdnet:::get_jointdist_directed(edgelist, target_assortcoeff = target_assortcoeff,
-#'         whichRange = "inin")
-#' ret2 <- wdnet:::get_jointdist_directed(edgelist, target_assortcoeff = target_assortcoeff,
-#'         FUN = CVXR::norm2)
+#' assortcoef(edgelist)
+#' target.assortcoef <- list("outout" = -0.1, "inout" = 0.4)
+#' ret1 <- wdnet:::get_eta_directed(edgelist, target.assortcoef = target.assortcoef,
+#'         which.range = "inin")
+#' ret2 <- wdnet:::get_eta_directed(edgelist, target.assortcoef = target.assortcoef,
+#'         eta.obj = CVXR::norm2)
 #' }
 #' 
-get_jointdist_directed <- function(edgelist, 
-                                   target_assortcoeff = list("outout" = NULL, "outin" = NULL,
-                                                             "inout" = NULL, "inin" = NULL),
-                                   # target_rank_assortcoeff = list("r-out-out" = NULL, "r-out-in" = NULL,
-                                   #                      "r-in-out" = NULL, "r-in-in" = NULL),
-                                   FUN = function(x) 0, whichRange = NULL, 
-                                   control = solver.control()) {
-  # stopifnot(all(names(target_rank_assortcoeff) %in% c("r-out-out", "r-out-in", 
+get_eta_directed <- function(edgelist, 
+                             target.assortcoef = list("outout" = NULL, "outin" = NULL,
+                                                      "inout" = NULL, "inin" = NULL),
+                             # target_rank_assortcoef = list("r-out-out" = NULL, "r-out-in" = NULL,
+                             #                      "r-in-out" = NULL, "r-in-in" = NULL),
+                             eta.obj = function(x) 0, which.range = NULL, 
+                             control = cvxr.control()) {
+  # stopifnot(all(names(target_rank_assortcoef) %in% c("r-out-out", "r-out-in", 
   #                                           "r-in-out", "r-in-in")))
-  stopifnot(all(names(target_assortcoeff) %in% c("outout", "outin", 
-                                                 "inout", "inin")))
+  stopifnot(all(names(target.assortcoef) %in% c("outout", "outin", 
+                                                "inout", "inin")))
   mydist <- get_dist(edgelist = edgelist, directed = TRUE)
   m <- length(mydist$d_out)
   n <- length(mydist$d_in)
@@ -331,40 +330,40 @@ get_jointdist_directed <- function(edgelist,
     names(attributes(eMat)$dimnames) <- c("source", "target")
     eMat
   }
-  constrs <- get_constrs(constrs, target_assortcoeff, rho)
-  # constrs <- get_constrs(constrs, target_rank_assortcoeff, rankRho)
-  if (is.null(whichRange)) {
-    problem <- CVXR::Problem(CVXR::Minimize(do.call(FUN, list(eMat))), constrs)
+  constrs <- get_constr(constrs, target.assortcoef, rho)
+  # constrs <- get_constr(constrs, target_rank_assortcoef, rankRho)
+  if (is.null(which.range)) {
+    problem <- CVXR::Problem(CVXR::Minimize(do.call(eta.obj, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
     if (result$status == "solver_error") stop("SOLVER ERROR.")
     if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
-    return(list("assortcoeff" = get_values(rho, result, mydist),
+    return(list("assortcoef" = get_values(rho, result, mydist),
                 # rankRho = get_values(rankRho, result, mydist),
                 "e" = get_values(e, result, mydist),
                 "eta" = name_eMat(result$getValue(eMat)))) 
   } else {
     # tempRho <- append(rho, rankRho)
     tempRho <- rho
-    stopifnot("'whichRange' is not valid." = whichRange %in% names(tempRho))
-    problem1 <- CVXR::Problem(CVXR::Minimize(tempRho[[whichRange]]), constrs)
+    stopifnot("'which.range' is not valid." = which.range %in% names(tempRho))
+    problem1 <- CVXR::Problem(CVXR::Minimize(tempRho[[which.range]]), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
     if (result1$status == "solver_error") stop("SOLVER ERROR.")
     if (result1$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
-    problem2 <- CVXR::Problem(CVXR::Maximize(tempRho[[whichRange]]), constrs)
+    problem2 <- CVXR::Problem(CVXR::Maximize(tempRho[[which.range]]), constrs)
     result2 <- do.call(CVXR::solve, c(list(problem2), control))
     
     if (result2$status == "solver_error") stop("SOLVER ERROR.")
     if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
-    return(list("range" = c(result1$getValue(tempRho[[whichRange]]), 
-                            result2$getValue(tempRho[[whichRange]])),
-                "lbound" = list("assortcoeff" = get_values(rho, result1, mydist),
+    return(list("range" = c(result1$getValue(tempRho[[which.range]]), 
+                            result2$getValue(tempRho[[which.range]])),
+                "lbound" = list("assortcoef" = get_values(rho, result1, mydist),
                                 # rankRho = get_values(rankRho, result1, mydist),
                                 "e" = get_values(e, result1, mydist),
                                 "eta" = name_eMat(result1$getValue(eMat))),
-                "ubound" = list("assortcoeff" = get_values(rho, result2, mydist),
+                "ubound" = list("assortcoef" = get_values(rho, result2, mydist),
                                 # rankRho = get_values(rankRho, result2, mydist),
                                 "e" = get_values(e, result2, mydist),
                                 "eta" = name_eMat(result2$getValue(eMat)))))
@@ -376,26 +375,27 @@ get_jointdist_directed <- function(edgelist,
 #'
 #' @param edgelist A two column matrix represents the undirected edges of a
 #'   network.
-#' @param target_assortcoeff Numeric, represents the predetermined assortativity
+#' @param target.assortcoef Numeric, represents the predetermined assortativity
 #'   coefficient. If \code{NA}, the range of assortativity coefficient and
 #'   corresponding joint distribution are returned.
-#' @param FUN A convex function of the edge-level distribution to be minimized
-#'   when \code{target_assortcoeff} is not \code{NA}. Default is 0.
-#' @param control A list of parameters passed to \code{CVXR::solve()}.
+#' @param eta.obj A convex function of \code{eta} to be minimized when
+#'   \code{target.assortcoef} is not \code{NA}. Defaults to 0.
+#' @param control A list of parameters passed to \code{CVXR::solve()} when
+#'   solving for \code{eta} or computing the range of assortativity coefficient.
 #'
 #' @return Assortativity level and corresponding edge-level distribution.
 #'
 #' @examples
 #' set.seed(1234)
 #' edgelist <- matrix(sample(1:10, 500, replace = TRUE), ncol = 2)
-#' ret1 <- wdnet:::get_jointdist_undirected(edgelist, FUN = CVXR::norm2)
-#' ret2 <- wdnet:::get_jointdist_undirected(edgelist, target_assortcoeff = 0.6, 
-#'         FUN = CVXR::norm2)
+#' ret1 <- wdnet:::get_eta_undirected(edgelist, eta.obj = CVXR::norm2)
+#' ret2 <- wdnet:::get_eta_undirected(edgelist, target.assortcoef = 0.6,
+#'         eta.obj = CVXR::norm2)
 #' 
-get_jointdist_undirected <- function(edgelist, target_assortcoeff = NULL, 
-                                     FUN = function(x) 0,
-                                     control = solver.control()) {
-  stopifnot((target_assortcoeff <= 1 & target_assortcoeff >= -1) | is.null(target_assortcoeff))
+get_eta_undirected <- function(edgelist, target.assortcoef = NULL, 
+                               eta.obj = function(x) 0,
+                               control = cvxr.control()) {
+  stopifnot((target.assortcoef <= 1 & target.assortcoef >= -1) | is.null(target.assortcoef))
   mydist <- get_dist(edgelist = edgelist, directed = FALSE)
   k <- mydist$d_out
   q_k <- mydist$q_s_out
@@ -404,9 +404,9 @@ get_jointdist_undirected <- function(edgelist, target_assortcoeff = NULL,
     colnames(eMat) <- rownames(eMat) <- k
     eMat
   }
-  if (! is.null(target_assortcoeff)) {
-    if (target_assortcoeff == 0) {
-      return(list("assortcoeff" = 0, 
+  if (! is.null(target.assortcoef)) {
+    if (target.assortcoef == 0) {
+      return(list("assortcoef" = 0, 
                   "eta" = name_eMat(q_k %*% t(q_k), k)))
     }
   }
@@ -417,13 +417,13 @@ get_jointdist_undirected <- function(edgelist, target_assortcoeff = NULL,
   constrs <- list(CVXR::sum_entries(eMat, 1) == q_k, 
                   eMat == t(eMat))
   
-  if (! is.null(target_assortcoeff)) {
-    constrs$"rho" <- rho == target_assortcoeff
-    problem <- CVXR::Problem(CVXR::Minimize(do.call(FUN, list(eMat))), constrs)
+  if (! is.null(target.assortcoef)) {
+    constrs$"rho" <- rho == target.assortcoef
+    problem <- CVXR::Problem(CVXR::Minimize(do.call(eta.obj, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
     if (result$status == "solver_error") stop("SOLVER ERROR.")
     if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
-    return(list("assortcoeff" = result$getValue(rho),
+    return(list("assortcoef" = result$getValue(rho),
                 "eta" = name_eMat(result$getValue(eMat), k)))
   } else {
     # constrs$"rho" <- rho <= 1
@@ -438,9 +438,9 @@ get_jointdist_undirected <- function(edgelist, target_assortcoeff = NULL,
     if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
     
     return(list("range" = c(result1$getValue(rho), result2$getValue(rho)),
-                "lbound" = list("assortcoeff" = result1$getValue(rho),
+                "lbound" = list("assortcoef" = result1$getValue(rho),
                                 "eta" = name_eMat(result1$getValue(eMat), k)),
-                "ubound" = list("assortcoeff" = result2$getValue(rho),
+                "ubound" = list("assortcoef" = result2$getValue(rho),
                                 "eta" = name_eMat(result2$getValue(eMat), k))))
   }
 }
