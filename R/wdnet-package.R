@@ -22,7 +22,7 @@
 ##' \itemize{
 ##' \item Assortativity, centrality, clustering coefficient
 ##' for weighted and directed networks
-##' \item Rewiring a network with given assortativity coefficient(s)
+##' \item Rewire an unweighted network with given assortativity coefficient(s)
 ##' \item Preferential attachment (PA) network generation
 ##' }
 ##'

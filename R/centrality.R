@@ -290,8 +290,8 @@ wpr <- function(adj, gamma = 0.85, theta = 1, prior.info){
 #' @param adj An adjacency matrix of a weighted and directed network. If 
 #'   NULL, \code{edgelist} and \code{edgeweight} will be used to construct 
 #'   the adjacency matrix.
-#' @param edgelist  A two column matrix, each row represents an edge of the
-#'   network. It will be ignored if \code{adj} is not NULL.
+#' @param edgelist  A two column matrix, each row represents a directed edge 
+#'   of the network. It will be ignored if \code{adj} is not NULL.
 #' @param edgeweight  A vector represents the weight of edges. If
 #'   \code{edgelist} is provided and \code{edgeweight} is \code{NULL}, all the
 #'   edges will be considered have weight 1. It will be ignored if \code{adj} 
