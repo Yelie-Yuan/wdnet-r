@@ -58,13 +58,20 @@ double targetPreferenceFunc(double outs, double ins, double *target_params) {
  * Update total source preference from current node to root.
  *
  * @param current_node The current node.
- * @param increment Value to be added to the total source preference.
  * 
  */
-void addSourceIncrement(node *current_node, double increment) {
-  current_node->total_sourcep += increment;
+void updateTotalSourcep(node *current_node) {
+  if (current_node->left == NULL) {
+    current_node->total_sourcep = current_node->sourcep;
+  }
+  else if (current_node->right == NULL) {
+    current_node->total_sourcep = current_node->sourcep + current_node->left->total_sourcep;
+  }
+  else {
+    current_node->total_sourcep = current_node->sourcep + current_node->left->total_sourcep + current_node->right->total_sourcep;
+  }
   while(current_node->id > 0) {
-    return addSourceIncrement(current_node->parent, increment);
+    return updateTotalSourcep(current_node->parent);
   }
 }
 
@@ -72,13 +79,20 @@ void addSourceIncrement(node *current_node, double increment) {
  * Update total target preference from current node to root.
  *
  * @param current_node The current node.
- * @param increment Value to be added to the total target preference.
  * 
  */
-void addTargetIncrement(node *current_node, double increment) {
-  current_node->total_targetp += increment;
+void updateTotalTargetp(node *current_node) {
+  if (current_node->left == NULL) {
+    current_node->total_targetp = current_node->targetp;
+  }
+  else if (current_node->right == NULL) {
+    current_node->total_targetp = current_node->targetp + current_node->left->total_targetp;
+  }
+  else {
+    current_node->total_targetp = current_node->targetp + current_node->left->total_targetp + current_node->right->total_targetp;
+  }
   while(current_node->id > 0) {
-    return addTargetIncrement(current_node->parent, increment);
+    return updateTotalTargetp(current_node->parent);
   }
 }
 
@@ -96,13 +110,13 @@ void updatePreference2(node *temp_node,
   temp_node->sourcep = sourcePreferenceFunc(temp_node->outs, temp_node->ins, 
     source_params);
   if (temp_node->sourcep != tp) {
-    addSourceIncrement(temp_node, temp_node->sourcep - tp);
+    updateTotalSourcep(temp_node);
   }
   tp = temp_node->targetp;
   temp_node->targetp = targetPreferenceFunc(temp_node->outs, temp_node->ins, 
     target_params);
   if (temp_node->targetp != tp) {
-    addTargetIncrement(temp_node, temp_node->targetp - tp);
+    updateTotalTargetp(temp_node);
   }
 }
 
@@ -156,6 +170,11 @@ node *insertNode2(queue<node*> &q, int new_node_id) {
  * @return Sampled source/target node.
  */
 node *findSourceNode(node *root, double w) {
+  if (w > root->total_sourcep) {
+    // numerical error
+    // Rprintf("Numerical error. Diff %f.\n", (w - root->total_sourcep) * pow(10, 10));
+    w = root->total_sourcep;
+  }
   w -= root->sourcep;
   if (w <= 0) {
     return root;
@@ -179,6 +198,11 @@ node *findSourceNode(node *root, double w) {
  * @return Sampled source/target node.
  */
 node *findTargetNode(node *root, double w) {
+  if (w > root->total_targetp) {
+    // numerical error
+    // Rprintf("Numerical error. Diff %f.\n", (w - root->total_targetp) * pow(10, 10));
+    w = root->total_targetp;
+  }
   w -= root->targetp;
   if (w <= 0) {
     return root;
@@ -547,11 +571,12 @@ extern "C" {
     {
       temp_node = q.front();
       q.pop();
-      if (temp_node->left != NULL) {
-        q.push(temp_node->left);
-      }
       if (temp_node->right != NULL) {
+        q.push(temp_node->left);
         q.push(temp_node->right);
+      }
+      else if (temp_node->left != NULL) {
+        q.push(temp_node->left);
       }
       outs[j] = temp_node->outs;
       ins[j] = temp_node->ins;
@@ -559,7 +584,7 @@ extern "C" {
       source_pref[j] = temp_node->sourcep;
       target_pref[j] = temp_node->targetp;
       // free memory (node and tree)
-      delete(temp_node);
+      delete temp_node;
       j++;
     }
     // free memory (queue)

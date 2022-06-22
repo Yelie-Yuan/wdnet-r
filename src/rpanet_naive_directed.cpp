@@ -378,5 +378,14 @@ extern "C" {
     PutRNGstate();
     *new_node_id_ptr = new_node_id;
     *new_edge_id_ptr = new_edge_id;
+    // check total preference = sum of node preference
+    // Rprintf("Total source pref %f.\n", total_source_pref);
+    // Rprintf("Total target pref %f.\n", total_target_pref);
+    // for (i = 0; i < new_node_id; i++) {
+    //   total_source_pref -= source_pref[i];
+    //   total_target_pref -= target_pref[i];
+    // }
+    // Rprintf("Total source pref %f.\n", total_source_pref * pow(10, 10));
+    // Rprintf("Total target pref %f.\n", total_target_pref * pow(10, 10));
   }
 }

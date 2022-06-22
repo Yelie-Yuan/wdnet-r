@@ -70,7 +70,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
   }
   
   if ((! control$newedge$node.replace) & (! directed)) {
-    if (control$preference$param[2] <= 0) {
+    if (control$preference$params[2] <= 0) {
       stop("Preference function must be strictly positive when unique 
             nodes is required.")
     }
@@ -185,7 +185,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                   as.double(control$scenario$xi),
                   as.integer(control$scenario$beta.loop),
                   as.integer(! control$newedge$node.replace),
-                  as.double(control$param),
+                  as.double(control$preference$params),
                   pref = as.double(pref),
                   PACKAGE = "wdnet")
     }
@@ -206,7 +206,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                   as.double(control$scenario$xi),
                   as.integer(control$scenario$beta.loop),
                   as.integer(! control$newedge$node.replace),
-                  as.double(control$param),
+                  as.double(control$preference$params),
                   pref = as.double(pref),
                   PACKAGE = "wdnet")
     }
@@ -231,15 +231,15 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
   if (directed) {
     ret$outstrength <- ret_c$outstrength[1:nnode]
     ret$instrength <- ret_c$instrength[1:nnode]
+    ret$control$preference$params <- NULL
     # ret$source_pref <- ret_c$source_pref[1:nnode]
     # ret$target_pref <- ret_c$target_pref[1:nnode]
-    ret$control$preference$params <- NULL
   }
   else {
     ret$strength <- ret_c$strength[1:nnode]
-    # ret$pref <- ret_c$pref[1:nnode]
     ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
     ret$control$preference$sparams <- ret$control$preference$tparams <- NULL
+    # ret$pref <- ret_c$pref[1:nnode]
   }
   if (sample.recip) {
     ret$nodegroup <- ret_c$nodegroup[1:nnode] + 1

@@ -38,13 +38,20 @@ double preferenceFunc(double strength, double *params) {
  * Update total preference from current node to root.
  *
  * @param current_node The current node.
- * @param increment Value to be added to the total preference.
  * 
  */
-void addIncrement(node *current_node, double increment) {
-  current_node->totalp += increment;
+void updateTotalp(node *current_node) {
+  if (current_node->left == NULL) {
+    current_node->totalp = current_node->p;
+  }
+  else if (current_node->right == NULL) {
+    current_node->totalp = current_node->p + current_node->left->totalp;
+  }
+  else {
+    current_node->totalp = current_node->p + current_node->left->totalp + current_node->right->totalp;
+  }
   while(current_node->id > 0) {
-    return addIncrement(current_node->parent, increment);
+    return updateTotalp(current_node->parent);
   }
 }
 
@@ -56,9 +63,8 @@ void addIncrement(node *current_node, double increment) {
  * 
  */
 void updatePreference(node *temp_node, double *params) {
-  double temp_p = temp_node->p;
   temp_node->p = preferenceFunc(temp_node->strength, params);
-  addIncrement(temp_node, temp_node->p - temp_p);
+  updateTotalp(temp_node);
 }
 
 /**
@@ -111,6 +117,11 @@ node *insertNode(queue<node*> &q, int id) {
  * @return Sampled node.
  */
 node *findNode(node *root, double w) {
+  if (w > root->totalp) {
+    // numerical error
+    // Rprintf("Numerical error. Diff %f.\n", (w - root->totalp) * pow(10, 10));
+    w = root->totalp;
+  }
   w -= root->p;
   if (w <= 0) {
     return root;
@@ -326,16 +337,17 @@ extern "C" {
     while (! q.empty()) {
       temp_node = q.front();
       q.pop();
-      if (temp_node->left != NULL) {
-        q.push(temp_node->left);
-      }
       if (temp_node->right != NULL) {
+        q.push(temp_node->left);
         q.push(temp_node->right);
+      }
+      else if (temp_node->left != NULL) {
+        q.push(temp_node->left);
       }
       strength[j] = temp_node->strength;
       pref[j] = temp_node->p;
       // free memory (node and tree)
-      delete(temp_node);
+      delete temp_node;
       j++;
     }
     // free memory (queue)

@@ -212,5 +212,11 @@ extern "C" {
     PutRNGstate();
     *new_node_id_ptr = new_node_id;
     *new_edge_id_ptr = new_edge_id;
+    // check total preference = sum of node preference
+    // Rprintf("Total pref %f.\n", total_pref);
+    // for (i = 0; i < new_node_id; i++) {
+    //   total_pref -= pref[i];
+    // }
+    // Rprintf("Total pref %f.\n", total_pref * pow(10, 10));
   }
 }
