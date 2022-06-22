@@ -43,15 +43,6 @@ NULL
 #'   rewiring attempt is accepted, the sampled edges are replaced as (v_1, v_4),
 #'   (v_3, v_2).
 #'
-#' @examples
-#' set.seed(1234)
-#' edgelist <- rpanet(10000, control = rpactl.scenario(
-#'    alpha = 0.3, beta = 0.1, gamma = 0.3, xi = 0.3))$edgelist
-#' target.assortcoef <- list("outout" = -0.1, "outin" = 0.3, "inout" = 0.2, "inin" = 0.1)
-#' ret1 <- wdnet:::get_eta_directed(edgelist, target.assortcoef = target.assortcoef)
-#' ret2 <- wdnet:::dprewire_directed(edgelist, eta = ret1$eta, iteration = 200)
-#' plot(ret2$assortcoef$Iteration, ret2$assortcoef$"outin")
-#' 
 dprewire_directed <- function(edgelist, eta, 
                               iteration = 1, nattempts = NULL, 
                               rewire.history = FALSE) {
@@ -159,16 +150,6 @@ dprewire_directed <- function(edgelist, eta,
 #'   rewire the sampled edges as \{v_1, v_4\}, \{v_3, v_2\} (rewire type 1) 
 #'   or \{v_1, v_3\}, \{v_2, v_4\} (rewire type 2) with probability 1/2.
 #'
-#' @examples
-#' set.seed(1234)
-#' edgelist <- rpanet(1e4, directed = TRUE)$edgelist
-#' ret1 <- wdnet:::get_eta_undirected(edgelist)
-#' ret2 <- wdnet:::dprewire_undirected(edgelist, eta = ret1$lbound$eta, iteration = 500)
-#' plot(ret2$assortcoef$Iteration, ret2$assortcoef$Value)
-#' ret3 <- wdnet:::get_eta_undirected(edgelist, target.assortcoef = 0.5)
-#' ret4 <- wdnet:::dprewire_undirected(edgelist, eta = ret3$eta, iteration = 500)
-#' plot(ret4$assortcoef$Iteration, ret4$assortcoef$Value)
-#' 
 dprewire_undirected <- function(edgelist, eta, 
                                 iteration = 1, nattempts = NULL, 
                                 rewire.history = FALSE) {
@@ -265,7 +246,7 @@ dprewire_undirected <- function(edgelist, eta,
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' edgelist <- rpanet(1e4, control = rpactl.scenario(
 #'    alpha = 0.4, beta = 0.3, gamma = 0.3))$edgelist
@@ -396,7 +377,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' edgelist <- rpanet(5e3, control =
 #'         rpactl.scenario(alpha = 0.5, beta = 0.5))$edgelist

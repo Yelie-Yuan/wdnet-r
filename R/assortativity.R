@@ -40,15 +40,6 @@ NULL
 #' @note When the adjacency matrix is binary (i.e., directed but unweighted
 #' networks), \code{dw_assort} returns the assortativity coefficient proposed in
 #' Foster et al. (2010).
-#'
-#' @examples
-#' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-#' ## and parameter p = 0.3
-#' edge_ER <- rbinom(400,1,0.3)
-#' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
-#' adj_ER <- matrix(weight_ER,20,20)
-#' system.time(myassort <- wdnet:::dw_assort(adj_ER, type = "out-in"))
-#' myassort
 #' 
 
 dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {

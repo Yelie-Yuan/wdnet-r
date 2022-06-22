@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
 Version: 0.0.3
-Date: 2022-06-20
+Date: 2022-06-22
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
@@ -11,10 +11,17 @@ Authors@R: c(
            role = c("aut")),
     person("Panpan", "Zhang", email = "panpan.zhang@pennmedicine.upenn.edu",
            role = "aut"))
-Description: Assortativity, centrality measures for weighted and directed
-    networks, most of which are not covered by other R packages. Generate 
-    preferential attachment networks with nonlinear preference functions.
-    Rewire an unweighted network to obtain desired assortativity levels.
+Description: Implementations of network analysis including
+    (1) assortativity coefficient of weighted and directed networks, 
+    Yuan, Yan and Zhang (2021) <doi:10.1093/comnet/cnab017>,
+    (2) centrality measures for weighted and directed networks,
+    Opsahl, Agneessens and Skvoretz (2010) <doi:10.1016/j.socnet.2010.03.006>,
+    Zhang, Wang and Yan (2022) <doi:10.1016/j.physa.2021.126438>,
+    (3) clustering coefficient of weighted and directed networks, 
+    Fagiolo (2007) <doi:10.1103/PhysRevE.76.026107> and 
+    Clemente and Grassi (2018) <doi:10.1016/j.chaos.2017.12.007>,
+    (4) network rewiring,
+    (5) preferential attachment network generation.
 Depends: R (>= 4.2.0)
 License: GPL (>= 3.0)
 Encoding: UTF-8

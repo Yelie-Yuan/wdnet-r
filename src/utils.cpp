@@ -116,7 +116,7 @@ arma::vec sampleNode_cpp(arma::vec total_node) {
 }
 
 //' Fill edgeweight into the adjacency matrix.
-//' Defined for \code{wdnet:::edge_to_adj}.
+//' Defined for function \code{edge_to_adj}.
 //'
 //' @param adj An adjacency matrix.
 //' @param edgelist A two column matrix represents the edgelist.

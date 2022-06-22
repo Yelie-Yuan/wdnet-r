@@ -49,15 +49,6 @@ NULL
 #' package \code{tnet}. Function \code{degree_c} uses adjacency matrix as
 #' input.
 #'
-#' @examples
-#' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-#' ## and parameter p = 0.3
-#' edge_ER <- rbinom(400,1,0.3)
-#' weight_ER <- sapply(edge_ER, function(x) x*sample(3,1))
-#' adj_ER <- matrix(weight_ER,20,20)
-#' mydegree <- wdnet:::degree_c(adj_ER, alpha = 0.8, mode = "in")
-#' system.time(mydegree)
-#' 
 
 degree_c <- function(adj, alpha = 1, mode = "out"){
   if (alpha < 0){
@@ -126,16 +117,6 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' package \code{tnet}. The method of computing distances between vertices
 #' is the \emph{Dijkstra's algorithm}.
 #'
-#' @examples
-#' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-#' ## and parameter p = 0.3
-#' edge_ER <- rbinom(400,1,0.3)
-#' weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
-#' adj_ER <- matrix(weight_ER,20,20)
-#' myclose <- wdnet:::closeness_c(adj_ER, alpha = 0.8, mode = "out",
-#' method = "harmonic", distance = FALSE)
-#' system.time(myclose)
-#' 
 
 closeness_c <- function(adj, alpha = 1, mode = "out",
                         method = "harmonic", distance = FALSE){
@@ -202,23 +183,15 @@ closeness_c <- function(adj, alpha = 1, mode = "out",
 #'
 #' @references
 #' \itemize{
-#' \item Zhang, P., Wang, T. and Yan, J. (2021+) PageRank centrality and algorithms for 
-#' weighted, directed networks with applications to World Input-Output Tables
+#' \item Zhang, P., Wang, T. and Yan, J. (2022) PageRank centrality and algorithms for 
+#' weighted, directed networks with applications to World Input-Output Tables.
+#' \emph{Physica A: Statistical Mechanics and its Applications}, 586, 126438.
 #' }
 #'
 #' @note 
 #' Function \code{wpr} is an extension of function \code{page_rank} 
 #' in package \code{igraph}.
 #'
-#' @examples
-#' ## Generate a network according to the Erd\"{o}s-Renyi model of order 20
-#' ## and parameter p = 0.3
-#' edge_ER <- rbinom(400,1,0.3)
-#' weight_ER <- sapply(edge_ER, function(x){x*sample(3,1)})
-#' adj_ER <- matrix(weight_ER,20,20)
-#' mywpr <- wdnet:::wpr(adj_ER, gamma = 0.85, theta = 0.75)
-#' system.time(mywpr)
-#' 
 
 wpr <- function(adj, gamma = 0.85, theta = 1, prior.info){
   ## regularity conditions
@@ -344,7 +317,7 @@ wpr <- function(adj, gamma = 0.85, theta = 1, prior.info){
 #' \item Opsahl, T., Agneessens, F., Skvoretz, J. (2010). Node centrality 
 #' in weighted networks: Generalizing degree and shortest paths. 
 #' \emph{Social Networks}, 32, 245--251.
-#' \item Zhang, P., Wang, T. and Yan, J. (2021) PageRank centrality and algorithms for 
+#' \item Zhang, P., Wang, T. and Yan, J. (2022) PageRank centrality and algorithms for 
 #' weighted, directed networks with applications to World Input-Output Tables.
 #' \emph{Physica A: Statistical Mechanics and its Applications}, 586, 126438.
 #' \item Zhang, P., Zhao, J. and Yan, J. (2020+) Centrality measures of 

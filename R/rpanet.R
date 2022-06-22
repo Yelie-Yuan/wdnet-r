@@ -130,7 +130,7 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   control.default <- rpactl.scenario() + rpactl.edgeweight() +
     rpactl.newedge() + rpactl.preference() + rpactl.reciprocal()
   if (! is.list(control)) {
-    control <- structure(list(), class = "panet.control")
+    control <- structure(list(), class = "rpactl")
   }
   control <- control.default + control
   if (! control$newedge$node.replace) {

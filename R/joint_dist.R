@@ -133,10 +133,10 @@ get_constr <- function(constrs, target.assortcoef, rho) {
 #'
 #' @param object An object from the optimization problem.
 #' @param result A list returned from \code{CVXR::solve()}.
-#' @param mydist A list returned from \code{wdnet:::get_dist()}.
+#' @param mydist A list returned from \code{get_dist()}.
 #'
 #' @return Value of the object.
-#'   
+#'
 get_values <- function(object, result, mydist) {
   # if ("r-out-out" %in% names(object)) {
   #   return(list(
@@ -233,19 +233,6 @@ cvxr.control <- function(solver = "ECOS",
 #'   \code{which.range} is specified, the range of the interested coefficient
 #'   and the corresponding joint distributions will be returned, provided the
 #'   predetermined \code{target.assortcoef} is satisfied.
-#'
-#' @examples
-#' \dontrun{
-#' edgelist <- rpanet(3000,
-#'     control = rpactl.scenario(alpha = 0.3, beta = 0.1,
-#'     gamma = 0.3, xi = 0.3))$edgelist
-#' assortcoef(edgelist)
-#' target.assortcoef <- list("outout" = -0.1, "inout" = 0.4)
-#' ret1 <- wdnet:::get_eta_directed(edgelist, target.assortcoef = target.assortcoef,
-#'         which.range = "inin")
-#' ret2 <- wdnet:::get_eta_directed(edgelist, target.assortcoef = target.assortcoef,
-#'         eta.obj = CVXR::norm2)
-#' }
 #' 
 get_eta_directed <- function(edgelist, 
                              target.assortcoef = list("outout" = NULL, "outin" = NULL,
@@ -385,13 +372,6 @@ get_eta_directed <- function(edgelist,
 #'
 #' @return Assortativity level and corresponding edge-level distribution.
 #'
-#' @examples
-#' set.seed(1234)
-#' edgelist <- matrix(sample(1:10, 500, replace = TRUE), ncol = 2)
-#' ret1 <- wdnet:::get_eta_undirected(edgelist, eta.obj = CVXR::norm2)
-#' ret2 <- wdnet:::get_eta_undirected(edgelist, target.assortcoef = 0.6,
-#'         eta.obj = CVXR::norm2)
-#' 
 get_eta_undirected <- function(edgelist, target.assortcoef = NULL, 
                                eta.obj = function(x) 0,
                                control = cvxr.control()) {

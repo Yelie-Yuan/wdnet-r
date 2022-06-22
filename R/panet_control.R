@@ -26,22 +26,24 @@ NULL
 #' \code{rpactl.edgeweight()}, \code{rpactl.newedge()},
 #' \code{rpactl.preference()} and \code{rpactl.reciprocal()}.
 #'
-#' @param e1 An object of class \code{panet.control}.
-#' @param e2 An object of class \code{panet.control}.
+#' @param e1 A list of class \code{rpactl}.
+#' @param e2 A list of class \code{rpactl}.
 #'
+#' @return A list of class \code{rpactl} with components from
+#'   \code{e1} and \code{e2}.
 #' @export
 #'
 #' @examples
-#' rpactl.scenario(alpha = 0.5, beta = 0.5) +
+#' control <- rpactl.scenario(alpha = 0.5, beta = 0.5) +
 #'     rpactl.preference(sparams = c(1, 1, 0, 0, 1),
 #'         tparams = c(0, 0, 1, 1, 1))
 #'
-#' rpactl.scenario(alpha = 1) +
+#' control <- rpactl.scenario(alpha = 1) +
 #'     rpactl.edgeweight(distribution = rgamma,
 #'         dparams = list(shape = 5, scale = 0.2),
 #'         shift = 1)
-"+.panet.control" <- function(e1, e2) {
-  e1 <- structure(utils::modifyList(e1, e2, keep.null = TRUE), class = "panet.control")
+"+.rpactl" <- function(e1, e2) {
+  e1 <- structure(utils::modifyList(e1, e2, keep.null = TRUE), class = "rpactl")
   if (is.list(e2$edgeweight$dparams)) {
     e1$edgeweight$dparams <- e2$edgeweight$dparams
   }
@@ -67,11 +69,15 @@ NULL
 #'   from existing nodes before the target node is sampled; if \code{FALSE}, the
 #'   target node is sampled from existing nodes before the source node is
 #'   sampled. Default value is \code{TRUE}.
+#' 
+#' @return A list of class \code{rpactl} with components \code{alpha},
+#'   \code{beta}, \code{gamma}, \code{xi}, \code{rho}, \code{beta.loop} and
+#'   \code{source.first} with meanings as explained under 'Arguments'.
 #'
 #' @export
 #'
 #' @examples
-#' rpactl.scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
+#' control <- rpactl.scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
 #' 
 rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
                              beta.loop = TRUE, source.first = TRUE) {
@@ -85,7 +91,7 @@ rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
                    "beta.loop" = beta.loop, 
                    "source.first" = source.first)
   structure(list("scenario" = scenario),
-            class = "panet.control")
+            class = "rpactl")
 }
 
 #' Set parameters for controlling weight of new edges
@@ -98,16 +104,20 @@ rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
 #' @param shift A constant add to the specified distribution. Default value is
 #'   1.
 #'
+#' @return A list of class \code{rpactl} with components 
+#'   \code{distribution}, \code{dparams}, and \code{shift} with meanings as 
+#'   explained under 'Arguments'.
+#' 
 #' @export
 #'
 #' @examples
 #' # Edge weight follows Gamma(5, 0.2).
-#' rpactl.edgeweight(distribution = rgamma,
+#' control <- rpactl.edgeweight(distribution = rgamma,
 #'     dparams = list(shape = 5, scale = 0.2),
 #'     shift = 0)
 #'
 #' # Constant edge weight
-#' rpactl.edgeweight(shift = 2)
+#' control <- rpactl.edgeweight(shift = 2)
 #' 
 rpactl.edgeweight <- function(distribution = NA,
                                dparams = list(),
@@ -122,7 +132,7 @@ rpactl.edgeweight <- function(distribution = NA,
                 is.function(distribution))
   }
   structure(list("edgeweight" = edgeweight),
-            class = "panet.control")
+            class = "rpactl")
 }
 
 #' Set parameters for controlling new edges in each step
@@ -144,11 +154,15 @@ rpactl.edgeweight <- function(distribution = NA,
 #'   and target nodes in the same step are all different from each other,
 #'   \code{beta.loop}, \code{snode.replace} and \code{tnode.replace} will be set
 #'   as \code{FALSE}.
+#' 
+#' @return A list of class \code{rpactl} with components \code{distribution},
+#'   \code{dparams}, \code{shift}, \code{snode.replace}, \code{tnode.replace} and 
+#'   \code{node.replace} with meanings as explained under 'Arguments'.
 #'
 #' @export
 #'
 #' @examples
-#' rpactl.newedge(distribution = rpois,
+#' control <- rpactl.newedge(distribution = rpois,
 #'     dparams = list(lambda = 2),
 #'     shift = 1,
 #'     node.replace = FALSE)
@@ -171,7 +185,7 @@ rpactl.newedge <- function(distribution = NA,
     stopifnot("Please specify the name of distribution parameters" = 
                 all(! is.null(names(newedge$dparams))))
   }
-  structure(list("newedge" = newedge), class = "panet.control")
+  structure(list("newedge" = newedge), class = "rpactl")
 }
 
 #' Set parameters for source and target preference function
@@ -187,11 +201,15 @@ rpactl.newedge <- function(distribution = NA,
 #' @param params Parameters of the preference function for undirected networks.
 #'   Probability of choosing an existing node is proportional to
 #'   \code{strength^param[1] + param[2]}.
+#' 
+#' @return A list of class \code{rpactl} with components \code{sparams},
+#'   \code{tparams}, and \code{params} with meanings as explained under 
+#'   'Arguments'.
 #'
 #' @export
 #'
 #' @examples
-#' rpactl.preference(sparams = c(1, 2, 0, 0, 0.1),
+#' control <- rpactl.preference(sparams = c(1, 2, 0, 0, 0.1),
 #'     tparams = c(0, 0, 1, 2, 0.1))
 rpactl.preference <- function(sparams = c(1, 1, 0, 0, 1),
                                tparams = c(0, 0, 1, 1, 1),
@@ -201,7 +219,7 @@ rpactl.preference <- function(sparams = c(1, 1, 0, 0, 1),
                "params" = params)
   stopifnot(sparams[5] >= 0 & tparams[5] >= 0 & params[2] >= 0)
   structure(list("preference" = preference), 
-            class = "panet.control")
+            class = "rpactl")
 }
 
 #' Set parameters for controlling reciprocal edges
@@ -218,11 +236,15 @@ rpactl.preference <- function(sparams = c(1, 1, 0, 0, 1),
 #'   directed edge from \code{B} to \code{A} is added.
 #' @param selfloop.recip Logical, whether reciprocal edge of self-loops are
 #'   allowed.
+#' 
+#' @return A list of class \code{rpactl} with components 
+#'   \code{group.prob}, \code{recip.prob}, and \code{selfloop.recip} with
+#'   meanings as explained under 'Arguments'.
 #'
 #' @export
 #'
 #' @examples
-#' rpactl.reciprocal(group.prob = c(0.4, 0.6),
+#' control <- rpactl.reciprocal(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
 rpactl.reciprocal <- function(group.prob = NULL,
                                recip.prob = NULL, 
@@ -255,5 +277,5 @@ rpactl.reciprocal <- function(group.prob = NULL,
                 "recip.prob" = recip.prob, 
                 "selfloop.recip" = selfloop.recip)
   structure(list("reciprocal" = reciprocal),
-            class = "panet.control")
+            class = "rpactl")
 }
