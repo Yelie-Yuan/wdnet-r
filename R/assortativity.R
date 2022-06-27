@@ -143,7 +143,7 @@ assortcoef <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed 
   }
   sourceNode <- edgelist[, 1]
   targetNode <- edgelist[, 2]
-  temp <- nodeStrength_cpp(snode = sourceNode, 
+  temp <- node_strength_cpp(snode = sourceNode, 
                            tnode = targetNode, 
                            nnode = nnode, 
                            weight = edgeweight,
@@ -200,7 +200,7 @@ dw_feature_assort <- function(edgelist, edgeweight, f1, f2) {
   sourceNode <- edgelist[, 1]
   targetNode <- edgelist[, 2]
   if (is.null(f1) | is.null(f2)) {
-    temp <- nodeStrength_cpp(snode = sourceNode, 
+    temp <- node_strength_cpp(snode = sourceNode, 
                              tnode = targetNode, 
                              weight = edgeweight, 
                              nnode = nnode, 

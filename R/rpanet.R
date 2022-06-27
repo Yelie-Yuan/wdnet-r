@@ -133,10 +133,6 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
     control <- structure(list(), class = "rpactl")
   }
   control <- control.default + control
-  if (! control$newedge$node.replace) {
-    control$scenario$beta.loop <- FALSE
-    control$newedge$snode.replace <- control$newedge$tnode.replace <- FALSE
-  }
   rm(control.default)
   
   if (is.function(control$newedge$distribution)) {
@@ -164,6 +160,15 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   }
   stopifnot("Edgeweight must be greater than 0." = w > 0)
   
+  if ((! directed) & 
+      ((! control$newedge$snode.replace) | (! control$newedge$tnode.replace))) {
+    warning('"snode.replace" and "tnode.replace" are ignored for undirected networks.')
+    control$newedge$snode.replace <- control$tnode.replace <- TRUE
+  }
+  if (directed & (! control$newedge$node.replace)) {
+    warning('"node.replace" is ignored for directed networks.')
+    control$newedge$node.replace <- TRUE
+  }
   if (method == "nodelist" | method == "edgesampler") {
     if (directed) {
       stopifnot('Source preference must be out-degree plus a constant for "nodelist" and "edgesampler" methods.' = 
@@ -181,7 +186,6 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
                 identical(control$reciprocal, rpactl.reciprocal()$reciprocal))
     stopifnot('"beta.loop" must be TRUE for "nodelist" and "edgesampler" methods.' = 
                 control$scenario$beta.loop)
-    
     if (method == "nodelist") {
       stopifnot('"rpactl.edgeweight" must set as default for "nodelist" method.' = 
                   identical(control$edgeweight, rpactl.edgeweight()$edgeweight))
@@ -191,18 +195,37 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
                   identical(control$newedge, rpactl.newedge()$newedge))
     }
     if (method == "edgesampler") {
-      stopifnot('"node.replace" must be TRUE for "edgesampler" method.' = 
-                  control$newedge$node.replace)
-      stopifnot('"snode.replace" must be TRUE for "edgesampler" method.' = 
-                  control$newedge$snode.replace)
-      stopifnot('"tnode.replace" must be TRUE for "edgesampler" method.' = 
-                  control$newedge$tnode.replace)
+      if (directed) {
+        stopifnot('"snode.replace" must be TRUE for "edgesampler" method.' = 
+                    control$newedge$snode.replace)
+        stopifnot('"tnode.replace" must be TRUE for "edgesampler" method.' = 
+                    control$newedge$tnode.replace)
+      }
+      else {
+        stopifnot('"node.replace" must be TRUE for "edgesampler" method.' = 
+                    control$newedge$node.replace)
+      }
     }
     return(rpanet_simple(nstep = nstep, seednetwork = seednetwork, 
                          control = control, directed = directed,
                          m = m, sum_m = sum_m, 
                          w = w, ex_node = nnode, 
                          ex_edge = nedge, method = method))
+  }
+  if ((! control$newedge$node.replace) & control$scenario$beta.loop) {
+    control$scenario$beta.loop <- FALSE
+    warning('"beta.loop" is set as FALSE since "node.replace" is FALSE.')
+  }
+  if (directed & 
+      (! all(control$newedge$snode.replace, control$newedge$tnode.replace))) {
+    if (all(control$preference$sparams[c(3, 5)] <= 0) |
+        all(control$preference$tparams[c(1, 5)] <= 0) )
+      stop("Source preference function and target preference function must be strictly positive when sampling source/target nodes without replacement.")
+  }
+  if ((! directed) & (! control$newedge$node.replace)) {
+    if (control$preference$params[2] <= 0) {
+      stop("Preference function must be strictly positive when sampling nodes without replacement.")
+    }
   }
   return(rpanet_general(nstep = nstep, seednetwork = seednetwork, 
                         control = control, directed = directed, 

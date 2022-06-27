@@ -68,11 +68,11 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
     # stopifnot(all(edgeweight == 1) & all(m == 1))
     snode <- c(seednetwork$edgelist[, 1], rep(0, sum_m))
     tnode <- c(seednetwork$edgelist[, 2], rep(0, sum_m))
-    ret <- rpanet_cpp(snode, tnode,
-                      scenario,
-                      ex_node, ex_edge,
-                      delta_out, delta_in,
-                      directed)
+    ret <- rpanet_nodelist_cpp(snode, tnode,
+                               scenario,
+                               ex_node, ex_edge,
+                               delta_out, delta_in,
+                               directed)
     snode <- ret$snode
     tnode <- ret$tnode
     nnode <- ret$nnode
@@ -105,12 +105,12 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
       (total_weight + delta_in * total_node)[no_new_end]
     temp_out <- rand_out <= total_weight[no_new_start]
     if (! all(temp_out)) {
-      snode[no_new_start][! temp_out] <- sampleNode_cpp(
+      snode[no_new_start][! temp_out] <- sample_node_cpp(
         total_node[no_new_start][! temp_out])
     }
     temp_in <- rand_in <= total_weight[no_new_end]
     if (! all(temp_in)) {
-      tnode[no_new_end][! temp_in] <- sampleNode_cpp(
+      tnode[no_new_end][! temp_in] <- sample_node_cpp(
         total_node[no_new_end][!temp_in])
     }
     
@@ -120,18 +120,18 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
       rand_out[temp_out], weight_intv, left.open = TRUE)
     end_edge <- findInterval(rand_in[temp_in], weight_intv, left.open = TRUE)
     if (directed) {
-      snode <- findNode_cpp(snode, start_edge)
-      tnode <- findNode_cpp(tnode, end_edge)
+      snode <- find_node_cpp(snode, start_edge)
+      tnode <- find_node_cpp(tnode, end_edge)
     }
     else {
-      ret <- findNode_undirected_cpp(
+      ret <- find_node_undirected_cpp(
         snode, tnode, start_edge, end_edge)
       snode <- ret$node1
       tnode <- ret$node2
     }
   }
   edgelist <- cbind(snode, tnode)
-  strength <- nodeStrength_cpp(snode, tnode,
+  strength <- node_strength_cpp(snode, tnode,
                                edgeweight, nnode, weighted = TRUE)
   colnames(edgelist) <- NULL
   ret <- list("edgelist" = edgelist,

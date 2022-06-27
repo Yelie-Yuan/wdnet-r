@@ -7,7 +7,7 @@
 //' @param edges Sampled edges according to preferential attachment.
 //' @return Source/target nodes.
 // [[Rcpp::export]]
-arma::vec findNode_cpp(arma::vec nodes, 
+arma::vec find_node_cpp(arma::vec nodes, 
                        arma::vec edges) {
   int n = nodes.size(), n1 = 0;
   for (int j = 0; j < n; j++) {
@@ -27,7 +27,7 @@ arma::vec findNode_cpp(arma::vec nodes,
 //' @param end_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 //' @return Node sequence.
 // [[Rcpp::export]]
-Rcpp::List findNode_undirected_cpp(arma::vec node1, 
+Rcpp::List find_node_undirected_cpp(arma::vec node1, 
                        arma::vec node2, 
                        arma::vec start_edge, 
                        arma::vec end_edge) {
@@ -72,7 +72,7 @@ Rcpp::List findNode_undirected_cpp(arma::vec node1,
 //'   false if not.
 //' @return Out-strength and in-strength.
 // [[Rcpp::export]]
-Rcpp::List nodeStrength_cpp(arma::vec snode, 
+Rcpp::List node_strength_cpp(arma::vec snode, 
                             arma::vec tnode,
                             arma::vec weight, 
                             int nnode, 
@@ -104,7 +104,7 @@ Rcpp::List nodeStrength_cpp(arma::vec snode,
 //' @param total_node Number of existing nodes at each time step.
 //' @return Sampled nodes.
 // [[Rcpp::export]]
-arma::vec sampleNode_cpp(arma::vec total_node) {
+arma::vec sample_node_cpp(arma::vec total_node) {
   GetRNGstate();
   int n = total_node.size();
   arma::vec nodes(n, arma::fill::zeros);
@@ -123,7 +123,7 @@ arma::vec sampleNode_cpp(arma::vec total_node) {
 //' @param edgeweight A vector represents the weight of edges.
 //' @return Adjacency matrix with edge weight.
 // [[Rcpp::export]]
-arma::mat fillWeight_cpp(arma::mat adj, arma::mat edgelist, arma::vec edgeweight) {
+arma::mat fill_weight_cpp(arma::mat adj, arma::mat edgelist, arma::vec edgeweight) {
   GetRNGstate();
   int n = edgeweight.size();
   for (int i = 0; i < n; i++) {

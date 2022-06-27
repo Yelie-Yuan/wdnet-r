@@ -58,31 +58,14 @@ NULL
 #'   
 rpanet_general <- function(nstep, seednetwork, control, directed,
                            m, sum_m, w,
-                           nnode, nedge, method, sample.recip) {
-  
-  if (! all(control$newedge$snode.replace, control$newedge$tnode.replace, 
-          control$newedge$node.replace)) {
-    if (all(control$preference$sparams[c(3, 5)] <= 0) |
-        all(control$preference$tparams[c(1, 5)] <= 0) )
-      stop("Source preference function and target preference 
-            function must be strictly positive when unique 
-            source/target nodes is required.")
-  }
-  
-  if ((! control$newedge$node.replace) & (! directed)) {
-    if (control$preference$params[2] <= 0) {
-      stop("Preference function must be strictly positive when unique 
-            nodes is required.")
-    }
-  }
-  
+                           nnode, nedge, method, sample.recip) {  
   edgeweight <- c(seednetwork$edgeweight, w)
   node_vec_length <- (sum_m + nedge) * 2
   node_vec1 <- node_vec2 <-  scenario <- integer(node_vec_length)
   node_vec1[1:nedge] <- seednetwork$edgelist[, 1] - 1
   node_vec2[1:nedge] <- seednetwork$edgelist[, 2] - 1
   scenario[1:nedge] <- 0
-  seed_strength <- nodeStrength_cpp(seednetwork$edgelist[, 1], seednetwork$edgelist[, 2], seednetwork$edgeweight,
+  seed_strength <- node_strength_cpp(seednetwork$edgelist[, 1], seednetwork$edgelist[, 2], seednetwork$edgeweight,
                                     nnode, weighted = TRUE)
   if (directed) {
     outstrength <- instrength <- double(node_vec_length)
@@ -231,6 +214,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
   if (directed) {
     ret$outstrength <- ret_c$outstrength[1:nnode]
     ret$instrength <- ret_c$instrength[1:nnode]
+    ret$control$newedge$node.replace <- NULL
     ret$control$preference$params <- NULL
     # ret$source_pref <- ret_c$source_pref[1:nnode]
     # ret$target_pref <- ret_c$target_pref[1:nnode]

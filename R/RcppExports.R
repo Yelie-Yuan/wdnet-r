@@ -87,8 +87,8 @@ dprewire_undirected_cpp <- function(iteration, nattempts, node1, node2, degree1,
 #' @param directed Whether the network is directed.
 #' @return Number of nodes, sequences of source and target nodes.
 #' 
-rpanet_cpp <- function(snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed) {
-    .Call(`_wdnet_rpanet_cpp`, snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed)
+rpanet_nodelist_cpp <- function(snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed) {
+    .Call(`_wdnet_rpanet_nodelist_cpp`, snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed)
 }
 
 #' Fill missing nodes in the node sequence. Defined for \code{wdnet::rpanet}.
@@ -96,8 +96,8 @@ rpanet_cpp <- function(snode, tnode, scenario, nnode, nedge, delta_out, delta_in
 #' @param nodes Source/target nodes, missing nodes are denoted as 0.
 #' @param edges Sampled edges according to preferential attachment.
 #' @return Source/target nodes.
-findNode_cpp <- function(nodes, edges) {
-    .Call(`_wdnet_findNode_cpp`, nodes, edges)
+find_node_cpp <- function(nodes, edges) {
+    .Call(`_wdnet_find_node_cpp`, nodes, edges)
 }
 
 #' Fill missing values in node sequence. Defined for \code{wdnet::rpanet}.
@@ -107,8 +107,8 @@ findNode_cpp <- function(nodes, edges) {
 #' @param start_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 #' @param end_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 #' @return Node sequence.
-findNode_undirected_cpp <- function(node1, node2, start_edge, end_edge) {
-    .Call(`_wdnet_findNode_undirected_cpp`, node1, node2, start_edge, end_edge)
+find_node_undirected_cpp <- function(node1, node2, start_edge, end_edge) {
+    .Call(`_wdnet_find_node_undirected_cpp`, node1, node2, start_edge, end_edge)
 }
 
 #' Aggregate edgeweight into nodes' strength.
@@ -120,8 +120,8 @@ findNode_undirected_cpp <- function(node1, node2, start_edge, end_edge) {
 #' @param weighted Logical, true if the edges are weighted, 
 #'   false if not.
 #' @return Out-strength and in-strength.
-nodeStrength_cpp <- function(snode, tnode, weight, nnode, weighted = TRUE) {
-    .Call(`_wdnet_nodeStrength_cpp`, snode, tnode, weight, nnode, weighted)
+node_strength_cpp <- function(snode, tnode, weight, nnode, weighted = TRUE) {
+    .Call(`_wdnet_node_strength_cpp`, snode, tnode, weight, nnode, weighted)
 }
 
 #' Uniformly draw a node from existing nodes for each time step.
@@ -129,8 +129,8 @@ nodeStrength_cpp <- function(snode, tnode, weight, nnode, weighted = TRUE) {
 #'
 #' @param total_node Number of existing nodes at each time step.
 #' @return Sampled nodes.
-sampleNode_cpp <- function(total_node) {
-    .Call(`_wdnet_sampleNode_cpp`, total_node)
+sample_node_cpp <- function(total_node) {
+    .Call(`_wdnet_sample_node_cpp`, total_node)
 }
 
 #' Fill edgeweight into the adjacency matrix.
@@ -140,7 +140,7 @@ sampleNode_cpp <- function(total_node) {
 #' @param edgelist A two column matrix represents the edgelist.
 #' @param edgeweight A vector represents the weight of edges.
 #' @return Adjacency matrix with edge weight.
-fillWeight_cpp <- function(adj, edgelist, edgeweight) {
-    .Call(`_wdnet_fillWeight_cpp`, adj, edgelist, edgeweight)
+fill_weight_cpp <- function(adj, edgelist, edgeweight) {
+    .Call(`_wdnet_fill_weight_cpp`, adj, edgelist, edgeweight)
 }
 

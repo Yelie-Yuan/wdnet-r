@@ -62,7 +62,7 @@ edge_to_adj <- function(edgelist, edgeweight = NULL, directed = TRUE) {
   if (is.null(edgeweight)) {
     edgeweight <- rep(1, nrow(edgelist))
   }
-  adj <- fillWeight_cpp(adj, edgelist - 1, edgeweight)
+  adj <- fill_weight_cpp(adj, edgelist - 1, edgeweight)
   if (! directed) {
     adj <- adj + t(adj)
     diag(adj) <- diag(adj) / 2

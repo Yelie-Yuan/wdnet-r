@@ -7,7 +7,7 @@
 using namespace std;
 
 /**
- * Node structure.
+ * Node structure in directed networks.
  * id: node id
  * outs, ins: out- and in-strength
  * sourcep: preference of being chosen as a source node
@@ -16,11 +16,11 @@ using namespace std;
  * total_targetp: sum of targetp of current node and its children
  * *left, *right, *parent: pointers to its left, right and parent
  */
-struct node {
+struct node_d {
   int id, group;
   double outs, ins;
   double sourcep, targetp, total_sourcep, total_targetp;
-  node *left, *right, *parent;
+  node_d *left, *right, *parent;
 };
 
 
@@ -60,7 +60,7 @@ double targetPreferenceFunc(double outs, double ins, double *target_params) {
  * @param current_node The current node.
  * 
  */
-void updateTotalSourcep(node *current_node) {
+void updateTotalSourcep(node_d *current_node) {
   if (current_node->left == NULL) {
     current_node->total_sourcep = current_node->sourcep;
   }
@@ -81,7 +81,7 @@ void updateTotalSourcep(node *current_node) {
  * @param current_node The current node.
  * 
  */
-void updateTotalTargetp(node *current_node) {
+void updateTotalTargetp(node_d *current_node) {
   if (current_node->left == NULL) {
     current_node->total_targetp = current_node->targetp;
   }
@@ -104,7 +104,7 @@ void updateTotalTargetp(node *current_node) {
  * @param target_params Parameters passed to the target preference function.
  * 
  */
-void updatePreference2(node *temp_node, 
+void updatePreferenceD(node_d *temp_node, 
     double *source_params, double *target_params) {
   double tp = temp_node->sourcep;
   temp_node->sourcep = sourcePreferenceFunc(temp_node->outs, temp_node->ins, 
@@ -127,8 +127,8 @@ void updatePreference2(node *temp_node,
  * 
  * @return The new node.
  */
-node *createNode2(int id) {
-  node *new_node = new node();
+node_d *createNodeD(int id) {
+  node_d *new_node = new node_d();
   new_node->id = id;
   new_node->group = -1;
   new_node->outs = new_node->ins = 0;
@@ -146,9 +146,9 @@ node *createNode2(int id) {
  * 
  * @return The new node.
  */
-node *insertNode2(queue<node*> &q, int new_node_id) {
-  node *new_node = createNode2(new_node_id);
-  node *temp_node = q.front();
+node_d *insertNodeD(queue<node_d*> &q, int new_node_id) {
+  node_d *new_node = createNodeD(new_node_id);
+  node_d *temp_node = q.front();
   if(temp_node->left == NULL) {
     temp_node->left = new_node;
   }
@@ -169,7 +169,7 @@ node *insertNode2(queue<node*> &q, int new_node_id) {
  * 
  * @return Sampled source/target node.
  */
-node *findSourceNode(node *root, double w) {
+node_d *findSourceNode(node_d *root, double w) {
   if (w > root->total_sourcep) {
     // numerical error
     // Rprintf("Numerical error. Diff %f.\n", (w - root->total_sourcep) * pow(10, 10));
@@ -197,7 +197,7 @@ node *findSourceNode(node *root, double w) {
  * 
  * @return Sampled source/target node.
  */
-node *findTargetNode(node *root, double w) {
+node_d *findTargetNode(node_d *root, double w) {
   if (w > root->total_targetp) {
     // numerical error
     // Rprintf("Numerical error. Diff %f.\n", (w - root->total_targetp) * pow(10, 10));
@@ -226,9 +226,9 @@ node *findTargetNode(node *root, double w) {
  * 
  * @return Sampled source/target node.
  */
-node* sampleNode2(node *root, char type, deque<node*> &qm) {
+node_d* sampleNodeD(node_d *root, char type, deque<node_d*> &qm) {
   double w;
-  node *temp_node;
+  node_d *temp_node;
   while (true) {
     w = 1;
     while (w == 1) {
@@ -259,7 +259,7 @@ node* sampleNode2(node *root, char type, deque<node*> &qm) {
 int sampleGroup(double *group_dist) {
   double g = 0;
   int i = 0;
-  while ((g == 0) | (g == 1)) {
+  while ((g == 0) || (g == 1)) {
     g = unif_rand();
   }
   while (g > 0) {
@@ -345,24 +345,24 @@ extern "C" {
       tnode_unique = *tnode_unique_ptr, 
       m_error, sample_recip = *sample_recip_ptr, 
       selfloop_recip = *selfloop_recip_ptr,
-      check_unique = node_unique | snode_unique | tnode_unique;
+      check_unique = node_unique || snode_unique || tnode_unique;
     int i, j, ks, kt, n_existing, current_scenario;
-    node *node1, *node2;
+    node_d *node1, *node2;
     // initialize a tree from the seed graph
-    node *root = createNode2(0);
+    node_d *root = createNodeD(0);
     root->outs = outs[0];
     root->ins = ins[0];
     root->group = node_group[0];
-    updatePreference2(root, source_params, target_params);
-    queue<node*> q, q1;
-    deque<node*> qm_source, qm_target;
+    updatePreferenceD(root, source_params, target_params);
+    queue<node_d*> q, q1;
+    deque<node_d*> qm_source, qm_target;
     q.push(root);
     for (int i = 1; i < new_node_id; i++) {
-      node1 = insertNode2(q, i);
+      node1 = insertNodeD(q, i);
       node1->outs = outs[i];
       node1->ins = ins[i];
       node1->group = node_group[i];
-      updatePreference2(node1, source_params, target_params);
+      updatePreferenceD(node1, source_params, target_params);
     }
     // sample edges
     GetRNGstate();
@@ -426,22 +426,22 @@ extern "C" {
         }
         switch (current_scenario) {
           case 1:
-            node1 = insertNode2(q, new_node_id);
+            node1 = insertNodeD(q, new_node_id);
             if (sample_recip) {
               node1->group = sampleGroup(group_dist);
             }
             new_node_id++;
-            node2 = sampleNode2(root, 't', qm_target);
+            node2 = sampleNodeD(root, 't', qm_target);
             break;
           case 2:
             if (source_first) {
-              node1 = sampleNode2(root, 's', qm_source);
+              node1 = sampleNodeD(root, 's', qm_source);
               if (beta_loop) {
-                node2 = sampleNode2(root, 't', qm_target);
+                node2 = sampleNodeD(root, 't', qm_target);
               }
               else {
                 if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
-                  node2 = sampleNode2(root, 't', qm_target);
+                  node2 = sampleNodeD(root, 't', qm_target);
                 }
                 else {
                   if (kt + 2 > n_existing) {
@@ -449,19 +449,19 @@ extern "C" {
                     break;
                   }
                   qm_target.push_back(node1);
-                  node2 = sampleNode2(root, 't', qm_target);
+                  node2 = sampleNodeD(root, 't', qm_target);
                   qm_target.pop_back();
                 }
               }
             }
             else {
-              node2 = sampleNode2(root, 't', qm_target);
+              node2 = sampleNodeD(root, 't', qm_target);
               if (beta_loop) {
-                node1 = sampleNode2(root, 's', qm_source);
+                node1 = sampleNodeD(root, 's', qm_source);
               }
               else {
                 if (find(qm_source.begin(), qm_source.end(), node2) != qm_source.end()) {
-                  node1 = sampleNode2(root, 's', qm_source);
+                  node1 = sampleNodeD(root, 's', qm_source);
                 }
                 else {
                   if (ks + 2 > n_existing) {
@@ -469,24 +469,24 @@ extern "C" {
                     break;
                   }
                   qm_source.push_back(node2);
-                  node1 = sampleNode2(root, 's', qm_source);
+                  node1 = sampleNodeD(root, 's', qm_source);
                   qm_source.pop_back();
                 }
               }
             }
             break;
           case 3:
-            node1 = sampleNode2(root, 's', qm_source);
-            node2 = insertNode2(q, new_node_id);
+            node1 = sampleNodeD(root, 's', qm_source);
+            node2 = insertNodeD(q, new_node_id);
             if (sample_recip) {
               node2->group = sampleGroup(group_dist);
             }
             new_node_id++;
             break;
           case 4:
-            node1 = insertNode2(q, new_node_id);
+            node1 = insertNodeD(q, new_node_id);
             new_node_id++;
-            node2 = insertNode2(q, new_node_id);
+            node2 = insertNodeD(q, new_node_id);
             new_node_id++;
             if (sample_recip) {
               node1->group = sampleGroup(group_dist);
@@ -494,7 +494,7 @@ extern "C" {
             }
             break;
           case 5:
-            node1 = node2 = insertNode2(q, new_node_id);
+            node1 = node2 = insertNodeD(q, new_node_id);
             if (sample_recip) {
               node1->group = sampleGroup(group_dist);
             }
@@ -510,16 +510,16 @@ extern "C" {
             qm_source.push_back(node1);
             qm_target.push_back(node1);
           }
-          if ((node2->id < n_existing) & (node1 != node2)) {
+          if ((node2->id < n_existing) && (node1 != node2)) {
             qm_source.push_back(node2);
             qm_target.push_back(node2);
           }
         }
         else {
-          if (snode_unique & (node1->id < n_existing)) {
+          if (snode_unique && (node1->id < n_existing)) {
             qm_source.push_back(node1);
           }
-          if (tnode_unique & (node2->id < n_existing)) {
+          if (tnode_unique && (node2->id < n_existing)) {
             qm_target.push_back(node2);
           }
         }
@@ -532,7 +532,7 @@ extern "C" {
         q1.push(node2);
         // handle reciprocal
         if (sample_recip) {
-          if ((node1->id != node2->id) | selfloop_recip) {
+          if ((node1->id != node2->id) || selfloop_recip) {
             p = unif_rand();
             if (p <= recip[node2->group * ngroup + node1->group]) {
               new_edge_id++;
@@ -551,7 +551,7 @@ extern "C" {
         Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
       }
       while(! q1.empty()) {
-        updatePreference2(q1.front(), source_params, target_params);
+        updatePreferenceD(q1.front(), source_params, target_params);
         q1.pop();
       }
       qm_source.clear();
@@ -561,11 +561,11 @@ extern "C" {
     *new_node_id_ptr = new_node_id;
     *new_edge_id_ptr = new_edge_id;
     // free memory (queue)
-    queue<node*>().swap(q);
-    queue<node*>().swap(q1);
+    queue<node_d*>().swap(q);
+    queue<node_d*>().swap(q1);
     // save strength and preference
     q.push(root);
-    node *temp_node;
+    node_d *temp_node;
     j = 0;
     while (! q.empty())
     {
@@ -588,6 +588,6 @@ extern "C" {
       j++;
     }
     // free memory (queue)
-    queue<node*>().swap(q);
+    queue<node_d*>().swap(q);
   }
 }

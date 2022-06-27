@@ -74,9 +74,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rpanet_cpp
-Rcpp::List rpanet_cpp(arma::vec snode, arma::vec tnode, arma::vec scenario, int nnode, int nedge, double delta_out, double delta_in, bool directed);
-RcppExport SEXP _wdnet_rpanet_cpp(SEXP snodeSEXP, SEXP tnodeSEXP, SEXP scenarioSEXP, SEXP nnodeSEXP, SEXP nedgeSEXP, SEXP delta_outSEXP, SEXP delta_inSEXP, SEXP directedSEXP) {
+// rpanet_nodelist_cpp
+Rcpp::List rpanet_nodelist_cpp(arma::vec snode, arma::vec tnode, arma::vec scenario, int nnode, int nedge, double delta_out, double delta_in, bool directed);
+RcppExport SEXP _wdnet_rpanet_nodelist_cpp(SEXP snodeSEXP, SEXP tnodeSEXP, SEXP scenarioSEXP, SEXP nnodeSEXP, SEXP nedgeSEXP, SEXP delta_outSEXP, SEXP delta_inSEXP, SEXP directedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,25 +88,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type delta_out(delta_outSEXP);
     Rcpp::traits::input_parameter< double >::type delta_in(delta_inSEXP);
     Rcpp::traits::input_parameter< bool >::type directed(directedSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_cpp(snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed));
+    rcpp_result_gen = Rcpp::wrap(rpanet_nodelist_cpp(snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed));
     return rcpp_result_gen;
 END_RCPP
 }
-// findNode_cpp
-arma::vec findNode_cpp(arma::vec nodes, arma::vec edges);
-RcppExport SEXP _wdnet_findNode_cpp(SEXP nodesSEXP, SEXP edgesSEXP) {
+// find_node_cpp
+arma::vec find_node_cpp(arma::vec nodes, arma::vec edges);
+RcppExport SEXP _wdnet_find_node_cpp(SEXP nodesSEXP, SEXP edgesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type nodes(nodesSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type edges(edgesSEXP);
-    rcpp_result_gen = Rcpp::wrap(findNode_cpp(nodes, edges));
+    rcpp_result_gen = Rcpp::wrap(find_node_cpp(nodes, edges));
     return rcpp_result_gen;
 END_RCPP
 }
-// findNode_undirected_cpp
-Rcpp::List findNode_undirected_cpp(arma::vec node1, arma::vec node2, arma::vec start_edge, arma::vec end_edge);
-RcppExport SEXP _wdnet_findNode_undirected_cpp(SEXP node1SEXP, SEXP node2SEXP, SEXP start_edgeSEXP, SEXP end_edgeSEXP) {
+// find_node_undirected_cpp
+Rcpp::List find_node_undirected_cpp(arma::vec node1, arma::vec node2, arma::vec start_edge, arma::vec end_edge);
+RcppExport SEXP _wdnet_find_node_undirected_cpp(SEXP node1SEXP, SEXP node2SEXP, SEXP start_edgeSEXP, SEXP end_edgeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,13 +114,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type node2(node2SEXP);
     Rcpp::traits::input_parameter< arma::vec >::type start_edge(start_edgeSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type end_edge(end_edgeSEXP);
-    rcpp_result_gen = Rcpp::wrap(findNode_undirected_cpp(node1, node2, start_edge, end_edge));
+    rcpp_result_gen = Rcpp::wrap(find_node_undirected_cpp(node1, node2, start_edge, end_edge));
     return rcpp_result_gen;
 END_RCPP
 }
-// nodeStrength_cpp
-Rcpp::List nodeStrength_cpp(arma::vec snode, arma::vec tnode, arma::vec weight, int nnode, bool weighted);
-RcppExport SEXP _wdnet_nodeStrength_cpp(SEXP snodeSEXP, SEXP tnodeSEXP, SEXP weightSEXP, SEXP nnodeSEXP, SEXP weightedSEXP) {
+// node_strength_cpp
+Rcpp::List node_strength_cpp(arma::vec snode, arma::vec tnode, arma::vec weight, int nnode, bool weighted);
+RcppExport SEXP _wdnet_node_strength_cpp(SEXP snodeSEXP, SEXP tnodeSEXP, SEXP weightSEXP, SEXP nnodeSEXP, SEXP weightedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -129,31 +129,31 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< int >::type nnode(nnodeSEXP);
     Rcpp::traits::input_parameter< bool >::type weighted(weightedSEXP);
-    rcpp_result_gen = Rcpp::wrap(nodeStrength_cpp(snode, tnode, weight, nnode, weighted));
+    rcpp_result_gen = Rcpp::wrap(node_strength_cpp(snode, tnode, weight, nnode, weighted));
     return rcpp_result_gen;
 END_RCPP
 }
-// sampleNode_cpp
-arma::vec sampleNode_cpp(arma::vec total_node);
-RcppExport SEXP _wdnet_sampleNode_cpp(SEXP total_nodeSEXP) {
+// sample_node_cpp
+arma::vec sample_node_cpp(arma::vec total_node);
+RcppExport SEXP _wdnet_sample_node_cpp(SEXP total_nodeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type total_node(total_nodeSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleNode_cpp(total_node));
+    rcpp_result_gen = Rcpp::wrap(sample_node_cpp(total_node));
     return rcpp_result_gen;
 END_RCPP
 }
-// fillWeight_cpp
-arma::mat fillWeight_cpp(arma::mat adj, arma::mat edgelist, arma::vec edgeweight);
-RcppExport SEXP _wdnet_fillWeight_cpp(SEXP adjSEXP, SEXP edgelistSEXP, SEXP edgeweightSEXP) {
+// fill_weight_cpp
+arma::mat fill_weight_cpp(arma::mat adj, arma::mat edgelist, arma::vec edgeweight);
+RcppExport SEXP _wdnet_fill_weight_cpp(SEXP adjSEXP, SEXP edgelistSEXP, SEXP edgeweightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type adj(adjSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type edgelist(edgelistSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type edgeweight(edgeweightSEXP);
-    rcpp_result_gen = Rcpp::wrap(fillWeight_cpp(adj, edgelist, edgeweight));
+    rcpp_result_gen = Rcpp::wrap(fill_weight_cpp(adj, edgelist, edgeweight));
     return rcpp_result_gen;
 END_RCPP
 }

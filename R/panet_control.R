@@ -149,11 +149,8 @@ rpactl.edgeweight <- function(distribution = NA,
 #' @param tnode.replace Logical, whether the target nodes in the same step
 #'   should be sampled with replacement. Defined for directed networks.
 #' @param node.replace Logical, whether the nodes in the same step should be
-#'   sampled with replacement. Defined for undirected and directed networks. For
-#'   directed networks, when \code{node.replace} is \code{FALSE}, sampled source
-#'   and target nodes in the same step are all different from each other,
-#'   \code{beta.loop}, \code{snode.replace} and \code{tnode.replace} will be set
-#'   as \code{FALSE}.
+#'   sampled with replacement. Defined for undirected networks. If FALSE, 
+#'   self-loops will not be allowed under beta scenario. 
 #' 
 #' @return A list of class \code{rpactl} with components \code{distribution},
 #'   \code{dparams}, \code{shift}, \code{snode.replace}, \code{tnode.replace} and 
@@ -172,9 +169,6 @@ rpactl.newedge <- function(distribution = NA,
                             snode.replace = TRUE,
                             tnode.replace = TRUE,
                             node.replace = TRUE) {
-  if (! node.replace) {
-    snode.replace <- tnode.replace <- FALSE
-  }
   newedge <- list("distribution" = distribution,
                   "dparams" = dparams,
                   "shift" = shift,

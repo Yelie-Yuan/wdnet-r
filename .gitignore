@@ -2,6 +2,7 @@
 *.Rcheck/
 *.*~
 *~
+src/wdnet.dll
 
 # History files
 .Rhistory
@@ -31,3 +32,6 @@ GTAGS
 GRTAGS
 GPATH
 .clang_complete
+
+# documentation
+man/*.Rd

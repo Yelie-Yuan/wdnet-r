@@ -15,14 +15,14 @@
 //' @return Number of nodes, sequences of source and target nodes.
 //' 
 // [[Rcpp::export]]
-Rcpp::List rpanet_cpp(arma::vec snode,
-                      arma::vec tnode,
-                      arma::vec scenario,
-                      int nnode,
-                      int nedge,
-                      double delta_out,
-                      double delta_in, 
-                      bool directed) {
+Rcpp::List rpanet_nodelist_cpp(arma::vec snode,
+                               arma::vec tnode,
+                               arma::vec scenario,
+                               int nnode,
+                               int nedge,
+                               double delta_out,
+                               double delta_in, 
+                               bool directed) {
   GetRNGstate();
   int n = scenario.size();
   double u, v;

@@ -28,7 +28,7 @@ double preferenceFuncNaive(double strength, double *params) {
  * 
  * @return Sampled node.
  */
-int sampleNodeNaive(double *pref, double total_pref, deque<int> &qm) {
+int sampleNodeNaiveUnd(double *pref, double total_pref, deque<int> &qm) {
   double w;
   int i;
   while (true) {
@@ -148,21 +148,21 @@ extern "C" {
           case 1:
             node1 = new_node_id;
             new_node_id++;
-            node2 = sampleNodeNaive(pref, total_pref, qm);
+            node2 = sampleNodeNaiveUnd(pref, total_pref, qm);
             break;
           case 2:
-            node1 = sampleNodeNaive(pref, total_pref, qm);
+            node1 = sampleNodeNaiveUnd(pref, total_pref, qm);
             if (! beta_loop) {
               qm.push_back(node1);
-              node2 = sampleNodeNaive(pref, total_pref, qm);
+              node2 = sampleNodeNaiveUnd(pref, total_pref, qm);
               qm.pop_back();
             }
             else {
-              node2 = sampleNodeNaive(pref, total_pref, qm);
+              node2 = sampleNodeNaiveUnd(pref, total_pref, qm);
             }
             break;
           case 3:
-            node1 = sampleNodeNaive(pref, total_pref, qm);
+            node1 = sampleNodeNaiveUnd(pref, total_pref, qm);
             node2 = new_node_id;
             new_node_id++;
             break;
@@ -182,7 +182,7 @@ extern "C" {
           if (node1 < n_existing) {
             qm.push_back(node1);
           }
-          if ((node2 < n_existing) & (node1 != node2)) {
+          if ((node2 < n_existing) && (node1 != node2)) {
             qm.push_back(node2);
           }
         }

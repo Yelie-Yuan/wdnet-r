@@ -33,7 +33,7 @@ get_dist <- function(edgelist = NA, directed = TRUE,
                      joint_dist = FALSE) {
   if (! directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
   edgelist <- as.matrix(edgelist)
-  temp <- nodeStrength_cpp(snode = edgelist[, 1], 
+  temp <- node_strength_cpp(snode = edgelist[, 1], 
                            tnode = edgelist[, 2], 
                            nnode = max(edgelist), 
                            weight = 1,

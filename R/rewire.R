@@ -50,7 +50,7 @@ dprewire_directed <- function(edgelist, eta,
   edgelist <- as.matrix(edgelist)
   sourceNode <- edgelist[, 1]
   targetNode <- edgelist[, 2]
-  temp <- nodeStrength_cpp(snode = sourceNode, 
+  temp <- node_strength_cpp(snode = sourceNode, 
                            tnode = targetNode, 
                            nnode = max(edgelist), 
                            weight = 1,

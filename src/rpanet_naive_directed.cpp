@@ -45,7 +45,7 @@ double targetPreferenceFuncNaive(double outs, double ins, double *target_params)
  * 
  * @return Sampled source/target node.
  */
-int sampleNodeNaive2(double *pref, double total_pref, deque<int> &qm) {
+int sampleNodeNaiveD(double *pref, double total_pref, deque<int> &qm) {
   double w;
   int i;
   while (true) {
@@ -76,7 +76,7 @@ int sampleNodeNaive2(double *pref, double total_pref, deque<int> &qm) {
 int sampleGroupNaive(double *group_dist) {
   double g = 0;
   int i = 0;
-  while ((g == 0) | (g == 1)) {
+  while ((g == 0) || (g == 1)) {
     g = unif_rand();
   }
   while (g > 0) {
@@ -162,7 +162,7 @@ extern "C" {
       tnode_unique = *tnode_unique_ptr, 
       m_error, sample_recip = *sample_recip_ptr, 
       selfloop_recip = *selfloop_recip_ptr,
-      check_unique = node_unique | snode_unique | tnode_unique;
+      check_unique = node_unique || snode_unique || tnode_unique;
     int i, j, ks, kt, n_existing, current_scenario;
     int node1, node2, temp_node;
     double total_source_pref = 0, total_target_pref = 0;
@@ -241,17 +241,17 @@ extern "C" {
               node_group[node1] = sampleGroupNaive(group_dist);
             }
             new_node_id++;
-            node2 = sampleNodeNaive2(target_pref, total_target_pref, qm_target);
+            node2 = sampleNodeNaiveD(target_pref, total_target_pref, qm_target);
             break;
           case 2:
             if (source_first) {
-              node1 = sampleNodeNaive2(source_pref, total_source_pref, qm_source);
+              node1 = sampleNodeNaiveD(source_pref, total_source_pref, qm_source);
               if (beta_loop) {
-                node2 = sampleNodeNaive2(target_pref, total_target_pref, qm_target);
+                node2 = sampleNodeNaiveD(target_pref, total_target_pref, qm_target);
               }
               else {
                 if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
-                  node2 = sampleNodeNaive2(target_pref, total_target_pref, qm_target);
+                  node2 = sampleNodeNaiveD(target_pref, total_target_pref, qm_target);
                 }
                 else {
                   if (kt + 2 > n_existing) {
@@ -259,19 +259,19 @@ extern "C" {
                     break;
                   }
                   qm_target.push_back(node1);
-                  node2 = sampleNodeNaive2(target_pref, total_target_pref, qm_target);
+                  node2 = sampleNodeNaiveD(target_pref, total_target_pref, qm_target);
                   qm_target.pop_back();
                 }
               }
             }
             else {
-              node2 = sampleNodeNaive2(target_pref, total_target_pref, qm_target);
+              node2 = sampleNodeNaiveD(target_pref, total_target_pref, qm_target);
               if (beta_loop) {
-                node1 = sampleNodeNaive2(source_pref, total_source_pref, qm_source);
+                node1 = sampleNodeNaiveD(source_pref, total_source_pref, qm_source);
               }
               else {
                 if (find(qm_source.begin(), qm_source.end(), node2) != qm_source.end()) {
-                  node1 = sampleNodeNaive2(source_pref, total_source_pref, qm_source);
+                  node1 = sampleNodeNaiveD(source_pref, total_source_pref, qm_source);
                 }
                 else {
                   if (ks + 2 > n_existing) {
@@ -279,14 +279,14 @@ extern "C" {
                     break;
                   }
                   qm_source.push_back(node2);
-                  node1 = sampleNodeNaive2(source_pref, total_source_pref, qm_source);
+                  node1 = sampleNodeNaiveD(source_pref, total_source_pref, qm_source);
                   qm_source.pop_back();
                 }
               }
             }
             break;
           case 3:
-            node1 = sampleNodeNaive2(source_pref, total_source_pref, qm_source);
+            node1 = sampleNodeNaiveD(source_pref, total_source_pref, qm_source);
             node2 = new_node_id;
             if (sample_recip) {
               node_group[node2] = sampleGroupNaive(group_dist);
@@ -320,16 +320,16 @@ extern "C" {
             qm_source.push_back(node1);
             qm_target.push_back(node1);
           }
-          if ((node2 < n_existing) & (node1 != node2)) {
+          if ((node2 < n_existing) && (node1 != node2)) {
             qm_source.push_back(node2);
             qm_target.push_back(node2);
           }
         }
         else {
-          if (snode_unique & (node1 < n_existing)) {
+          if (snode_unique && (node1 < n_existing)) {
             qm_source.push_back(node1);
           }
-          if (tnode_unique & (node2 < n_existing)) {
+          if (tnode_unique && (node2 < n_existing)) {
             qm_target.push_back(node2);
           }
         }
@@ -342,7 +342,7 @@ extern "C" {
         q1.push(node2);
         // handel reciprocal
         if (sample_recip) {
-          if ((node1 != node2) | selfloop_recip) {
+          if ((node1 != node2) || selfloop_recip) {
             p = unif_rand();
             if (p <= recip[node_group[node2] * ngroup + node_group[node1]]) {
               new_edge_id++;

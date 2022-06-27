@@ -7,18 +7,18 @@
 using namespace std;
 
 /**
- * Node structure.
+ * Node structure in undirected networks.
  * id: node id
  * strength: node strength
  * p: preference of being chosen from the existing nodes
  * totalp: sum of preference of current node and its children
  * *left, *right, *parent: pointers to its left, right and parent
  */
-struct node {
+struct node_und {
   int id;
   double strength;
   double p, totalp;
-  node *left, *right, *parent;
+  node_und *left, *right, *parent;
 };
 
 /**
@@ -40,7 +40,7 @@ double preferenceFunc(double strength, double *params) {
  * @param current_node The current node.
  * 
  */
-void updateTotalp(node *current_node) {
+void updateTotalp(node_und *current_node) {
   if (current_node->left == NULL) {
     current_node->totalp = current_node->p;
   }
@@ -62,7 +62,7 @@ void updateTotalp(node *current_node) {
  * @param params Parameters passed to the preference function.
  * 
  */
-void updatePreference(node *temp_node, double *params) {
+void updatePreferenceUnd(node_und *temp_node, double *params) {
   temp_node->p = preferenceFunc(temp_node->strength, params);
   updateTotalp(temp_node);
 }
@@ -74,8 +74,8 @@ void updatePreference(node *temp_node, double *params) {
  * 
  * @return The new node.
  */
-node *createNode(int id) {
-  node *new_node = new node();
+node_und *createNodeUnd(int id) {
+  node_und *new_node = new node_und();
   new_node->id = id;
   new_node->strength = 0;
   new_node->p = new_node->totalp = 0;
@@ -91,9 +91,9 @@ node *createNode(int id) {
  * 
  * @return The new node.
  */
-node *insertNode(queue<node*> &q, int id) {
-  node *new_node = createNode(id);
-  node *temp_node = q.front();
+node_und *insertNodeUnd(queue<node_und*> &q, int id) {
+  node_und *new_node = createNodeUnd(id);
+  node_und *temp_node = q.front();
   // check left
   if(temp_node->left == NULL) {
     temp_node->left = new_node;
@@ -116,7 +116,7 @@ node *insertNode(queue<node*> &q, int id) {
  * 
  * @return Sampled node.
  */
-node *findNode(node *root, double w) {
+node_und *findNode(node_und *root, double w) {
   if (w > root->totalp) {
     // numerical error
     // Rprintf("Numerical error. Diff %f.\n", (w - root->totalp) * pow(10, 10));
@@ -144,9 +144,9 @@ node *findNode(node *root, double w) {
  * 
  * @return Sampled node.
  */
-node *sampleNode(node *root, deque<node*> &qm) {
+node_und *sampleNodeUnd(node_und *root, deque<node_und*> &qm) {
   double w;
-  node *temp_node;
+  node_und *temp_node;
   while (true) {
     w = 1;
     while (w == 1) {
@@ -204,18 +204,18 @@ extern "C" {
     bool beta_loop = *beta_loop_ptr, node_unique = *node_unique_ptr,
       m_error;
     int i, j, k, n_existing, current_scenario;
-    node *node1, *node2;
+    node_und *node1, *node2;
     // initialize a tree from seed graph
-    node *root = createNode(0);
+    node_und *root = createNodeUnd(0);
     root->strength = strength[0];
-    updatePreference(root, params);
-    queue<node*> q, q1;
-    deque<node*> qm;
+    updatePreferenceUnd(root, params);
+    queue<node_und*> q, q1;
+    deque<node_und*> qm;
     q.push(root);
     for (i = 1; i < new_node_id; i++) {
-      node1 = insertNode(q, i);
+      node1 = insertNodeUnd(q, i);
       node1->strength = strength[i];
-      updatePreference(node1, params);
+      updatePreferenceUnd(node1, params);
     }
     // sample edges
     GetRNGstate();
@@ -264,34 +264,34 @@ extern "C" {
         }
         switch (current_scenario) {
           case 1:
-            node1 = insertNode(q, new_node_id);
+            node1 = insertNodeUnd(q, new_node_id);
             new_node_id++;
-            node2 = sampleNode(root, qm);
+            node2 = sampleNodeUnd(root, qm);
             break;
           case 2:
-            node1 = sampleNode(root, qm);
+            node1 = sampleNodeUnd(root, qm);
             if (! beta_loop) {
               qm.push_back(node1);
-              node2 = sampleNode(root, qm);
+              node2 = sampleNodeUnd(root, qm);
               qm.pop_back();
             }
             else {
-              node2 = sampleNode(root, qm);
+              node2 = sampleNodeUnd(root, qm);
             }
             break;
           case 3:
-            node1 = sampleNode(root, qm);
-            node2 = insertNode(q, new_node_id);
+            node1 = sampleNodeUnd(root, qm);
+            node2 = insertNodeUnd(q, new_node_id);
             new_node_id++;
             break;
           case 4:
-            node1 = insertNode(q, new_node_id);
+            node1 = insertNodeUnd(q, new_node_id);
             new_node_id++;
-            node2 = insertNode(q, new_node_id);
+            node2 = insertNodeUnd(q, new_node_id);
             new_node_id++;
             break;
           case 5:
-            node1 = node2 = insertNode(q, new_node_id);
+            node1 = node2 = insertNodeUnd(q, new_node_id);
             new_node_id++;
             break;
         }
@@ -300,7 +300,7 @@ extern "C" {
           if (node1->id < n_existing) {
             qm.push_back(node1);
           }
-          if ((node2->id < n_existing) & (node1 != node2)) {
+          if ((node2->id < n_existing) && (node1 != node2)) {
             qm.push_back(node2);
           }
         }
@@ -319,7 +319,7 @@ extern "C" {
         Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
       }
       while (! q1.empty()) {
-        updatePreference(q1.front(), params);
+        updatePreferenceUnd(q1.front(), params);
         q1.pop();
       }
       qm.clear();
@@ -328,11 +328,11 @@ extern "C" {
     *new_node_id_ptr = new_node_id;
     *new_edge_id_ptr = new_edge_id;
     // free memory (queue)
-    queue<node*>().swap(q);
-    queue<node*>().swap(q1);
+    queue<node_und*>().swap(q);
+    queue<node_und*>().swap(q1);
     // save strength and preference
     q.push(root);
-    node *temp_node;
+    node_und *temp_node;
     j = 0;
     while (! q.empty()) {
       temp_node = q.front();
@@ -351,6 +351,6 @@ extern "C" {
       j++;
     }
     // free memory (queue)
-    queue<node*>().swap(q);
+    queue<node_und*>().swap(q);
   }
 }
