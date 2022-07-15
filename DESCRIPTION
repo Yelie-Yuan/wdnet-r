@@ -1,6 +1,6 @@
 Package: wdnet
 Title: Weighted and Directed Networks
-Version: 0.0.4
+Version: 0.0.4.9000
 Date: 2022-06-26
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
