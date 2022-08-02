@@ -37,7 +37,8 @@ NULL
 #' @examples
 #' \donttest{
 #' control <- rpactl.scenario(alpha = 0.5, beta = 0.5) +
-#'     rpactl.preference(spref = "pow(outs, 2) + 1",
+#'     rpactl.preference(ftype = "customized",
+#'     spref = "pow(outs, 2) + 1",
 #'     tpref = "pow(ins, 2) + 1")
 #' }
 #'
@@ -189,7 +190,8 @@ rpactl.newedge <- function(distribution = NA,
 #'
 #' @param spref Character expression or an object of class "externalptr" giving
 #'   the customized source preference function. Defined for directed networks.
-#'   Default value is \code{"outs + 1"}, i.e., node out-strength + 1.
+#'   Default value is \code{"outs + 1"}, i.e., node out-strength + 1. See
+#'   'Details' and 'Examples' for more information.
 #' @param tpref Character expression or an object of class "externalptr" giving
 #'   the customized target preference function. Defined for directed networks.
 #'   Default value is \code{"ins + 1"}, i.e., node in-strength + 1.
@@ -198,7 +200,7 @@ rpactl.newedge <- function(distribution = NA,
 #'   Default value is \code{"s + 1"}, i.e, node strenght + 1.
 #' @param ftype Preference function type. Either "default" or "customized".
 #'   "customized" preference functions require "binary" or "naive" generation
-#'   methods. See details for more information.
+#'   methods. See 'Details' for more information.
 #' @param sparams Parameters of the default source preference function. Defined
 #'   for directed networks. Probability of choosing an existing node as the
 #'   source node is proportional to \code{sparams[1] * out-strength^sparams[2] +
@@ -218,11 +220,11 @@ rpactl.newedge <- function(distribution = NA,
 #'   vector. If choosing default preference functions, \code{sparams},
 #'   \code{tparams} and \code{params} must be specified.
 #'
-#'   If choosing customized preference function, \code{spref}, \code{tpref} and
+#'   If choosing customized preference functions, \code{spref}, \code{tpref} and
 #'   and \code{pref} will be used and the network generation method must be
 #'   "binary" or "naive". \code{spref} defines the source preference function,
 #'   it can be a character expression or an object of class
-#'   "externalptr".\itemize{ \item{Character expression: } {it must be an
+#'   "externalptr". \itemize{ \item{Character expression: } {it must be an
 #'   \code{Rcpp} style function of \code{outs} (node out-strength) and
 #'   \code{ins} (node-instrength). For example, \code{"pow(outs, 2) + 1"},
 #'   \code{"pow(outs, 2) + pow(ins, 2) + 1"}, etc. The expression will be used
@@ -230,9 +232,9 @@ rpactl.newedge <- function(distribution = NA,
 #'   external pointer \code{put_spref_XPtr()} will be passed to the network
 #'   generation function. It must not have variables other than \code{outs} and
 #'   \code{ins}.} \item{"externalptr": } {an external pointer of an \code{Rcpp}
-#'   function. Use \code{pref.template()} to see a template for creating a
-#'   preference function and getting its pointer. For more information about
-#'   passing function pointers, see
+#'   function. An example for creating a source preference function and getting
+#'   its pointer is included in 'Examples'. For more information about passing
+#'   function pointers, see
 #'   \url{https://gallery.rcpp.org/articles/passing-cpp-function-pointers/}.}}
 #'   \code{tpref} and \code{pref} are defined analogously. Please note
 #'   \code{pref} must not have variables other than \code{s}.
@@ -246,12 +248,12 @@ rpactl.newedge <- function(distribution = NA,
 #'
 #' @examples
 #' \donttest{
-#' # set source preference as out-strength^2 + in-strength + 1,
+#' # Set source preference as out-strength^2 + in-strength + 1,
 #' # target preference as out-strength + in-strength^2 + 1
 #' # 1. use default preference functions
 #' control1 <- rpactl.preference(ftype = "default",
 #'     sparams = c(1, 2, 1, 1, 1), tparams = c(1, 1, 1, 2, 1))
-#' # 2. use character expressions 
+#' # 2. use character expressions
 #' control2 <- rpactl.preference(ftype = "customized",
 #'     spref = "pow(outs, 2) + ins + 1", tpref = "outs + pow(ins, 2) + 1")
 #' # 3. define cpp function and export function pointer
@@ -272,8 +274,8 @@ rpactl.newedge <- function(distribution = NA,
 #'     XPtr<myfuncPtr> put_myfunc_XPtr() {
 #'   	  return(XPtr<myfuncPtr>(new myfuncPtr(myfunc)));
 #'     }")
-#' control3 <- rpactl.preference(ftype = "customized", 
-#'     spref = put_myfunc_XPtr(), 
+#' control3 <- rpactl.preference(ftype = "customized",
+#'     spref = put_myfunc_XPtr(),
 #'     tpref = "outs + pow(ins, 2) + 1")
 #' ret <- rpanet(1e5, control = control3)
 #' }

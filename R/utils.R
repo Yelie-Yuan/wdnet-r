@@ -72,9 +72,9 @@ edge_to_adj <- function(edgelist, edgeweight = NULL, directed = TRUE) {
 }
 
 
-#' Get preference functions.
+#' Compile preference functions via \code{Rcpp}.
 #' 
-#' @param preference A list of external pointers or characters.
+#' @param preference A list for defining the preference functions.
 #' @return External pointers of preference functions.
 compile_pref_func <- function(preference) {
   compile_spref <- compile_tpref <- compile_pref <- FALSE
