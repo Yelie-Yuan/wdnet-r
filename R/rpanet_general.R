@@ -65,85 +65,56 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
   node_vec1[1:nedge] <- seednetwork$edgelist[, 1] - 1
   node_vec2[1:nedge] <- seednetwork$edgelist[, 2] - 1
   scenario[1:nedge] <- 0
-  seed_strength <- node_strength_cpp(seednetwork$edgelist[, 1], seednetwork$edgelist[, 2], seednetwork$edgeweight,
-                                    nnode, weighted = TRUE)
+  seed_strength <- node_strength_cpp(seednetwork$edgelist[, 1], 
+                                     seednetwork$edgelist[, 2], 
+                                     seednetwork$edgeweight,
+                                     nnode, weighted = TRUE)
   if (directed) {
-    outstrength <- instrength <- double(node_vec_length)
+    outstrength <- double(node_vec_length)
+    instrength <- double(node_vec_length)
     outstrength[1:nnode] <- seed_strength$outstrength
     instrength[1:nnode] <- seed_strength$instrength
-    source_pref <- target_pref <- double(node_vec_length)
+    source_pref <- double(node_vec_length)
+    target_pref <- double(node_vec_length)
     if (! sample.recip) {
       control$reciprocal$group.prob <- 1
       control$reciprocal$recip.prob <- matrix(0)
     }
     nodegroup <- c(seednetwork$nodegroup - 1, integer(node_vec_length))
     if (method == "binary") {
-      ret_c <- .C("rpanet_binary_directed_cpp",
-                  as.integer(nstep),
-                  m = as.integer(m),
-                  nnode = as.integer(nnode),
-                  nedge = as.integer(nedge),
-                  node_vec1 = as.integer(node_vec1),
-                  node_vec2 = as.integer(node_vec2),
-                  outstrength = as.double(outstrength),
-                  instrength = as.double(instrength),
-                  as.double(edgeweight),
-                  scenario = as.integer(scenario),
-                  as.double(control$scenario$alpha),
-                  as.double(control$scenario$beta),
-                  as.double(control$scenario$gamma),
-                  as.double(control$scenario$xi),
-                  as.integer(control$scenario$beta.loop),
-                  as.integer(control$scenario$source.first),
-                  as.integer(! control$newedge$node.replace),
-                  as.integer(! control$newedge$snode.replace),
-                  as.integer(! control$newedge$tnode.replace),
-                  as.double(control$preference$sparams),
-                  as.double(control$preference$tparams),
-                  as.integer(sample.recip),
-                  as.integer(control$reciprocal$selfloop.recip),
-                  as.double(control$reciprocal$group.prob),
-                  as.double(t(control$reciprocal$recip.prob)),
-                  nodegroup = as.integer(nodegroup),
-                  as.integer(length(control$reciprocal$group.prob)),
-                  source_pref = as.double(source_pref),
-                  target_pref = as.double(target_pref),
-                  PACKAGE = "wdnet")
+      ret_c <- rpanet_binary_directed(nstep,
+                                      m,
+                                      nnode,
+                                      nedge,
+                                      node_vec1,
+                                      node_vec2,
+                                      outstrength,
+                                      instrength,
+                                      edgeweight,
+                                      scenario,
+                                      sample.recip,
+                                      nodegroup,
+                                      source_pref,
+                                      target_pref,
+                                      control)
     } 
     else {
-      ret_c <- .C("rpanet_naive_directed_cpp",
-                  as.integer(nstep),
-                  m = as.integer(m),
-                  nnode = as.integer(nnode),
-                  nedge = as.integer(nedge),
-                  node_vec1 = as.integer(node_vec1),
-                  node_vec2 = as.integer(node_vec2),
-                  outstrength = as.double(outstrength),
-                  instrength = as.double(instrength),
-                  as.double(edgeweight),
-                  scenario = as.integer(scenario),
-                  as.double(control$scenario$alpha),
-                  as.double(control$scenario$beta),
-                  as.double(control$scenario$gamma),
-                  as.double(control$scenario$xi),
-                  as.integer(control$scenario$beta.loop),
-                  as.integer(control$scenario$source.first),
-                  as.integer(! control$newedge$node.replace),
-                  as.integer(! control$newedge$snode.replace),
-                  as.integer(! control$newedge$tnode.replace),
-                  as.double(control$preference$sparams),
-                  as.double(control$preference$tparams),
-                  as.integer(sample.recip),
-                  as.integer(control$reciprocal$selfloop.recip),
-                  as.double(control$reciprocal$group.prob),
-                  as.double(t(control$reciprocal$recip.prob)),
-                  nodegroup = as.integer(nodegroup),
-                  as.integer(length(control$reciprocal$group.prob)),
-                  source_pref = as.double(source_pref),
-                  target_pref = as.double(target_pref),
-                  PACKAGE = "wdnet")
+      ret_c <- rpanet_naive_directed_cpp(nstep,
+                                         m,
+                                         nnode,
+                                         nedge,
+                                         node_vec1,
+                                         node_vec2,
+                                         outstrength,
+                                         instrength,
+                                         edgeweight,
+                                         scenario,
+                                         sample.recip,
+                                         nodegroup,
+                                         source_pref,
+                                         target_pref,
+                                         control)
     }
-    control$preference$params <- NULL
   }
   else {
     sample.recip <- FALSE
@@ -152,84 +123,72 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
       seed_strength$instrength
     pref <- double(node_vec_length)
     if (method == "binary") {
-      ret_c <- .C("rpanet_binary_undirected_cpp",
-                  as.integer(nstep),
-                  m = as.integer(m),
-                  nnode = as.integer(nnode),
-                  nedge = as.integer(nedge),
-                  node_vec1 = as.integer(node_vec1),
-                  node_vec2 = as.integer(node_vec2),
-                  strength = as.double(strength),
-                  as.double(edgeweight),
-                  scenario = as.integer(scenario),
-                  as.double(control$scenario$alpha),
-                  as.double(control$scenario$beta),
-                  as.double(control$scenario$gamma),
-                  as.double(control$scenario$xi),
-                  as.integer(control$scenario$beta.loop),
-                  as.integer(! control$newedge$node.replace),
-                  as.double(control$preference$params),
-                  pref = as.double(pref),
-                  PACKAGE = "wdnet")
+      ret_c <- rpanet_binary_undirected_cpp(nstep,
+                                            m,
+                                            nnode,
+                                            nedge,
+                                            node_vec1,
+                                            node_vec2,
+                                            strength,
+                                            edgeweight,
+                                            scenario,
+                                            pref,
+                                            control)
     }
     else {
-      ret_c <- .C("rpanet_naive_undirected_cpp",
-                  as.integer(nstep),
-                  m = as.integer(m),
-                  nnode = as.integer(nnode),
-                  nedge = as.integer(nedge),
-                  node_vec1 = as.integer(node_vec1),
-                  node_vec2 = as.integer(node_vec2),
-                  strength = as.double(strength),
-                  as.double(edgeweight),
-                  scenario = as.integer(scenario),
-                  as.double(control$scenario$alpha),
-                  as.double(control$scenario$beta),
-                  as.double(control$scenario$gamma),
-                  as.double(control$scenario$xi),
-                  as.integer(control$scenario$beta.loop),
-                  as.integer(! control$newedge$node.replace),
-                  as.double(control$preference$params),
-                  pref = as.double(pref),
-                  PACKAGE = "wdnet")
+      ret_c <- rpanet_naive_undirected_cpp(nstep,
+                                           m,
+                                           nnode,
+                                           nedge,
+                                           node_vec1,
+                                           node_vec2,
+                                           strength,
+                                           edgeweight,
+                                           scenario,
+                                           pref,
+                                           control)
     }
-    control$preference$sparams <- control$preference$tparams <- NULL
   }
+  control$preference$ftype.temp <- NULL
+  control$preference$spref.pointer <- NULL
+  control$preference$tpref.pointer <- NULL
+  control$preference$pref.pointer <- NULL
   nnode <- ret_c$nnode
   nedge <- ret_c$nedge
-  node_vec1 <- ret_c$node_vec1[1:nedge] + 1
-  node_vec2 <- ret_c$node_vec2[1:nedge] + 1
-  scenario <- ret_c$scenario[1:nedge]
-  m <- ret_c$m
-  edgeweight <- edgeweight[1:nedge]
-  edgelist <- cbind(node_vec1, node_vec2)
-  colnames(edgelist) <- NULL
-  ret <- list("edgelist" = edgelist,
-              "edgeweight" = edgeweight,
-              "scenario" = scenario, 
-              "newedge" = m,
+  ret <- list("edgelist" = cbind(ret_c$node_vec1[1:nedge] + 1, 
+                                 ret_c$node_vec2[1:nedge] + 1),
+              "edgeweight" = edgeweight[1:nedge],
+              "scenario" = ret_c$scenario[1:nedge], 
+              "newedge" = ret_c$m,
               "control" = control,
               "seednetwork" = seednetwork[c("edgelist", "edgeweight", "nodegroup")], 
               "directed" = directed)
+  colnames(ret$edgelist) <- NULL
   if (directed) {
     ret$outstrength <- ret_c$outstrength[1:nnode]
     ret$instrength <- ret_c$instrength[1:nnode]
     ret$control$newedge$node.replace <- NULL
     ret$control$preference$params <- NULL
-    # ret$source_pref <- ret_c$source_pref[1:nnode]
-    # ret$target_pref <- ret_c$target_pref[1:nnode]
+    ret$control$preference$pref <- NULL
+    ret$spref <- ret_c$source_pref[1:nnode]
+    ret$tpref <- ret_c$target_pref[1:nnode]
   }
   else {
     ret$strength <- ret_c$strength[1:nnode]
-    ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
-    ret$control$preference$sparams <- ret$control$preference$tparams <- NULL
-    # ret$pref <- ret_c$pref[1:nnode]
+    ret$control$newedge$snode.replace <- NULL
+    ret$control$newedge$tnode.replace <- NULL
+    ret$control$preference$sparams <- NULL
+    ret$control$preference$tparams <- NULL
+    ret$control$preference$spref <- NULL
+    ret$control$preference$tpref <- NULL
+    ret$pref <- ret_c$pref[1:nnode]
   }
   if (sample.recip) {
     ret$nodegroup <- ret_c$nodegroup[1:nnode] + 1
   }
   else {
-    ret$control$reciprocal$group.prob <- ret$control$reciprocal$recip.prob <- NULL
+    ret$control$reciprocal$group.prob <- NULL
+    ret$control$reciprocal$recip.prob <- NULL
     ret$seednetwork$nodegroup <- NULL
   }
   return(ret)

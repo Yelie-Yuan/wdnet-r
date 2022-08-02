@@ -17,6 +17,7 @@
 ##
 
 #' @importFrom utils modifyList
+#' @importFrom Rcpp sourceCpp
 NULL
 
 #' Add components to the control list
@@ -34,9 +35,11 @@ NULL
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' control <- rpactl.scenario(alpha = 0.5, beta = 0.5) +
-#'     rpactl.preference(sparams = c(1, 1, 0, 0, 1),
-#'         tparams = c(0, 0, 1, 1, 1))
+#'     rpactl.preference(spref = "pow(outs, 2) + 1",
+#'     tpref = "pow(ins, 2) + 1")
+#' }
 #'
 #' control <- rpactl.scenario(alpha = 1) +
 #'     rpactl.edgeweight(distribution = rgamma,
@@ -80,9 +83,9 @@ NULL
 #' control <- rpactl.scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
 #' 
 rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
-                             beta.loop = TRUE, source.first = TRUE) {
+                            beta.loop = TRUE, source.first = TRUE) {
   stopifnot('"alpha + beta + gamma + xi + rho" must equal to 1.' =
-            round(alpha + beta + gamma + xi + rho, 10) == 1)
+              round(alpha + beta + gamma + xi + rho, 10) == 1)
   scenario <- list("alpha" = alpha, 
                    "beta" = beta,
                    "gamma" = gamma, 
@@ -120,8 +123,8 @@ rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
 #' control <- rpactl.edgeweight(shift = 2)
 #' 
 rpactl.edgeweight <- function(distribution = NA,
-                               dparams = list(),
-                               shift = 1) {
+                              dparams = list(),
+                              shift = 1) {
   edgeweight <- list("distribution" = distribution,
                      "dparams" = dparams,
                      "shift" = shift)
@@ -164,11 +167,11 @@ rpactl.edgeweight <- function(distribution = NA,
 #'     shift = 1,
 #'     node.replace = FALSE)
 rpactl.newedge <- function(distribution = NA,
-                            dparams = list(),
-                            shift = 1,
-                            snode.replace = TRUE,
-                            tnode.replace = TRUE,
-                            node.replace = TRUE) {
+                           dparams = list(),
+                           shift = 1,
+                           snode.replace = TRUE,
+                           tnode.replace = TRUE,
+                           node.replace = TRUE) {
   newedge <- list("distribution" = distribution,
                   "dparams" = dparams,
                   "shift" = shift,
@@ -182,37 +185,120 @@ rpactl.newedge <- function(distribution = NA,
   structure(list("newedge" = newedge), class = "rpactl")
 }
 
-#' Set parameters for source and target preference function
+#' Set preference function(s).
 #'
-#' @param sparams Parameters of the source preference function for directed
-#'   networks. Probability of choosing an existing node as the source node is
-#'   proportional to \code{sparams[1] * out-strength^sparams[2] + sparams[3] *
-#'   in-strength^sparams[4] + sparams[5]}.
-#' @param tparams Parameters of the target preference function for directed
-#'   networks. Probability of choosing an existing node as the source node is
-#'   proportional to \code{tparams[1] * out-strength^tparams[2] + tparams[3] *
-#'   in-strength^tparams[4] + tparams[5]}.
-#' @param params Parameters of the preference function for undirected networks.
-#'   Probability of choosing an existing node is proportional to
-#'   \code{strength^param[1] + param[2]}.
-#' 
-#' @return A list of class \code{rpactl} with components \code{sparams},
-#'   \code{tparams}, and \code{params} with meanings as explained under 
-#'   'Arguments'.
+#' @param spref Character expression or an object of class "externalptr" giving
+#'   the customized source preference function. Defined for directed networks.
+#'   Default value is \code{"outs + 1"}, i.e., node out-strength + 1.
+#' @param tpref Character expression or an object of class "externalptr" giving
+#'   the customized target preference function. Defined for directed networks.
+#'   Default value is \code{"ins + 1"}, i.e., node in-strength + 1.
+#' @param pref Character expression or an object of class "externalptr" giving
+#'   the customized preference function. Defined for undirected networks.
+#'   Default value is \code{"s + 1"}, i.e, node strenght + 1.
+#' @param ftype Preference function type. Either "default" or "customized".
+#'   "customized" preference functions require "binary" or "naive" generation
+#'   methods. See details for more information.
+#' @param sparams Parameters of the default source preference function. Defined
+#'   for directed networks. Probability of choosing an existing node as the
+#'   source node is proportional to \code{sparams[1] * out-strength^sparams[2] +
+#'   sparams[3] * in-strength^sparams[4] + sparams[5]}.
+#' @param tparams Parameters of the default target preference function. Defined
+#'   for directed networks. Probability of choosing an existing node as the
+#'   target node is proportional to \code{tparams[1] * out-strength^tparams[2] +
+#'   tparams[3] * in-strength^tparams[4] + tparams[5]}.
+#' @param params Parameters of the default preference function. Defined for
+#'   undirected networks. Probability of choosing an existing node is
+#'   proportional to \code{strength^params[1] + params[2].}
+#'
+#' @details The default preference function for directed networks has the form
+#'   \code{a[1] * out-strength^a[2] + a[3] * in-strength^a[4] + a[5]}, where
+#'   \code{a} is a vector. The default preference function for undirected
+#'   networks has the form \code{strength^b[1] + b[2]}, where \code{b} is a
+#'   vector. If choosing default preference functions, \code{sparams},
+#'   \code{tparams} and \code{params} must be specified.
+#'
+#'   If choosing customized preference function, \code{spref}, \code{tpref} and
+#'   and \code{pref} will be used and the network generation method must be
+#'   "binary" or "naive". \code{spref} defines the source preference function,
+#'   it can be a character expression or an object of class
+#'   "externalptr".\itemize{ \item{Character expression: } {it must be an
+#'   \code{Rcpp} style function of \code{outs} (node out-strength) and
+#'   \code{ins} (node-instrength). For example, \code{"pow(outs, 2) + 1"},
+#'   \code{"pow(outs, 2) + pow(ins, 2) + 1"}, etc. The expression will be used
+#'   to compile the source preference function \code{spref_func}, and its
+#'   external pointer \code{put_spref_XPtr()} will be passed to the network
+#'   generation function. It must not have variables other than \code{outs} and
+#'   \code{ins}.} \item{"externalptr": } {an external pointer of an \code{Rcpp}
+#'   function. Use \code{pref.template()} to see a template for creating a
+#'   preference function and getting its pointer. For more information about
+#'   passing function pointers, see
+#'   \url{https://gallery.rcpp.org/articles/passing-cpp-function-pointers/}.}}
+#'   \code{tpref} and \code{pref} are defined analogously. Please note
+#'   \code{pref} must not have variables other than \code{s}.
+#'
+#' @return A list of class \code{rpactl} with components \code{ftype},
+#'   \code{sparams}, \code{tparams}, \code{params} or \code{ftype},
+#'   \code{spref}, \code{tpref}, \code{pref} with function pointers
+#'   \code{spref.pointer}, \code{tpref.pointer}, \code{pref.pointer}.
 #'
 #' @export
 #'
 #' @examples
-#' control <- rpactl.preference(sparams = c(1, 2, 0, 0, 0.1),
-#'     tparams = c(0, 0, 1, 2, 0.1))
-rpactl.preference <- function(sparams = c(1, 1, 0, 0, 1),
-                               tparams = c(0, 0, 1, 1, 1),
-                               params = c(1, 1)) {
-  preference <- list("sparams" = sparams,
-               "tparams" = tparams,
-               "params" = params)
-  stopifnot(sparams[5] >= 0 & tparams[5] >= 0 & params[2] >= 0)
-  structure(list("preference" = preference), 
+#' \donttest{
+#' # set source preference as out-strength^2 + in-strength + 1,
+#' # target preference as out-strength + in-strength^2 + 1
+#' # 1. use default preference functions
+#' control1 <- rpactl.preference(ftype = "default",
+#'     sparams = c(1, 2, 1, 1, 1), tparams = c(1, 1, 1, 2, 1))
+#' # 2. use character expressions 
+#' control2 <- rpactl.preference(ftype = "customized",
+#'     spref = "pow(outs, 2) + ins + 1", tpref = "outs + pow(ins, 2) + 1")
+#' # 3. define cpp function and export function pointer
+#' Rcpp::sourceCpp(code = "
+#'     // [[Rcpp::depends(RcppArmadillo)]]
+#'     #include <RcppArmadillo.h>
+#'     #include <math.h>
+#'     using namespace Rcpp;
+#'     typedef double (*myfuncPtr)(double outs, double ins);
+#'     // [[Rcpp::export]]
+#'     double myfunc(double outs, double ins) {
+#'       double ret = 0;
+#'       // compute node preference
+#'       ret = pow(outs, 2) + ins + 1;
+#'       return ret;
+#'     }
+#'     // [[Rcpp::export]]
+#'     XPtr<myfuncPtr> put_myfunc_XPtr() {
+#'   	  return(XPtr<myfuncPtr>(new myfuncPtr(myfunc)));
+#'     }")
+#' control3 <- rpactl.preference(ftype = "customized", 
+#'     spref = put_myfunc_XPtr(), 
+#'     tpref = "outs + pow(ins, 2) + 1")
+#' ret <- rpanet(1e5, control = control3)
+#' }
+rpactl.preference <- function(ftype = c("default", "customized"),
+                              sparams = c(1, 1, 0, 0, 1),
+                              tparams = c(0, 0, 1, 1, 1),
+                              params = c(1, 1),
+                              spref = "outs + 1",
+                              tpref = "ins + 1",
+                              pref = "s + 1") {
+  ftype <- match.arg(ftype)
+  if (ftype == "default") {
+    preference <- list("ftype" = ftype,
+                     "sparams" = sparams,
+                     "tparams" = tparams,
+                     "params" = params)
+  }
+  else {
+    preference <- list("ftype" = ftype,
+                     "spref" = spref,
+                     "tpref" = tpref,
+                     "pref" = pref)
+    preference <- compile_pref_func(preference)
+  }
+  structure(list("preference" = preference),
             class = "rpactl")
 }
 
@@ -241,8 +327,8 @@ rpactl.preference <- function(sparams = c(1, 1, 0, 0, 1),
 #' control <- rpactl.reciprocal(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
 rpactl.reciprocal <- function(group.prob = NULL,
-                               recip.prob = NULL, 
-                               selfloop.recip = FALSE) {
+                              recip.prob = NULL, 
+                              selfloop.recip = FALSE) {
   if (! is.null(group.prob)) {
     stopifnot('"group.prob" must sum to 1.' = 
                 round(sum(group.prob), 10) == 1)
@@ -268,8 +354,8 @@ rpactl.reciprocal <- function(group.prob = NULL,
     }
   }
   reciprocal <- list("group.prob" = group.prob,
-                "recip.prob" = recip.prob, 
-                "selfloop.recip" = selfloop.recip)
+                     "recip.prob" = recip.prob, 
+                     "selfloop.recip" = selfloop.recip)
   structure(list("reciprocal" = reciprocal),
             class = "rpactl")
 }

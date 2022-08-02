@@ -9,12 +9,6 @@
 
 /* .C calls */
 extern void netSim(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_binary_directed_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_binary_undirected_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void 
-*);
-extern void rpanet_naive_directed_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, 
-void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void rpanet_naive_undirected_cpp(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 /* .Call calls */
 extern SEXP _wdnet_dprewire_directed_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -25,29 +19,37 @@ extern SEXP _wdnet_find_node_undirected_cpp(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_fx(SEXP, SEXP, SEXP);
 extern SEXP _wdnet_hello_world();
 extern SEXP _wdnet_node_strength_cpp(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _wdnet_rpanet_binary_directed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _wdnet_rpanet_binary_undirected_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _wdnet_rpanet_naive_directed_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _wdnet_rpanet_naive_undirected_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_rpanet_nodelist_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_sample_node_cpp(SEXP);
+extern SEXP _wdnet_test_pref_func_directed(SEXP, SEXP, SEXP);
+extern SEXP _wdnet_test_pref_func_undirected(SEXP, SEXP);
 
 static const R_CMethodDef CEntries[] = {
-    {"netSim",                       (DL_FUNC) &netSim,                       12},
-    {"rpanet_binary_directed_cpp",   (DL_FUNC) &rpanet_binary_directed_cpp,   29},
-    {"rpanet_binary_undirected_cpp", (DL_FUNC) &rpanet_binary_undirected_cpp, 17},
-    {"rpanet_naive_directed_cpp",    (DL_FUNC) &rpanet_naive_directed_cpp,    29},
-    {"rpanet_naive_undirected_cpp",  (DL_FUNC) &rpanet_naive_undirected_cpp,  17},
+    {"netSim", (DL_FUNC) &netSim, 12},
     {NULL, NULL, 0}
 };
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_wdnet_dprewire_directed_cpp",    (DL_FUNC) &_wdnet_dprewire_directed_cpp,    11},
-    {"_wdnet_dprewire_undirected_cpp",  (DL_FUNC) &_wdnet_dprewire_undirected_cpp,  10},
-    {"_wdnet_fill_weight_cpp",          (DL_FUNC) &_wdnet_fill_weight_cpp,           3},
-    {"_wdnet_find_node_cpp",            (DL_FUNC) &_wdnet_find_node_cpp,             2},
-    {"_wdnet_find_node_undirected_cpp", (DL_FUNC) &_wdnet_find_node_undirected_cpp,  4},
-    {"_wdnet_fx",                       (DL_FUNC) &_wdnet_fx,                        3},
-    {"_wdnet_hello_world",              (DL_FUNC) &_wdnet_hello_world,               0},
-    {"_wdnet_node_strength_cpp",        (DL_FUNC) &_wdnet_node_strength_cpp,         5},
-    {"_wdnet_rpanet_nodelist_cpp",      (DL_FUNC) &_wdnet_rpanet_nodelist_cpp,       8},
-    {"_wdnet_sample_node_cpp",          (DL_FUNC) &_wdnet_sample_node_cpp,           1},
+    {"_wdnet_dprewire_directed_cpp",        (DL_FUNC) &_wdnet_dprewire_directed_cpp,        11},
+    {"_wdnet_dprewire_undirected_cpp",      (DL_FUNC) &_wdnet_dprewire_undirected_cpp,      10},
+    {"_wdnet_fill_weight_cpp",              (DL_FUNC) &_wdnet_fill_weight_cpp,               3},
+    {"_wdnet_find_node_cpp",                (DL_FUNC) &_wdnet_find_node_cpp,                 2},
+    {"_wdnet_find_node_undirected_cpp",     (DL_FUNC) &_wdnet_find_node_undirected_cpp,      4},
+    {"_wdnet_fx",                           (DL_FUNC) &_wdnet_fx,                            3},
+    {"_wdnet_hello_world",                  (DL_FUNC) &_wdnet_hello_world,                   0},
+    {"_wdnet_node_strength_cpp",            (DL_FUNC) &_wdnet_node_strength_cpp,             5},
+    {"_wdnet_rpanet_binary_directed",       (DL_FUNC) &_wdnet_rpanet_binary_directed,       15},
+    {"_wdnet_rpanet_binary_undirected_cpp", (DL_FUNC) &_wdnet_rpanet_binary_undirected_cpp, 11},
+    {"_wdnet_rpanet_naive_directed_cpp",    (DL_FUNC) &_wdnet_rpanet_naive_directed_cpp,    15},
+    {"_wdnet_rpanet_naive_undirected_cpp",  (DL_FUNC) &_wdnet_rpanet_naive_undirected_cpp,  11},
+    {"_wdnet_rpanet_nodelist_cpp",          (DL_FUNC) &_wdnet_rpanet_nodelist_cpp,           8},
+    {"_wdnet_sample_node_cpp",              (DL_FUNC) &_wdnet_sample_node_cpp,               1},
+    {"_wdnet_test_pref_func_directed",      (DL_FUNC) &_wdnet_test_pref_func_directed,       3},
+    {"_wdnet_test_pref_func_undirected",    (DL_FUNC) &_wdnet_test_pref_func_undirected,     2},
     {NULL, NULL, 0}
 };
 

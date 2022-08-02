@@ -128,12 +128,35 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   }
   
   control.default <- rpactl.scenario() + rpactl.edgeweight() +
-    rpactl.newedge() + rpactl.preference() + rpactl.reciprocal()
+    rpactl.newedge() + rpactl.reciprocal() + rpactl.preference()
   if (! is.list(control)) {
     control <- structure(list(), class = "rpactl")
   }
   control <- control.default + control
   rm(control.default)
+  control$preference$ftype.temp <- 1
+  if (control$preference$ftype == "customized") {
+    if (any(is.null(control$preference$spref.pointer),
+            is.null(control$preference$tpref.pointer),
+            is.null(control$preference$pref.pointer))) {
+      stop("Preference functions are not valid.")
+    }
+    test_pref_func_directed(control$preference$spref.pointer, 1, 1)
+    test_pref_func_directed(control$preference$tpref.pointer, 1, 1)
+    test_pref_func_undirected(control$preference$pref.pointer, 1)
+    control$preference$ftype.temp <- 2
+    control$preference$sparams <- NULL
+    control$preference$tparams <- NULL
+    control$preference$params <- NULL
+  }
+  else {
+    control$preference$spref <- NULL
+    control$preference$tpref <- NULL
+    control$preference$pref <- NULL
+    control$preference$spref.pointer <- NULL
+    control$preference$tpref.pointer <- NULL
+    control$preference$pref.pointer <- NULL
+  }
   
   if (is.function(control$newedge$distribution)) {
     m <- do.call(control$newedge$distribution, c(nstep, control$newedge$dparams)) + 
@@ -170,6 +193,8 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
     control$newedge$node.replace <- TRUE
   }
   if (method == "nodelist" | method == "edgesampler") {
+    stopifnot('"nodelist" and "edgesampler" methods require "default" preference functions.' = 
+                control$preference$ftype == "default")
     if (directed) {
       stopifnot('Source preference must be out-degree plus a constant for "nodelist" and "edgesampler" methods.' = 
                   all(control$preference$sparams[1:2] == 1,

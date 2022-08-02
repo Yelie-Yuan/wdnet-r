@@ -2,7 +2,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 //' Preferential attachment algorithm for simple situations, 
-//' e.g., edge weight equals to 1, number of new edges per step is 1.
+//' i.e., edge weight equals to 1, number of new edges per step is 1.
 //'
 //' @param snode Source nodes.
 //' @param tnode Target nodes.
