@@ -58,8 +58,11 @@ void updateTotalp(node_und *current_node) {
 /**
  * Update node preference and total preference from the sampled node to root.
  *
- * @param temp_node The sampled node.
- * @param params Parameters passed to the preference function.
+ * @param temp_node The sampled/new node.
+ * @param func_type Default or customized preference function.
+ * @param params Parameters passed to the default preference function.
+ * @param prefFuncCpp Pointer of the customized preference function.
+
  */
 void updatePrefUnd(node_und *temp_node, int func_type, 
                          Rcpp::NumericVector params,

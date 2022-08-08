@@ -43,12 +43,12 @@ double targetPrefFuncDefaultNaive(double outs, double ins, Rcpp::NumericVector t
  * @param func_type Default or customized preference function.
  * @param outs Node out-strength.
  * @param ins Node in-strength.
- * @param sparams Parameters passed to the source preference function.
- * @param sourcePrefFuncCppNaive Source preference function.
+ * @param sparams Parameters passed to the default source preference function.
+ * @param sourcePrefFuncCppNaive Pointer of the customized source preference function.
  *  
  * @return Node source preference.
  */
-double calSourcePrefNaive(int func_type, 
+double calcSourcePrefNaive(int func_type, 
                           double outs,
                           double ins,
                           Rcpp::NumericVector sparams, 
@@ -67,12 +67,12 @@ double calSourcePrefNaive(int func_type,
  * @param func_type Default or customized preference function.
  * @param outs Node out-strength.
  * @param ins Node in-strength.
- * @param tparams Parameters passed to the source preference function.
- * @param targetPrefFuncCppNaive Source preference function.
+ * @param tparams Parameters passed to the default target preference function.
+ * @param targetPrefFuncCppNaive Pointer of the customized target preference function.
  *  
  * @return Node target preference.
  */
-double calTargetPrefNaive(int func_type, 
+double calcTargetPrefNaive(int func_type, 
                           double outs,
                           double ins,
                           Rcpp::NumericVector tparams, 
@@ -218,8 +218,8 @@ Rcpp::List rpanet_naive_directed_cpp(
   queue<int> q1;
   deque<int> qm_source, qm_target;
   for (int i = 0; i < new_node_id; i++) {
-    source_pref[i] = calSourcePrefNaive(func_type, outs[i], ins[i], sparams, sourcePrefFuncCppNaive);
-    target_pref[i] = calTargetPrefNaive(func_type, outs[i], ins[i], tparams, targetPrefFuncCppNaive);
+    source_pref[i] = calcSourcePrefNaive(func_type, outs[i], ins[i], sparams, sourcePrefFuncCppNaive);
+    target_pref[i] = calcTargetPrefNaive(func_type, outs[i], ins[i], tparams, targetPrefFuncCppNaive);
     total_source_pref += source_pref[i];
     total_target_pref += target_pref[i];
   }
@@ -413,8 +413,8 @@ Rcpp::List rpanet_naive_directed_cpp(
       temp_node = q1.front();
       total_source_pref -= source_pref[temp_node];
       total_target_pref -= target_pref[temp_node];
-      source_pref[temp_node] = calSourcePrefNaive(func_type, outs[temp_node], ins[temp_node], sparams, sourcePrefFuncCppNaive);
-      target_pref[temp_node] = calTargetPrefNaive(func_type, outs[temp_node], ins[temp_node], tparams, targetPrefFuncCppNaive);
+      source_pref[temp_node] = calcSourcePrefNaive(func_type, outs[temp_node], ins[temp_node], sparams, sourcePrefFuncCppNaive);
+      target_pref[temp_node] = calcTargetPrefNaive(func_type, outs[temp_node], ins[temp_node], tparams, targetPrefFuncCppNaive);
       total_source_pref += source_pref[temp_node];
       total_target_pref += target_pref[temp_node];
       q1.pop();

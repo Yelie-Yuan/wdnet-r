@@ -108,6 +108,9 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
                         "nodegroup" = NULL)
   }
   nnode <- max(seednetwork$edgelist)
+  stopifnot("Nodes must be consecutive integers starting from 1." = 
+            min(seednetwork$edgelist) == 1 & 
+            nnode == length(unique(c(seednetwork$edgelist))))
   nedge <- nrow(seednetwork$edgelist)
   if (is.null(seednetwork$edgeweight)) {
     seednetwork$edgeweight[1:nedge] <- 1
@@ -124,7 +127,7 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   }
   if (length(control$reciprocal$group.prob) > 0) {
     stopifnot('Length of "group.prob" in the control list in not valid.' = 
-                max(seednetwork$nodegroup) <= length(control$reciprocal$group.prob))
+              max(seednetwork$nodegroup) <= length(control$reciprocal$group.prob))
   }
   
   control.default <- rpactl.scenario() + rpactl.edgeweight() +

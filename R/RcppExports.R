@@ -230,7 +230,7 @@ fill_weight_cpp <- function(adj, edgelist, edgeweight) {
 
 #' Test user supplied preference function.
 #' 
-#' @param xpsexp Pointer of function.
+#' @param xpsexp Pointer of a cpp function.
 #' @param outs Outstrength.
 #' @param ins Instrength.
 #' @return Node preference.
@@ -241,7 +241,7 @@ test_pref_func_directed <- function(xpsexp, outs, ins) {
 
 #' Test user supplied preference function.
 #' 
-#' @param xpsexp Pointer of function.
+#' @param xpsexp Pointer of a cpp function.
 #' @param s Strength.
 #' @return Node preference.
 #'

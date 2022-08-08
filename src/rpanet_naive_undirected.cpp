@@ -25,12 +25,12 @@ double prefFuncDefaultNaive(double strength, Rcpp::NumericVector params) {
  *
  * @param func_type Default or customized preference function.
  * @param strength Node strength.
- * @param params Parameters passed to the preference function.
- * @param prefFuncCppNaive Source preference function.
+ * @param params Parameters passed to the default preference function.
+ * @param prefFuncCppNaive Pointer of the customized source preference function.
  *
  * @return Node preference.
  */
-double calPrefNaive(int func_type, 
+double calcPrefNaive(int func_type, 
                     double strength,
                     Rcpp::NumericVector params, 
                     funcPtrUnd prefFuncCppNaive) {
@@ -132,7 +132,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
   queue<int> q1;
   deque<int> qm;
   for (i = 0; i < new_node_id; i++) {
-    pref[i] = calPrefNaive(func_type, strength[i], params, prefFuncCppNaive);
+    pref[i] = calcPrefNaive(func_type, strength[i], params, prefFuncCppNaive);
     total_pref += pref[i];
   }
   // sample edges
@@ -239,7 +239,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
     while (! q1.empty()) {
       temp_node = q1.front();
       total_pref -= pref[temp_node];
-      pref[temp_node] = calPrefNaive(func_type, strength[temp_node], params, prefFuncCppNaive);
+      pref[temp_node] = calcPrefNaive(func_type, strength[temp_node], params, prefFuncCppNaive);
       total_pref += pref[temp_node];
       q1.pop();
     }

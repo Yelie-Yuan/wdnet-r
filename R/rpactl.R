@@ -201,42 +201,47 @@ rpactl.newedge <- function(distribution = NA,
 #' @param ftype Preference function type. Either "default" or "customized".
 #'   "customized" preference functions require "binary" or "naive" generation
 #'   methods. See 'Details' for more information.
-#' @param sparams Parameters of the default source preference function. Defined
-#'   for directed networks. Probability of choosing an existing node as the
-#'   source node is proportional to \code{sparams[1] * out-strength^sparams[2] +
-#'   sparams[3] * in-strength^sparams[4] + sparams[5]}.
-#' @param tparams Parameters of the default target preference function. Defined
-#'   for directed networks. Probability of choosing an existing node as the
-#'   target node is proportional to \code{tparams[1] * out-strength^tparams[2] +
-#'   tparams[3] * in-strength^tparams[4] + tparams[5]}.
-#' @param params Parameters of the default preference function. Defined for
-#'   undirected networks. Probability of choosing an existing node is
-#'   proportional to \code{strength^params[1] + params[2].}
+#' @param sparams A numerical vector of length 5 giving the parameters of the
+#'   default source preference function. Defined for directed networks.
+#'   Probability of choosing an existing node as the source node is proportional
+#'   to \code{sparams[1] * out-strength^sparams[2] + sparams[3] *
+#'   in-strength^sparams[4] + sparams[5]}.
+#' @param tparams A numerical vector of length 5 giving the parameters of the
+#'   default target preference function. Defined for directed networks.
+#'   Probability of choosing an existing node as the target node is proportional
+#'   to \code{tparams[1] * out-strength^tparams[2] + tparams[3] *
+#'   in-strength^tparams[4] + tparams[5]}.
+#' @param params A numerical vector of length 2 giving the parameters of the
+#'   default preference function. Defined for undirected networks. Probability
+#'   of choosing an existing node is proportional to \code{strength^params[1] +
+#'   params[2].}
 #'
 #' @details The default preference function for directed networks has the form
 #'   \code{a[1] * out-strength^a[2] + a[3] * in-strength^a[4] + a[5]}, where
-#'   \code{a} is a vector. The default preference function for undirected
-#'   networks has the form \code{strength^b[1] + b[2]}, where \code{b} is a
-#'   vector. If choosing default preference functions, \code{sparams},
-#'   \code{tparams} and \code{params} must be specified.
+#'   \code{a} is a numerical vector of length 5. The default preference function
+#'   for undirected networks has the form \code{strength^b[1] + b[2]}, where
+#'   \code{b} is a numerical vector of length 2. If choosing default preference
+#'   functions, \code{sparams}, \code{tparams} and \code{params} must be
+#'   specified.
 #'
 #'   If choosing customized preference functions, \code{spref}, \code{tpref} and
 #'   and \code{pref} will be used and the network generation method must be
 #'   "binary" or "naive". \code{spref} defines the source preference function,
-#'   it can be a character expression or an object of class
-#'   "externalptr". \itemize{ \item{Character expression: } {it must be an
-#'   \code{Rcpp} style function of \code{outs} (node out-strength) and
-#'   \code{ins} (node-instrength). For example, \code{"pow(outs, 2) + 1"},
-#'   \code{"pow(outs, 2) + pow(ins, 2) + 1"}, etc. The expression will be used
-#'   to compile the source preference function \code{spref_func}, and its
-#'   external pointer \code{put_spref_XPtr()} will be passed to the network
-#'   generation function. It must not have variables other than \code{outs} and
-#'   \code{ins}.} \item{"externalptr": } {an external pointer of an \code{Rcpp}
-#'   function. An example for creating a source preference function and getting
-#'   its pointer is included in 'Examples'. For more information about passing
+#'   it can be a character expression or an object of class "externalptr".
+#'   \itemize{ \item{Character expression: } {it must be an \code{Rcpp} style
+#'   function of \code{outs} (node out-strength) and \code{ins}
+#'   (node-instrength). For example, \code{"pow(outs, 2) + 1"}, \code{"pow(outs,
+#'   2) + pow(ins, 2) + 1"}, etc. The expression will be used to compile the
+#'   source preference function \code{spref_func}, and its external pointer
+#'   \code{put_spref_XPtr()} will be passed to the network generation function.
+#'   It must not have variables other than \code{outs} and \code{ins}.}
+#'   \item{"externalptr": } {an external pointer of an \code{Rcpp} function. An
+#'   example for creating a source preference function and getting its pointer
+#'   is included in 'Examples'. For more information about passing \code{Rcpp}
 #'   function pointers, see
 #'   \url{https://gallery.rcpp.org/articles/passing-cpp-function-pointers/}.}}
 #'   \code{tpref} and \code{pref} are defined analogously. Please note
+#'   \code{tpref} must not have variables other than \code{outs} and \code{ins};
 #'   \code{pref} must not have variables other than \code{s}.
 #'
 #' @return A list of class \code{rpactl} with components \code{ftype},
@@ -256,7 +261,7 @@ rpactl.newedge <- function(distribution = NA,
 #' # 2. use character expressions
 #' control2 <- rpactl.preference(ftype = "customized",
 #'     spref = "pow(outs, 2) + ins + 1", tpref = "outs + pow(ins, 2) + 1")
-#' # 3. define cpp function and export function pointer
+#' # 3. define cpp functions and export function pointers
 #' Rcpp::sourceCpp(code = "
 #'     // [[Rcpp::depends(RcppArmadillo)]]
 #'     #include <RcppArmadillo.h>
@@ -288,16 +293,23 @@ rpactl.preference <- function(ftype = c("default", "customized"),
                               pref = "s + 1") {
   ftype <- match.arg(ftype)
   if (ftype == "default") {
+    stopifnot("Length or type of parameter is not valid" = 
+                all(length(sparams) == 5,
+                    length(tparams) == 5,
+                    length(params) == 2,
+                    is.numeric(sparams), 
+                    is.numeric(tparams),
+                    is.numeric(params)))
     preference <- list("ftype" = ftype,
-                     "sparams" = sparams,
-                     "tparams" = tparams,
-                     "params" = params)
+                       "sparams" = sparams,
+                       "tparams" = tparams,
+                       "params" = params)
   }
   else {
     preference <- list("ftype" = ftype,
-                     "spref" = spref,
-                     "tpref" = tpref,
-                     "pref" = pref)
+                       "spref" = spref,
+                       "tpref" = tpref,
+                       "pref" = pref)
     preference <- compile_pref_func(preference)
   }
   structure(list("preference" = preference),

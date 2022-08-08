@@ -137,7 +137,7 @@ arma::mat fill_weight_cpp(arma::mat adj, arma::mat edgelist, arma::vec edgeweigh
 
 //' Test user supplied preference function.
 //' 
-//' @param xpsexp Pointer of function.
+//' @param xpsexp Pointer of a cpp function.
 //' @param outs Outstrength.
 //' @param ins Instrength.
 //' @return Node preference.
@@ -151,7 +151,7 @@ double test_pref_func_directed(SEXP xpsexp, double outs, double ins) {
 
 //' Test user supplied preference function.
 //' 
-//' @param xpsexp Pointer of function.
+//' @param xpsexp Pointer of a cpp function.
 //' @param s Strength.
 //' @return Node preference.
 //'

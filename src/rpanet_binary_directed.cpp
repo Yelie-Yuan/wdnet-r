@@ -98,16 +98,16 @@ void updateTotalTargetp(node_d *current_node) {
  * 
  * @param temp_node The sampled node.
  * @param func_type Default or customized preference function.
- * @param sparams Parameters passed to the source preference function.
- * @param tparams Parameters passed to the target preference function.
- * @param sourcePrefFuncCpp Source preference function.
- * @param targetPrefFuncCpp Target preference function.
+ * @param sparams Parameters passed to the default source preference function.
+ * @param tparams Parameters passed to the default target preference function.
+ * @param sourcePrefFuncCpp Pointer of customized source preference function.
+ * @param targetPrefFuncCpp Pointer of customized target preference function.
  */
 void updatePrefD(node_d *temp_node, int func_type, 
                  Rcpp::NumericVector sparams, Rcpp::NumericVector tparams,
                  funcPtrD sourcePrefFuncCpp, 
                  funcPtrD targetPrefFuncCpp) {
-  double tsp = temp_node->sourcep, ttp = temp_node->targetp;
+  double temp_sourcep = temp_node->sourcep, temp_targetp = temp_node->targetp;
   if (func_type == 1) {
     temp_node->sourcep = sourcePrefFuncDefault(temp_node->outs, temp_node->ins, sparams);
     temp_node->targetp = targetPrefFuncDefault(temp_node->outs, temp_node->ins, tparams);
@@ -117,10 +117,10 @@ void updatePrefD(node_d *temp_node, int func_type,
     temp_node->targetp = targetPrefFuncCpp(temp_node->outs, temp_node->ins);
   }
   
-  if (temp_node->sourcep != tsp) {
+  if (temp_node->sourcep != temp_sourcep) {
     updateTotalSourcep(temp_node);
   }
-  if (temp_node->targetp != ttp) {
+  if (temp_node->targetp != temp_targetp) {
     updateTotalTargetp(temp_node);
   }
 }

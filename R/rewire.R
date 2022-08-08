@@ -287,7 +287,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
     stopifnot('"dprewire" only works for unweighted networks.' = 
                 all(adj %% 1 == 0))
     if (! all(adj == 1)) {
-      warning('The elements of "adj" is used as the number of edges between nodes.')
+      warning('The elements of "adj" are used as the number of edges between nodes.')
     }
     temp <- adj_to_edge(adj = adj, directed = directed, weighted = NULL)
     edgelist <- temp$edgelist
@@ -403,7 +403,7 @@ dprewire.range <- function(edgelist = NULL, directed = TRUE, adj = NULL,
     stopifnot('"dprewire.range" only works for unweighted networks.' = 
                 all(adj %% 1 == 0))
     if (! all(adj == 1)) {
-      warning('The elements of "adj" is used as the number of edges between nodes.')
+      warning('The elements of "adj" are used as the number of edges between nodes.')
     }
     temp <- adj_to_edge(adj = adj, directed = directed, weighted = NULL)
     edgelist <- temp$edgelist
