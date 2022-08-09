@@ -1,7 +1,5 @@
 #include<iostream>
 #include<queue>
-#include<deque>
-#include<algorithm>
 #include<R.h>
 #include "funcPtrD.h"
 #include<RcppArmadillo.h>
@@ -177,7 +175,7 @@ node_d *insertNodeD(queue<node_d*> &q, int new_node_id) {
 node_d *findSourceNode(node_d *root, double w) {
   if (w > root->total_sourcep) {
     // numerical error
-    // Rprintf("Numerical error. Diff %f.\n", (w - root->total_sourcep) * pow(10, 10));
+    // Rprintf("Numerical error. Node %d. Diff %f.\n", root->id, (w - root->total_sourcep) * pow(10, 10));
     w = root->total_sourcep;
   }
   w -= root->sourcep;
@@ -205,7 +203,7 @@ node_d *findSourceNode(node_d *root, double w) {
 node_d *findTargetNode(node_d *root, double w) {
   if (w > root->total_targetp) {
     // numerical error
-    // Rprintf("Numerical error. Diff %f.\n", (w - root->total_targetp) * pow(10, 10));
+    // Rprintf("Numerical error. Node %d. Diff %f.\n", root->id, (w - root->total_targetp) * pow(10, 10));
     w = root->total_targetp;
   }
   w -= root->targetp;
@@ -227,31 +225,25 @@ node_d *findTargetNode(node_d *root, double w) {
  *
  * @param root Root node of the tree.
  * @param type Represent source node or target node.
- * @param qm Nodes to be excluded from the sampling process.
  *
  * @return Sampled source/target node.
  */
-node_d* sampleNodeD(node_d *root, char type, deque<node_d*> &qm) {
+node_d* sampleNodeD(node_d *root, char type) {
   double w;
-  node_d *temp_node;
-  while (true) {
-    w = 1;
-    while (w == 1) {
-      w = unif_rand();
-    }
-    if (type == 's') {
-      w *= root->total_sourcep;
-      temp_node = findSourceNode(root, w);
-    }
-    else {
-      w *= root->total_targetp;
-      temp_node = findTargetNode(root, w);
-    }
-    if (find(qm.begin(), qm.end(), temp_node) == qm.end()) {
-      // if temp_node not in qm
-      return temp_node;
-    }
+  node_d *sampled_node;
+  w = 1;
+  while (w == 1) {
+    w = unif_rand();
   }
+  if (type == 's') {
+    w *= root->total_sourcep;
+    sampled_node = findSourceNode(root, w);
+  }
+  else {
+    w *= root->total_targetp;
+    sampled_node = findTargetNode(root, w);
+  }
+  return sampled_node;
 }
 
 /**
@@ -318,7 +310,7 @@ Rcpp::List rpanet_binary_directed(
   bool beta_loop = scenario_ctl["beta.loop"];
   bool source_first = scenario_ctl["source.first"];
   Rcpp::List newedge_ctl = control["newedge"];
-  bool node_unique = ! newedge_ctl["node.replace"];
+  // bool node_unique = ! newedge_ctl["node.replace"];
   bool snode_unique = ! newedge_ctl["snode.replace"];
   bool tnode_unique = ! newedge_ctl["tnode.replace"];
   Rcpp::List reciprocal_ctl = control["reciprocal"];
@@ -348,10 +340,9 @@ Rcpp::List rpanet_binary_directed(
     }
   }
   
-  double u, p;
-  bool check_unique = node_unique || snode_unique || tnode_unique;
+  double u, p, temp_p;
   bool m_error;
-  int i, j, ks, kt, n_existing, current_scenario;
+  int i, j, n_existing, current_scenario;
   node_d *node1, *node2;
   // initialize a tree from the seed graph
   node_d *root = createNodeD(0);
@@ -360,7 +351,6 @@ Rcpp::List rpanet_binary_directed(
   root->group = node_group[0];
   updatePrefD(root, func_type, sparams, tparams, sourcePrefFuncCpp, targetPrefFuncCpp);
   queue<node_d*> q, q1;
-  deque<node_d*> qm_source, qm_target;
   q.push(root);
   for (int i = 1; i < new_node_id; i++) {
     node1 = insertNodeD(q, i);
@@ -376,8 +366,6 @@ Rcpp::List rpanet_binary_directed(
     n_existing = new_node_id;
     for (j = 0; j < m[i]; j++) {
       u = unif_rand();
-      ks = qm_source.size();
-      kt = qm_target.size();
       if (u <= alpha) {
         current_scenario = 1;
       }
@@ -393,95 +381,77 @@ Rcpp::List rpanet_binary_directed(
       else {
         current_scenario = 5;
       }
-      if (check_unique) {
-        switch (current_scenario) {
-        case 1:
-          if (kt + 1 > n_existing) {
-            m_error = true;
-          }
-          break;
-        case 2:
-          if (node_unique) {
-            if (ks + 2 - int(beta_loop) > n_existing) {
-              m_error = true;
-            }
-          }
-          else {
-            if (snode_unique) {
-              if (ks + 1 > n_existing) {
-                m_error = true;
-              }
-            }
-            if (tnode_unique) {
-              if (kt + 1 > n_existing) {
-                m_error = true;
-              }
-            }
-          }
-          break;
-        case 3:
-          if (ks + 1 > n_existing) {
-            m_error = true;
-          }
-          break;
-        }
-      }
-      if (m_error) {
-        break;
-      }
       switch (current_scenario) {
       case 1:
+        if (root->total_targetp == 0) {
+          m_error = true;
+          break;
+        }
         node1 = insertNodeD(q, new_node_id);
         if (sample_recip) {
           node1->group = sampleGroup(group_prob);
         }
         new_node_id++;
-        node2 = sampleNodeD(root, 't', qm_target);
+        node2 = sampleNodeD(root, 't');
         break;
       case 2:
+        if ((root->total_targetp == 0) || (root->total_sourcep == 0)) {
+          m_error = true;
+          break;
+        }
         if (source_first) {
-          node1 = sampleNodeD(root, 's', qm_source);
+          node1 = sampleNodeD(root, 's');
           if (beta_loop) {
-            node2 = sampleNodeD(root, 't', qm_target);
+            node2 = sampleNodeD(root, 't');
           }
           else {
-            if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
-              node2 = sampleNodeD(root, 't', qm_target);
+            if (node1->targetp == root->total_targetp) {
+              m_error = true;
+              break;
+            }
+            if (node1->targetp == 0) {
+              node2 = sampleNodeD(root, 't');
             }
             else {
-              if (kt + 2 > n_existing) {
-                m_error = true;
-                break;
-              }
-              qm_target.push_back(node1);
-              node2 = sampleNodeD(root, 't', qm_target);
-              qm_target.pop_back();
+              temp_p = node1->targetp;
+              node1->targetp = 0;
+              updateTotalTargetp(node1);
+              node2 = sampleNodeD(root, 't');
+              node1->targetp = temp_p;
+              updateTotalTargetp(node1);
             }
           }
         }
         else {
-          node2 = sampleNodeD(root, 't', qm_target);
+          node2 = sampleNodeD(root, 't');
           if (beta_loop) {
-            node1 = sampleNodeD(root, 's', qm_source);
+            node1 = sampleNodeD(root, 's');
           }
           else {
-            if (find(qm_source.begin(), qm_source.end(), node2) != qm_source.end()) {
-              node1 = sampleNodeD(root, 's', qm_source);
+            if (node2->sourcep == root->total_sourcep) {
+              m_error = true;
+              break;
+            }
+            if (node2->sourcep == 0) {
+              node1 = sampleNodeD(root, 's');
             }
             else {
-              if (ks + 2 > n_existing) {
-                m_error = true;
-                break;
-              }
-              qm_source.push_back(node2);
-              node1 = sampleNodeD(root, 's', qm_source);
-              qm_source.pop_back();
+              temp_p = node2->sourcep;
+              node2->sourcep = 0;
+              updateTotalSourcep(node2);
+              node1 = sampleNodeD(root, 's');
+              node2->sourcep = temp_p;
+              updateTotalSourcep(node2);
             }
           }
         }
         break;
       case 3:
-        node1 = sampleNodeD(root, 's', qm_source);
+        if (root->total_sourcep == 0) {
+          m_error = true;
+          break;
+        }
+        node1 = sampleNodeD(root, 's');
         node2 = insertNodeD(q, new_node_id);
         if (sample_recip) {
           node2->group = sampleGroup(group_prob);
@@ -509,24 +479,38 @@ Rcpp::List rpanet_binary_directed(
       if (m_error) {
         break;
       }
-      // handle duplicate nodes
-      if (node_unique) {
-        if (node1->id < n_existing) {
-          qm_source.push_back(node1);
-          qm_target.push_back(node1);
-        }
-        if ((node2->id < n_existing) && (node1 != node2)) {
-          qm_source.push_back(node2);
-          qm_target.push_back(node2);
-        }
+      // if (node_unique) {
+      //   if (node1->id < n_existing) {
+      //     node1->sourcep = 0;
+      //     node1->targetp = 0;
+      //     updateTotalSourcep(node1);
+      //     updateTotalTargetp(node1);
+      //   }
+      //   if ((node2->id < n_existing) && (node1 != node2)) {
+      //     node2->sourcep = 0;
+      //     node2->targetp = 0;
+      //     updateTotalSourcep(node2);
+      //     updateTotalTargetp(node2);
+      //   }
+      // }
+      // else {
+      //   if (snode_unique && (node1->id < n_existing)) {
+      //     node1->sourcep = 0;
+      //     updateTotalSourcep(node1);
+      //   }
+      //   if (tnode_unique && (node2->id < n_existing)) {
+      //     node2->targetp = 0;
+      //     updateTotalTargetp(node2);
+      //   }
+      // }
+      // sample without replacement
+      if (snode_unique && (node1->id < n_existing)) {
+        node1->sourcep = 0;
+        updateTotalSourcep(node1);
       }
-      else {
-        if (snode_unique && (node1->id < n_existing)) {
-          qm_source.push_back(node1);
-        }
-        if (tnode_unique && (node2->id < n_existing)) {
-          qm_target.push_back(node2);
-        }
+      if (tnode_unique && (node2->id < n_existing)) {
+        node2->targetp = 0;
+        updateTotalTargetp(node2);
       }
       node1->outs += edgeweight[new_edge_id];
       node2->ins += edgeweight[new_edge_id];
@@ -553,14 +537,12 @@ Rcpp::List rpanet_binary_directed(
     }
     if (m_error) {
       m[i] = j;
-      Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
+      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", current_scenario, i + 1, j);
     }
     while(! q1.empty()) {
       updatePrefD(q1.front(), func_type, sparams, tparams, sourcePrefFuncCpp, targetPrefFuncCpp);
       q1.pop();
     }
-    qm_source.clear();
-    qm_target.clear();
   }
   PutRNGstate();
   // free memory (queue)

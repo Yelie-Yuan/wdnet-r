@@ -61,7 +61,9 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                            nnode, nedge, method, sample.recip) {  
   edgeweight <- c(seednetwork$edgeweight, w)
   node_vec_length <- (sum_m + nedge) * 2
-  node_vec1 <- node_vec2 <-  scenario <- integer(node_vec_length)
+  node_vec1 <- integer(node_vec_length)
+  node_vec2 <- integer(node_vec_length)
+  scenario <- integer(node_vec_length)
   node_vec1[1:nedge] <- seednetwork$edgelist[, 1] - 1
   node_vec2[1:nedge] <- seednetwork$edgelist[, 2] - 1
   scenario[1:nedge] <- 0
@@ -80,7 +82,9 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
       control$reciprocal$group.prob <- 1
       control$reciprocal$recip.prob <- matrix(0)
     }
-    nodegroup <- c(seednetwork$nodegroup - 1, integer(node_vec_length))
+    nodegroup <- integer(node_vec_length)
+    nodegroup[1:nnode] <- seednetwork$nodegroup - 1
+    # nodegroup <- c(seednetwork$nodegroup - 1, integer(node_vec_length))
     if (method == "binary") {
       ret_c <- rpanet_binary_directed(nstep,
                                       m,
