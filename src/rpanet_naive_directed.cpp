@@ -1,7 +1,5 @@
 #include<iostream>
 #include<queue>
-#include<deque>
-#include<algorithm>
 #include<R.h>
 #include "funcPtrD.h"
 #include<RcppArmadillo.h>
@@ -88,31 +86,28 @@ double calcTargetPrefNaive(int func_type,
 /**
  *  Sample a source/target node.
  * 
+ * @param n_existing Number of existing nodes.
  * @param pref Sequence of node source/target preference.
  * @param total_pref Total source/target preference of existing nodes.
- * @param qm Nodes to be excluded from the sampling process.
  *  
  * @return Sampled source/target node.
  */
-int sampleNodeDNaive(Rcpp::NumericVector pref, double total_pref, deque<int> &qm) {
-  double w;
-  int i;
-  while (true) {
-    i = 0;
-    w = 1;
-    while (w == 1) {
-      w = unif_rand();
-    }
-    w *= total_pref;
-    while (w > 0) {
-      w -= pref[i];
-      i += 1;
-    }
-    i -= 1;
-    if (find(qm.begin(), qm.end(), i) == qm.end()) {
-      return i;
-    }
+int sampleNodeDNaive(int n_existing, Rcpp::NumericVector pref, double total_pref) {
+  double w = 1;
+  int i = 0;
+  while (w == 1) {
+    w = unif_rand();
   }
+  w *= total_pref;
+  while ((w > 0) && (i < n_existing)) {
+    w -= pref[i];
+    i += 1;
+  }
+  if (w > 0) {
+    Rprintf("Numerical error! Returning the last node (node %d) as the sampled node.\n", n_existing);
+    // i = n_existing;
+  }
+  return i - 1;
 }
 
 /**
@@ -179,7 +174,7 @@ Rcpp::List rpanet_naive_directed_cpp(
   bool beta_loop = scenario_ctl["beta.loop"];
   bool source_first = scenario_ctl["source.first"];
   Rcpp::List newedge_ctl = control["newedge"];
-  bool node_unique = ! newedge_ctl["node.replace"];
+  // bool node_unique = ! newedge_ctl["node.replace"];
   bool snode_unique = ! newedge_ctl["snode.replace"];
   bool tnode_unique = ! newedge_ctl["tnode.replace"];
   Rcpp::List reciprocal_ctl = control["reciprocal"];
@@ -209,14 +204,14 @@ Rcpp::List rpanet_naive_directed_cpp(
     }
   }
 
-  double u, p;
-  bool check_unique = node_unique || snode_unique || tnode_unique;
+  double u, p, temp_p1, temp_p2;
+  // if total pref <= min_pref, re-calculate total preference
+  double min_pref = pow(10, -10);
   bool m_error;
-  int i, j, ks, kt, n_existing, current_scenario;
+  int i, j, k, n_existing, current_scenario;
   int node1, node2, temp_node;
   double total_source_pref = 0, total_target_pref = 0;
   queue<int> q1;
-  deque<int> qm_source, qm_target;
   for (int i = 0; i < new_node_id; i++) {
     source_pref[i] = calcSourcePrefNaive(func_type, outs[i], ins[i], sparams, sourcePrefFuncCppNaive);
     target_pref[i] = calcTargetPrefNaive(func_type, outs[i], ins[i], tparams, targetPrefFuncCppNaive);
@@ -230,8 +225,6 @@ Rcpp::List rpanet_naive_directed_cpp(
     n_existing = new_node_id;
     for (j = 0; j < m[i]; j++) {
       u = unif_rand();
-      ks = qm_source.size();
-      kt = qm_target.size();
       if (u <= alpha) {
         current_scenario = 1;
       }
@@ -247,95 +240,115 @@ Rcpp::List rpanet_naive_directed_cpp(
       else {
         current_scenario = 5;
       }
-      if (check_unique) {
-        switch (current_scenario) {
-          case 1:
-            if (kt + 1 > n_existing) {
-              m_error = true;
-            }
-            break;
-          case 2:
-            if (node_unique) {
-              if (ks + 2 - int(beta_loop) > n_existing) {
-                m_error = true;
-              }
-            }
-            else {
-              if (snode_unique) {
-                if (ks + 1 > n_existing) {
-                  m_error = true;
-                }
-              }
-              if (tnode_unique) {
-                if (kt + 1 > n_existing) {
-                  m_error = true;
-                }
-              }
-            }
-            break;
-          case 3:
-            if (ks + 1 > n_existing) {
-              m_error = true;
-            }
-            break;
-        }
-      }
-      if (m_error) {
-        break;
-      }
       switch (current_scenario) {
         case 1:
+          if (total_target_pref <= min_pref) {
+            temp_p2 = 0;
+            for (k = 0; k < n_existing; k++) {
+              temp_p2 += target_pref[k];
+            }
+            if (temp_p2 == 0) {
+              m_error = true;
+              total_target_pref = 0;
+              break;
+            }
+            total_target_pref = temp_p2;
+          }
           node1 = new_node_id;
           if (sample_recip) {
             node_group[node1] = sampleGroupNaive(group_prob);
           }
           new_node_id++;
-          node2 = sampleNodeDNaive(target_pref, total_target_pref, qm_target);
+          node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
           break;
         case 2:
+          if (total_target_pref <= min_pref) {
+            temp_p2 = 0;
+            for (k = 0; k < n_existing; k++) {
+              temp_p2 += target_pref[k];
+            }
+            if (temp_p2 == 0) {
+              m_error = true;
+              total_target_pref = 0;
+              break;
+            }
+            total_target_pref = temp_p2;
+          }
+          if (total_source_pref <= min_pref) {
+            temp_p2 = 0;
+            for (k = 0; k < n_existing; k++) {
+              temp_p2 += source_pref[k];
+            }
+            if (temp_p2 == 0) {
+              m_error = true;
+              total_source_pref = 0;
+              break;
+            }
+            total_source_pref = temp_p2;
+          }
           if (source_first) {
-            node1 = sampleNodeDNaive(source_pref, total_source_pref, qm_source);
+            node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
             if (beta_loop) {
-              node2 = sampleNodeDNaive(target_pref, total_target_pref, qm_target);
+              node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
             }
             else {
-              if (find(qm_target.begin(), qm_target.end(), node1) != qm_target.end()) {
-                node2 = sampleNodeDNaive(target_pref, total_target_pref, qm_target);
+              if (target_pref[node1] == total_target_pref) {
+                m_error = true;
+                break;
+              }
+              if (target_pref[node1] == 0) {
+                node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
               }
               else {
-                if (kt + 2 > n_existing) {
-                  m_error = true;
-                  break;
-                }
-                qm_target.push_back(node1);
-                node2 = sampleNodeDNaive(target_pref, total_target_pref, qm_target);
-                qm_target.pop_back();
+                temp_p1 = target_pref[node1];
+                temp_p2 = total_target_pref;
+                target_pref[node1] = 0;
+                total_target_pref -= temp_p1;
+                node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
+                target_pref[node1] = temp_p1;
+                total_target_pref = temp_p2;
               }
             }
           }
           else {
-            node2 = sampleNodeDNaive(target_pref, total_target_pref, qm_target);
+            node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
             if (beta_loop) {
-              node1 = sampleNodeDNaive(source_pref, total_source_pref, qm_source);
+              node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
             }
             else {
-              if (find(qm_source.begin(), qm_source.end(), node2) != qm_source.end()) {
-                node1 = sampleNodeDNaive(source_pref, total_source_pref, qm_source);
+              if (source_pref[node2] == total_source_pref) {
+                m_error = true;
+                break;
+              }
+              if (source_pref[node2] == 0) {
+                node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
               }
               else {
-                if (ks + 2 > n_existing) {
-                  m_error = true;
-                  break;
-                }
-                qm_source.push_back(node2);
-                node1 = sampleNodeDNaive(source_pref, total_source_pref, qm_source);
-                qm_source.pop_back();
+                temp_p1 = source_pref[node2];
+                temp_p2 = total_source_pref;
+                source_pref[node2] = 0;
+                total_source_pref -= temp_p1;
+                node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
+                source_pref[node2] = temp_p1;
+                total_source_pref = temp_p2;
               }
             }
           }
           break;
         case 3:
-          node1 = sampleNodeDNaive(source_pref, total_source_pref, qm_source);
+          if (total_source_pref <= min_pref) {
+            temp_p2 = 0;
+            for (k = 0; k < n_existing; k++) {
+              temp_p2 += source_pref[k];
+            }
+            if (temp_p2 == 0) {
+              m_error = true;
+              total_source_pref = 0;
+              break;
+            }
+            total_source_pref = temp_p2;
+          }
+          node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
           node2 = new_node_id;
           if (sample_recip) {
             node_group[node2] = sampleGroupNaive(group_prob);
@@ -363,24 +376,16 @@ Rcpp::List rpanet_naive_directed_cpp(
       if (m_error) {
         break;
       }
-      // handle duplicate nodes
-      if (node_unique) {
-        if (node1 < n_existing) {
-          qm_source.push_back(node1);
-          qm_target.push_back(node1);
-        }
-        if ((node2 < n_existing) && (node1 != node2)) {
-          qm_source.push_back(node2);
-          qm_target.push_back(node2);
-        }
+      // sample without replacement
+      if (snode_unique && (node1 < n_existing)) {
+      // if (snode_unique && (source_pref[node1] > 0)) {
+        total_source_pref -= source_pref[node1];
+        source_pref[node1] = 0;
       }
-      else {
-        if (snode_unique && (node1 < n_existing)) {
-          qm_source.push_back(node1);
-        }
-        if (tnode_unique && (node2 < n_existing)) {
-          qm_target.push_back(node2);
-        }
+      if (tnode_unique && (node2 < n_existing)) {
+      // if (tnode_unique && (target_pref[node2] > 0)) {
+        total_target_pref -= target_pref[node2];
+        target_pref[node2] = 0;
       }
       outs[node1] += edgeweight[new_edge_id];
       ins[node2] += edgeweight[new_edge_id];
@@ -407,7 +412,7 @@ Rcpp::List rpanet_naive_directed_cpp(
     }
     if (m_error) {
       m[i] = j;
-      Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
+      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", current_scenario, i + 1, j);
     }
     while(! q1.empty()) {
       temp_node = q1.front();
@@ -419,8 +424,6 @@ Rcpp::List rpanet_naive_directed_cpp(
       total_target_pref += target_pref[temp_node];
       q1.pop();
     }
-    qm_source.clear();
-    qm_target.clear();
   }
   PutRNGstate();
   // check total preference = sum of node preference
@@ -430,8 +433,8 @@ Rcpp::List rpanet_naive_directed_cpp(
   //   total_source_pref -= source_pref[i];
   //   total_target_pref -= target_pref[i];
   // }
-  // Rprintf("Total source pref %f.\n", total_source_pref * pow(10, 10));
-  // Rprintf("Total target pref %f.\n", total_target_pref * pow(10, 10));
+  // Rprintf("Diff total source pref %f.\n", total_source_pref * pow(10, 10));
+  // Rprintf("Diff total target pref %f.\n", total_target_pref * pow(10, 10));
 
   Rcpp::List ret;
   ret["m"] = m;

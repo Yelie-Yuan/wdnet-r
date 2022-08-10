@@ -1,8 +1,6 @@
 #include<iostream>
 #include<queue>
 #include<R.h>
-#include<deque>
-#include<algorithm>
 #include "funcPtrUnd.h"
 #include<RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -73,7 +71,6 @@ void updatePrefUnd(node_und *temp_node, int func_type,
   else {
     temp_node->p = prefFuncCpp(temp_node->strength);
   }
- 
   updateTotalp(temp_node);
 }
 
@@ -150,25 +147,17 @@ node_und *findNode(node_und *root, double w) {
  * Sample a node from the tree.
  *
  * @param root Root node of the tree.
- * @param qm Nodes to be excluded from the sampling process.
  * 
  * @return Sampled node.
  */
-node_und *sampleNodeUnd(node_und *root, deque<node_und*> &qm) {
+node_und *sampleNodeUnd(node_und *root) {
   double w;
-  node_und *temp_node;
-  while (true) {
-    w = 1;
-    while (w == 1) {
-      w = unif_rand();
-    }
-    w *= root->totalp;
-    temp_node = findNode(root, w);
-    if (find(qm.begin(), qm.end(), temp_node) == qm.end()) {
-      // if temp_node not in qm
-      return temp_node;
-    }
+  w = 1;
+  while (w == 1) {
+    w = unif_rand();
   }
+  w *= root->totalp;
+  return findNode(root, w);
 }
 
 //' Preferential attachment algorithm.
@@ -224,16 +213,15 @@ Rcpp::List rpanet_binary_undirected_cpp(
     }
   }
   
-  double u;
+  double u, temp_p;
   bool m_error;
-  int i, j, k, n_existing, current_scenario;
+  int i, j, n_existing, current_scenario;
   node_und *node1, *node2;
   // initialize a tree from seed graph
   node_und *root = createNodeUnd(0);
   root->strength = strength[0];
   updatePrefUnd(root, func_type, params, prefFuncCpp);
   queue<node_und*> q, q1;
-  deque<node_und*> qm;
   q.push(root);
   for (i = 1; i < new_node_id; i++) {
     node1 = insertNodeUnd(q, i);
@@ -262,48 +250,46 @@ Rcpp::List rpanet_binary_undirected_cpp(
       else {
         current_scenario = 5;
       }
-      if (node_unique) {
-        k = qm.size();
-        switch (current_scenario) {
-        case 1:
-          if (k + 1 > n_existing) {
-            m_error = true;
-          }
-          break;
-        case 2:
-          if (k + 2 - int(beta_loop) > n_existing) {
-            m_error = true;
-          }
-          break;
-        case 3:
-          if (k + 1 > n_existing) {
-            m_error = true;
-          }
-          break;
-        }
-      }
-      if (m_error) {
-        break;
-      }
       switch (current_scenario) {
       case 1:
+        if (root->totalp == 0) {
+          m_error = true;
+          break;
+        }
         node1 = insertNodeUnd(q, new_node_id);
         new_node_id++;
-        node2 = sampleNodeUnd(root, qm);
+        node2 = sampleNodeUnd(root);
         break;
       case 2:
-        node1 = sampleNodeUnd(root, qm);
+        if (root->totalp == 0) {
+          m_error = true;
+          break;
+        }
+        node1 = sampleNodeUnd(root);
         if (! beta_loop) {
-          qm.push_back(node1);
-          node2 = sampleNodeUnd(root, qm);
-          qm.pop_back();
+          if (node1->p == root->totalp) {
+            m_error = true;
+            break;
+          }
+          else {
+            temp_p = node1->p;
+            node1->p = 0;
+            updateTotalp(node1);
+            node2 = sampleNodeUnd(root);
+            node1->p = temp_p;
+            updateTotalp(node1);
+          }
         }
         else {
-          node2 = sampleNodeUnd(root, qm);
+          node2 = sampleNodeUnd(root);
         }
         break;
       case 3:
-        node1 = sampleNodeUnd(root, qm);
+        if (root->totalp == 0) {
+          m_error = true;
+          break;
+        }
+        node1 = sampleNodeUnd(root);
         node2 = insertNodeUnd(q, new_node_id);
         new_node_id++;
         break;
@@ -318,13 +304,18 @@ Rcpp::List rpanet_binary_undirected_cpp(
         new_node_id++;
         break;
       }
-      // handle duplicate nodes
+      if (m_error) {
+        break;
+      }
+      // sample without replacement
       if (node_unique) {
         if (node1->id < n_existing) {
-          qm.push_back(node1);
+          node1->p = 0;
+          updateTotalp(node1);
         }
         if ((node2->id < n_existing) && (node1 != node2)) {
-          qm.push_back(node2);
+          node2->p = 0;
+          updateTotalp(node2);
         }
       }
       node1->strength += edgeweight[new_edge_id];
@@ -339,13 +330,12 @@ Rcpp::List rpanet_binary_undirected_cpp(
     if (m_error) {
       m[i] = j;
       // need to print this info
-      Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
+      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", current_scenario, i + 1, j);
     }
     while (! q1.empty()) {
       updatePrefUnd(q1.front(), func_type, params, prefFuncCpp);
       q1.pop();
     }
-    qm.clear();
   }
   PutRNGstate();
   // free memory (queue)
