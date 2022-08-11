@@ -130,6 +130,42 @@ int sampleGroupNaive(Rcpp::NumericVector group_prob) {
   return i - 1;
 }
 
+// /**
+//  * Calculate total preference.
+//  * 
+//  * @param pref Preference vector.
+//  * @param n_exising Number of existing nodes.
+//  * 
+//  * @return Total preference.
+//  * 
+//  */
+// double calcTotalprefD(Rcpp::NumericVector pref, int n_existing) {
+//   int k;
+//   double temp = 0;
+//   for (k = 0; k < n_existing; k++) {
+//     temp += pref[k];
+//   }
+//   return temp;
+// }
+
+// /**
+//  * Check difference.
+//  * 
+//  * @param total_pref Total preference.
+//  * @param pref Preference vector.
+//  * 
+//  */
+// void checkDiffD(Rcpp::NumericVector pref, double total_pref) {
+//   int k;
+//   double temp = 0, tol = 0.00000001;
+//   for (k = 0; k < pref.size(); k++) {
+//     temp += pref[k];
+//   }
+//   if ((total_pref - temp > tol) || (temp - total_pref) > tol) {
+//     Rprintf("Total pref warning, diff = %f. \n", total_pref - temp);
+//   }
+// }
+
 //'  Preferential attachment algorithm.
 //' 
 //' @param nstep Number of steps.
@@ -204,9 +240,7 @@ Rcpp::List rpanet_naive_directed_cpp(
     }
   }
 
-  double u, p, temp_p1, temp_p2;
-  // if total pref <= min_pref, re-calculate total preference
-  double min_pref = pow(10, -10);
+  double u, p, temp_p;
   bool m_error;
   int i, j, k, n_existing, current_scenario;
   int node1, node2, temp_node;
@@ -240,20 +274,36 @@ Rcpp::List rpanet_naive_directed_cpp(
       else {
         current_scenario = 5;
       }
-      switch (current_scenario) {
-        case 1:
-          if (total_target_pref <= min_pref) {
-            temp_p2 = 0;
-            for (k = 0; k < n_existing; k++) {
-              temp_p2 += target_pref[k];
-            }
-            if (temp_p2 == 0) {
-              m_error = true;
-              total_target_pref = 0;
+      if (snode_unique) {
+        if ((current_scenario == 2) || (current_scenario == 3)) {
+          for (k = 0; k < n_existing; k++) {
+            if (source_pref[k] > 0) {
               break;
             }
-            total_target_pref = temp_p2;
           }
+          if (k == n_existing) {
+            total_source_pref = 0;
+            m_error = true;
+            break;
+          }
+        }
+      }
+      if (tnode_unique) {
+        if ((current_scenario == 1) || (current_scenario == 2)) {
+          for (k = 0; k < n_existing; k++) {
+            if (target_pref[k] > 0) {
+              break;
+            }
+          }
+          if (k == n_existing) {
+            total_target_pref = 0;
+            m_error = true;
+            break;
+          }
+        }
+      }
+      switch (current_scenario) {
+        case 1:
           node1 = new_node_id;
           if (sample_recip) {
             node_group[node1] = sampleGroupNaive(group_prob);
@@ -262,30 +312,6 @@ Rcpp::List rpanet_naive_directed_cpp(
           node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
           break;
         case 2:
-          if (total_target_pref <= min_pref) {
-            temp_p2 = 0;
-            for (k = 0; k < n_existing; k++) {
-              temp_p2 += target_pref[k];
-            }
-            if (temp_p2 == 0) {
-              m_error = true;
-              total_target_pref = 0;
-              break;
-            }
-            total_target_pref = temp_p2;
-          }
-          if (total_source_pref <= min_pref) {
-            temp_p2 = 0;
-            for (k = 0; k < n_existing; k++) {
-              temp_p2 += source_pref[k];
-            }
-            if (temp_p2 == 0) {
-              m_error = true;
-              total_source_pref = 0;
-              break;
-            }
-            total_source_pref = temp_p2;
-          }
           if (source_first) {
             node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
             if (beta_loop) {
@@ -300,13 +326,24 @@ Rcpp::List rpanet_naive_directed_cpp(
                 node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
               }
               else {
-                temp_p1 = target_pref[node1];
-                temp_p2 = total_target_pref;
+                temp_p = target_pref[node1];
                 target_pref[node1] = 0;
-                total_target_pref -= temp_p1;
+                total_target_pref -= temp_p;
+                // check whether sum(target_pref) == 0
+                for (k = 0; k < n_existing; k++) {
+                  if (target_pref[k] > 0) {
+                    break;
+                  }
+                }
+                if (k == n_existing) {
+                  total_target_pref = 0;
+                  m_error = true;
+                  break;
+                }
+
                 node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
-                target_pref[node1] = temp_p1;
-                total_target_pref = temp_p2;
+                target_pref[node1] = temp_p;
+                total_target_pref += temp_p;
               }
             }
           }
@@ -324,30 +361,29 @@ Rcpp::List rpanet_naive_directed_cpp(
                 node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
               }
               else {
-                temp_p1 = source_pref[node2];
-                temp_p2 = total_source_pref;
+                temp_p = source_pref[node2];
                 source_pref[node2] = 0;
-                total_source_pref -= temp_p1;
+                total_source_pref -= temp_p;
+                // check whether sum(source_pref) == 0
+                for (k = 0; k < n_existing; k++) {
+                  if (source_pref[k] > 0) {
+                    break;
+                  }
+                }
+                if (k == n_existing) {
+                  total_source_pref = 0;
+                  m_error = true;
+                  break;
+                }
+
                 node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
-                source_pref[node2] = temp_p1;
-                total_source_pref = temp_p2;
+                source_pref[node2] = temp_p;
+                total_source_pref += temp_p;
               }
             }
           }
           break;
         case 3:
-          if (total_source_pref <= min_pref) {
-            temp_p2 = 0;
-            for (k = 0; k < n_existing; k++) {
-              temp_p2 += source_pref[k];
-            }
-            if (temp_p2 == 0) {
-              m_error = true;
-              total_source_pref = 0;
-              break;
-            }
-            total_source_pref = temp_p2;
-          }
           node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
           node2 = new_node_id;
           if (sample_recip) {
@@ -378,15 +414,15 @@ Rcpp::List rpanet_naive_directed_cpp(
       }
       // sample without replacement
       if (snode_unique && (node1 < n_existing)) {
-      // if (snode_unique && (source_pref[node1] > 0)) {
         total_source_pref -= source_pref[node1];
         source_pref[node1] = 0;
       }
       if (tnode_unique && (node2 < n_existing)) {
-      // if (tnode_unique && (target_pref[node2] > 0)) {
         total_target_pref -= target_pref[node2];
         target_pref[node2] = 0;
       }
+      // checkDiffD(source_pref, total_source_pref);
+      // checkDiffD(target_pref, total_target_pref);
       outs[node1] += edgeweight[new_edge_id];
       ins[node2] += edgeweight[new_edge_id];
       source_node[new_edge_id] = node1;
@@ -424,17 +460,10 @@ Rcpp::List rpanet_naive_directed_cpp(
       total_target_pref += target_pref[temp_node];
       q1.pop();
     }
+    // checkDiffD(source_pref, total_source_pref);
+    // checkDiffD(target_pref, total_target_pref);
   }
   PutRNGstate();
-  // check total preference = sum of node preference
-  // Rprintf("Total source pref %f.\n", total_source_pref);
-  // Rprintf("Total target pref %f.\n", total_target_pref);
-  // for (i = 0; i < new_node_id; i++) {
-  //   total_source_pref -= source_pref[i];
-  //   total_target_pref -= target_pref[i];
-  // }
-  // Rprintf("Diff total source pref %f.\n", total_source_pref * pow(10, 10));
-  // Rprintf("Diff total target pref %f.\n", total_target_pref * pow(10, 10));
 
   Rcpp::List ret;
   ret["m"] = m;

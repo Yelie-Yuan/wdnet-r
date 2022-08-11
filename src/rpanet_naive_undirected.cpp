@@ -1,8 +1,6 @@
 #include<iostream>
 #include<queue>
 #include<R.h>
-#include<deque>
-#include<algorithm>
 #include "funcPtrUnd.h"
 #include<RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -45,32 +43,65 @@ double calcPrefNaive(int func_type,
 /**
  * Sample an existing node.
  *
+ * @param n_existing Number of existing nodes.
  * @param pref Sequence of node preference.
  * @param total_pref Total preference of existing nodes.
- * @param qm Nodes to be excluded from the sampling process.
  *
  * @return Sampled node.
  */
-int sampleNodeUndNaive(Rcpp::NumericVector pref, double total_pref, deque<int> &qm) {
-  double w;
-  int i;
-  while (true) {
-    i = 0;
-    w = 1;
-    while (w == 1) {
-      w = unif_rand();
-    }
-    w *= total_pref;
-    while (w > 0) {
-      w -= pref[i];
-      i += 1;
-    }
-    i -= 1;
-    if (find(qm.begin(), qm.end(), i) == qm.end()) {
-      return i;
-    }
+int sampleNodeUndNaive(int n_existing, Rcpp::NumericVector pref, double total_pref) {
+  double w = 1;
+  int i = 0;
+  while (w == 1) {
+    w = unif_rand();
   }
+  w *= total_pref;
+  while ((w > 0) && (i < n_existing)) {
+    w -= pref[i];
+    i += 1;
+  }
+  if (w > 0) {
+    Rprintf("Numerical error! Returning the last node (node %d) as the sampled node. \n", n_existing);
+    // i = n_existing;
+  }
+  return i - 1;
 }
+
+// /**
+//  * Calculate total preference.
+//  * 
+//  * @param pref Preference vector.
+//  * @param n_exising Number of existing nodes.
+//  * 
+//  * @return Total preference.
+//  * 
+//  */
+// double calcTotalprefUnd(Rcpp::NumericVector pref, int n_existing) {
+//   int k;
+//   double temp = 0;
+//   for (k = 0; k < n_existing; k++) {
+//     temp += pref[k];
+//   }
+//   return temp;
+// }
+
+// /**
+//  * Check difference.
+//  * 
+//  * @param total_pref Total preference.
+//  * @param pref Preference vector.
+//  * 
+//  */
+// void checkDiffUnd(Rcpp::NumericVector pref, double total_pref) {
+//   int k;
+//   double temp = 0, tol = 0.00000001;
+//   for (k = 0; k < pref.size(); k++) {
+//     temp += pref[k];
+//   }
+//   if ((total_pref - temp > tol) || (temp - total_pref) > tol) {
+//     Rprintf("Total pref warning, diff = %f. \n", total_pref - temp);
+//   }
+// }
 
 //' Preferential attachment algorithm.
 //'
@@ -125,12 +156,11 @@ Rcpp::List rpanet_naive_undirected_cpp(
     }
   }
 
-  double u, total_pref = 0;
+  double u, total_pref = 0, temp_p;
   bool m_error;
   int i, j, k, n_existing, current_scenario;
   int node1, node2, temp_node;
   queue<int> q1;
-  deque<int> qm;
   for (i = 0; i < new_node_id; i++) {
     pref[i] = calcPrefNaive(func_type, strength[i], params, prefFuncCppNaive);
     total_pref += pref[i];
@@ -158,47 +188,58 @@ Rcpp::List rpanet_naive_undirected_cpp(
         current_scenario = 5;
       }
       if (node_unique) {
-        k = qm.size();
-        switch (current_scenario) {
-          case 1:
-            if (k + 1 > n_existing) {
-              m_error = true;
+        if (current_scenario <= 3) {
+          // check whether sum(pref) == 0
+          for (k = 0; k < n_existing; k++) {
+            if (pref[k] > 0) {
+              break;
             }
+          }
+          if (k == n_existing) {
+            total_pref = 0;
+            m_error = true;
             break;
-          case 2:
-            if (k + 2 - int(beta_loop) > n_existing) {
-              m_error = true;
-            }
-            break;
-          case 3:
-            if (k + 1 > n_existing) {
-              m_error = true;
-            }
-            break;
+          }
         }
-      }
-      if (m_error) {
-        break;
       }
       switch (current_scenario) {
         case 1:
           node1 = new_node_id;
           new_node_id++;
-          node2 = sampleNodeUndNaive(pref, total_pref, qm);
+          node2 = sampleNodeUndNaive(n_existing, pref, total_pref);
           break;
         case 2:
-          node1 = sampleNodeUndNaive(pref, total_pref, qm);
+          node1 = sampleNodeUndNaive(n_existing, pref, total_pref);
           if (! beta_loop) {
-            qm.push_back(node1);
-            node2 = sampleNodeUndNaive(pref, total_pref, qm);
-            qm.pop_back();
+            if (pref[node1] == total_pref) {
+              m_error = true;
+              break;
+            }
+            temp_p = pref[node1];
+            pref[node1] = 0;
+            total_pref -= temp_p;
+            // check whether sum(pref) == 0
+            for (k = 0; k < n_existing; k++) {
+              if (pref[k] > 0) {
+                break;
+              }
+            }
+            if (k == n_existing) {
+              total_pref = 0;
+              m_error = true;
+              break;
+            }
+
+            node2 = sampleNodeUndNaive(n_existing, pref, total_pref);
+            pref[node1] = temp_p;
+            total_pref += temp_p;
           }
           else {
-            node2 = sampleNodeUndNaive(pref, total_pref, qm);
+            node2 = sampleNodeUndNaive(n_existing, pref, total_pref);
           }
           break;
         case 3:
-          node1 = sampleNodeUndNaive(pref, total_pref, qm);
+          node1 = sampleNodeUndNaive(n_existing, pref, total_pref);
           node2 = new_node_id;
           new_node_id++;
           break;
@@ -213,15 +254,21 @@ Rcpp::List rpanet_naive_undirected_cpp(
           new_node_id++;
           break;
       }
-      // handle duplicate nodes
+      if (m_error) {
+        break;
+      }
+      // sample without replacement
       if (node_unique) {
         if (node1 < n_existing) {
-          qm.push_back(node1);
+          total_pref -= pref[node1];
+          pref[node1] = 0;
         }
         if ((node2 < n_existing) && (node1 != node2)) {
-          qm.push_back(node2);
+          total_pref -= pref[node2];
+          pref[node2] = 0;
         }
       }
+      // checkDiffUnd(pref, total_pref);
       strength[node1] += edgeweight[new_edge_id];
       strength[node2] += edgeweight[new_edge_id];
       node_vec1[new_edge_id] = node1;
@@ -234,7 +281,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
     if (m_error) {
       m[i] = j;
       // need to print this info
-      Rprintf("Unique nodes exhausted at step %u. Set the value of m at current step to %u.\n", i + 1, j);
+      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", current_scenario, i + 1, j);
     }
     while (! q1.empty()) {
       temp_node = q1.front();
@@ -243,15 +290,9 @@ Rcpp::List rpanet_naive_undirected_cpp(
       total_pref += pref[temp_node];
       q1.pop();
     }
-    qm.clear();
+    // checkDiffUnd(pref, total_pref);
   }
   PutRNGstate();
-  // check total preference = sum of node preference
-  // Rprintf("Total pref %f.\n", total_pref);
-  // for (i = 0; i < new_node_id; i++) {
-  //   total_pref -= pref[i];
-  // }
-  // Rprintf("Total pref %f.\n", total_pref * pow(10, 10));
 
   Rcpp::List ret;
   ret["m"] = m;
