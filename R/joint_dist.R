@@ -34,10 +34,10 @@ get_dist <- function(edgelist = NA, directed = TRUE,
   if (! directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
   edgelist <- as.matrix(edgelist)
   temp <- node_strength_cpp(snode = edgelist[, 1], 
-                           tnode = edgelist[, 2], 
-                           nnode = max(edgelist), 
-                           weight = 1,
-                           weighted = FALSE)
+                            tnode = edgelist[, 2], 
+                            nnode = max(edgelist), 
+                            weight = 1,
+                            weighted = FALSE)
   
   outd <- temp$outstrength
   ind <- temp$instrength
@@ -319,41 +319,38 @@ get_eta_directed <- function(edgelist,
   }
   constrs <- get_constr(constrs, target.assortcoef, rho)
   # constrs <- get_constr(constrs, target_rank_assortcoef, rankRho)
+  retitems <- c("value", "status", "solver", "solve_time", "setup_time", "num_iters")
   if (is.null(which.range)) {
     problem <- CVXR::Problem(CVXR::Minimize(do.call(eta.obj, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
-    if (result$status == "solver_error") stop("SOLVER ERROR.")
-    if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
-    
-    return(list("assortcoef" = get_values(rho, result, mydist),
-                # rankRho = get_values(rankRho, result, mydist),
-                "e" = get_values(e, result, mydist),
-                "eta" = name_eMat(result$getValue(eMat)))) 
+    ret <- result[retitems]
+    if (result$status == "solver_error" | result$status == "infeasible") {
+      warning(paste0("Solver status: ", result$status))
+      return(ret)
+    }
+    ret$assortcoef <- get_values(rho, result, mydist)
+    # ret$e <- get_values(e, result, mydist)
+    ret$eta <- name_eMat(result$getValue(eMat))
+    return(ret)
   } else {
     # tempRho <- append(rho, rankRho)
     tempRho <- rho
     stopifnot("'which.range' is not valid." = which.range %in% names(tempRho))
     problem1 <- CVXR::Problem(CVXR::Minimize(tempRho[[which.range]]), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    if (result1$status == "solver_error") stop("SOLVER ERROR.")
-    if (result1$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
+    if (result1$status == "solver_error" | result1$status == "infeasible") {
+      warning(paste0("Lower bound solver status: ", result1$status))
+    }
     
     problem2 <- CVXR::Problem(CVXR::Maximize(tempRho[[which.range]]), constrs)
     result2 <- do.call(CVXR::solve, c(list(problem2), control))
-    
-    if (result2$status == "solver_error") stop("SOLVER ERROR.")
-    if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
-    
+    if (result2$status == "solver_error" | result2$status == "infeasible") {
+      warning(paste0("Upper bound solver status: ", result2$status))
+    }
     return(list("range" = c(result1$getValue(tempRho[[which.range]]), 
                             result2$getValue(tempRho[[which.range]])),
-                "lbound" = list("assortcoef" = get_values(rho, result1, mydist),
-                                # rankRho = get_values(rankRho, result1, mydist),
-                                "e" = get_values(e, result1, mydist),
-                                "eta" = name_eMat(result1$getValue(eMat))),
-                "ubound" = list("assortcoef" = get_values(rho, result2, mydist),
-                                # rankRho = get_values(rankRho, result2, mydist),
-                                "e" = get_values(e, result2, mydist),
-                                "eta" = name_eMat(result2$getValue(eMat)))))
+                "lbound.solver.result" = result1[retitems], 
+                "ubound.solver.result" = result2[retitems]))
   }
 }
 
@@ -396,31 +393,33 @@ get_eta_undirected <- function(edgelist, target.assortcoef = NULL,
   rho <- t(k) %*% (eMat - q_k %*% t(q_k)) %*% k / sig2
   constrs <- list(CVXR::sum_entries(eMat, 1) == q_k, 
                   eMat == t(eMat))
-  
+  retitems <- c("value", "status", "solver", "solve_time", "setup_time", "num_iters")
   if (! is.null(target.assortcoef)) {
     constrs$"rho" <- rho == target.assortcoef
     problem <- CVXR::Problem(CVXR::Minimize(do.call(eta.obj, list(eMat))), constrs)
     result <- do.call(CVXR::solve, c(list(problem), control))
-    if (result$status == "solver_error") stop("SOLVER ERROR.")
-    if (result$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
-    return(list("assortcoef" = result$getValue(rho),
-                "eta" = name_eMat(result$getValue(eMat), k)))
+    ret <- result[retitems]
+    if (result$status == "solver_error" | result$status == "infeasible") {
+      warning(paste0("Solver status: ", result$status))
+      return(ret)
+    }
+    ret$assortcoef <- result$getValue(rho)
+    ret$eta <- name_eMat(result$getValue(eMat), k)
+    return(ret)
   } else {
     # constrs$"rho" <- rho <= 1
     problem1 <- CVXR::Problem(CVXR::Minimize(rho), constrs)
     result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    if (result1$status == "solver_error") stop("SOLVER ERROR.")
-    if (result1$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
-    
+    if (result1$status == "solver_error" | result1$status == "infeasible") {
+      warning(paste0("Lower bound solver status: ", result1$status))
+    }
     problem2 <- CVXR::Problem(CVXR::Maximize(rho), constrs)
     result2 <- do.call(CVXR::solve, c(list(problem2), control))
-    if (result2$status == "solver_error") stop("SOLVER ERROR.")
-    if (result2$status == "infeasible") stop("PROBLEM IS INFEASIBLE.")
-    
+    if (result2$status == "solver_error" | result2$status == "infeasible") {
+      warning(paste0("Upper bound solver status: ", result2$status))
+    }
     return(list("range" = c(result1$getValue(rho), result2$getValue(rho)),
-                "lbound" = list("assortcoef" = result1$getValue(rho),
-                                "eta" = name_eMat(result1$getValue(eMat), k)),
-                "ubound" = list("assortcoef" = result2$getValue(rho),
-                                "eta" = name_eMat(result2$getValue(eMat), k))))
+                "lbound.solver.result" = result1[retitems], 
+                "ubound.solver.result" = result2[retitems]))
   }
 }

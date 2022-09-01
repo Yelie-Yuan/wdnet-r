@@ -51,10 +51,10 @@ dprewire_directed <- function(edgelist, eta,
   sourceNode <- edgelist[, 1]
   targetNode <- edgelist[, 2]
   temp <- node_strength_cpp(snode = sourceNode, 
-                           tnode = targetNode, 
-                           nnode = max(edgelist), 
-                           weight = 1,
-                           weighted = FALSE)
+                            tnode = targetNode, 
+                            nnode = max(edgelist), 
+                            weight = 1,
+                            weighted = FALSE)
   outd <- temp$outstrength
   ind <- temp$instrength
   
@@ -240,8 +240,7 @@ dprewire_undirected <- function(edgelist, eta,
 #'
 #' @return Rewired \code{edgelist}; assortativity coefficient(s) after each
 #'   iteration; rewiring history (including the index of sampled edges and
-#'   rewiring result); solved \code{eta} and its corresponding assortativity
-#'   coefficient(s), if applicable.
+#'   rewiring result) and solver results.
 #'
 #' @export
 #'
@@ -322,8 +321,10 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
                                           eta.obj = control$eta.obj, 
                                           control = control$cvxr.control)
     }
+    if (solver.result$status == "solver_error" | solver.result$status == "infeasible") {
+      return(list("solver.result" = solver.result))
+    }
     eta <- solver.result$eta
-    solver.result$e <- NULL
   }
   if (directed) {
     ret <- dprewire_directed(edgelist = edgelist,
@@ -371,8 +372,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
 #'   solving an appropriate \code{eta} with the constraints 
 #'   \code{target.assortcoef}.
 #'
-#' @return Range of the interested assortativity coefficient; solved \code{eta}
-#'   and its corresponding assortativity coefficients.
+#' @return Range of the interested assortativity coefficient and solver results.
 #'
 #' @export
 #'
@@ -383,10 +383,6 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
 #'         rpactl.scenario(alpha = 0.5, beta = 0.5))$edgelist
 #' ret1 <- dprewire.range(edgelist, directed = TRUE, which.range = "outin",
 #'         target.assortcoef = list("outout" = c(-0.3, 0.3), "inout" = 0.1))
-#' ret2 <- dprewire(edgelist, eta = ret1$lbound$eta, control = list(iteration = 100))
-#' plot(ret2$assortcoef$Iteration, ret2$assortcoef$"outin")
-#' ret3 <- dprewire(edgelist, eta = ret1$ubound$eta, control = list(iteration = 100))
-#' plot(ret3$assortcoef$Iteration, ret3$assortcoef$"outin")
 #' }
 #' 
 dprewire.range <- function(edgelist = NULL, directed = TRUE, adj = NULL,
@@ -411,7 +407,7 @@ dprewire.range <- function(edgelist = NULL, directed = TRUE, adj = NULL,
   }
   
   stopifnot("Nodes must be consecutive integers starting from 1." = 
-              min(edgelist) == 1 & max(edgelist) == length(unique(c(edgelist))))
+            min(edgelist) == 1 & max(edgelist) == length(unique(c(edgelist))))
   
   if (directed) {
     which.range <- match.arg(which.range)
@@ -424,6 +420,5 @@ dprewire.range <- function(edgelist = NULL, directed = TRUE, adj = NULL,
     result <- get_eta_undirected(edgelist = edgelist,
                                  control = control)
   }
-  result$lbound$e <- result$ubound$e <- NULL
   result
 }
