@@ -44,7 +44,7 @@ NULL
 #'   (v_3, v_2).
 #'
 dprewire_directed <- function(edgelist, eta, 
-                              iteration = 1, nattempts = NULL, 
+                              iteration = 200, nattempts = NULL, 
                               rewire.history = FALSE) {
   if (is.null(nattempts)) nattempts <- nrow(edgelist)
   edgelist <- as.matrix(edgelist)
@@ -151,7 +151,7 @@ dprewire_directed <- function(edgelist, eta,
 #'   or \{v_1, v_3\}, \{v_2, v_4\} (rewire type 2) with probability 1/2.
 #'
 dprewire_undirected <- function(edgelist, eta, 
-                                iteration = 1, nattempts = NULL, 
+                                iteration = 200, nattempts = NULL, 
                                 rewire.history = FALSE) {
   if (is.null(nattempts)) nattempts <- nrow(edgelist)
   
@@ -262,7 +262,7 @@ dprewire_undirected <- function(edgelist, eta,
 #'                    directed = FALSE)$edgelist
 #' ## rewire an undirected network to have predetermined assortativity coefficient
 #' ret2 <- dprewire(edgelist, directed = FALSE, target.assortcoef = 0.3,
-#'                control = list(iteration = 100, eta.obj = CVXR::norm2, 
+#'                control = list(iteration = 300, eta.obj = CVXR::norm2, 
 #'                history = TRUE))
 #' plot(ret2$assortcoef$Iteration, ret2$assortcoef$Value)
 #' }
@@ -273,7 +273,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
                                               "outin" = NULL, 
                                               "inout" = NULL, 
                                               "inin" = NULL),
-                     control = list("iteration" = 10, 
+                     control = list("iteration" = 200, 
                                     "nattempts" = NULL, 
                                     "history" = FALSE, 
                                     "cvxr.control" = cvxr.control(),
@@ -296,7 +296,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
   stopifnot("Nodes must be consecutive integers starting from 1." = 
               min(edgelist) == 1 & max(edgelist) == length(unique(c(edgelist))))
   
-  control.default <- list("iteration" = 10, 
+  control.default <- list("iteration" = 200, 
                           "nattempts" = NULL, 
                           "history" = FALSE, 
                           "cvxr.control" = cvxr.control(),
@@ -383,6 +383,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
 #'         rpactl.scenario(alpha = 0.5, beta = 0.5))$edgelist
 #' ret1 <- dprewire.range(edgelist, directed = TRUE, which.range = "outin",
 #'         target.assortcoef = list("outout" = c(-0.3, 0.3), "inout" = 0.1))
+#' ret1$range
 #' }
 #' 
 dprewire.range <- function(edgelist = NULL, directed = TRUE, adj = NULL,
