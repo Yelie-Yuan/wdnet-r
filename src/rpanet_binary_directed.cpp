@@ -6,6 +6,8 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace std;
+funcPtrD sourcePrefFuncCpp;
+funcPtrD targetPrefFuncCpp;
 
 /**
  * Node structure in directed networks.
@@ -320,8 +322,8 @@ Rcpp::List rpanet_binary_directed(
   Rcpp::List preference_ctl = control["preference"];
   Rcpp::NumericVector sparams(5);
   Rcpp::NumericVector tparams(5);
-  funcPtrD sourcePrefFuncCpp;
-  funcPtrD targetPrefFuncCpp;
+  // funcPtrD sourcePrefFuncCpp;
+  // funcPtrD targetPrefFuncCpp;
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {

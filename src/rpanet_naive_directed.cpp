@@ -6,6 +6,8 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace std;
+funcPtrD sourcePrefFuncCppNaive;
+funcPtrD targetPrefFuncCppNaive;
 
 /**
  * Default source preference function.
@@ -220,8 +222,8 @@ Rcpp::List rpanet_naive_directed_cpp(
   Rcpp::List preference_ctl = control["preference"];
   Rcpp::NumericVector sparams(5);
   Rcpp::NumericVector tparams(5);
-  funcPtrD sourcePrefFuncCppNaive;
-  funcPtrD targetPrefFuncCppNaive;
+  // funcPtrD sourcePrefFuncCppNaive;
+  // funcPtrD targetPrefFuncCppNaive;
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {
