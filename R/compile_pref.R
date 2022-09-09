@@ -69,12 +69,6 @@ compile_pref_func <- function(preference,
                  "}", sep = ""))
   }
   if (typeof(preference$spref) == "character") {
-    # check preference$spref
-    outs <- 1
-    ins <- 1
-    temp <- eval(parse(text = preference$spref))
-    rm(outs, ins, temp)
-    
     compile_spref <- TRUE
     cpp_code <- paste(cpp_code, get_func_d(fname$spref_func,
                                            fname$spref_XPtr,
@@ -84,12 +78,6 @@ compile_pref_func <- function(preference,
     stop('Type of "spref" must be "externalptr" or "character".')
   }
   if (typeof(preference$tpref) == "character") {
-    # check preference$tpref
-    outs <- 1
-    ins <- 1
-    temp <- eval(parse(text = preference$tpref))
-    rm(outs, ins, temp)
-    
     compile_tpref <- TRUE
     cpp_code <- paste(cpp_code, get_func_d(fname$tpref_func,
                                            fname$tpref_XPtr,
@@ -100,9 +88,6 @@ compile_pref_func <- function(preference,
   }
 
   if (typeof(preference$pref) == "character") {
-    s <- 1
-    temp <- eval(parse(text = preference$pref))
-    rm(s, temp)
     compile_pref <- TRUE
     cpp_code <- paste(cpp_code, get_func_und(fname$pref_func,
                                              fname$pref_XPtr,
