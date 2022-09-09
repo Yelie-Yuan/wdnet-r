@@ -17,7 +17,6 @@
 ##
 
 #' @importFrom igraph graph_from_adjacency_matrix as_edgelist E
-#' @importFrom Rcpp sourceCpp
 NULL
 
 #' Convert adjacency matrix to edgelist and edgeweight.
@@ -69,92 +68,4 @@ edge_to_adj <- function(edgelist, edgeweight = NULL, directed = TRUE) {
     diag(adj) <- diag(adj) / 2
   }
   return(adj)
-}
-
-
-#' Compile preference functions via \code{Rcpp}.
-#' 
-#' @param preference A list for defining the preference functions.
-#' @return Preference functions and external pointers.
-compile_pref_func <- function(preference) {
-  compile_spref <- compile_tpref <- compile_pref <- FALSE
-  cpp_code <- "// [[Rcpp::depends(RcppArmadillo)]]
-    #include <RcppArmadillo.h>
-    #include <math.h>
-    using namespace Rcpp;
-    typedef double (*funcPtrD)(double x, double y);"
-  if (typeof(preference$spref) == "character") {
-    compile_spref <- TRUE
-    cpp_code <- paste(cpp_code, "\n",
-                      "// [[Rcpp::export]]
-      double spref_func(double outs, double ins) {
-        return ",
-                      preference$spref,
-                      ";
-      }
-      // [[Rcpp::export]]
-      XPtr<funcPtrD> put_spref_XPtr() {
-        return(XPtr<funcPtrD>(new funcPtrD(spref_func)));
-      }", collapse = "\n")
-  }
-  else if (typeof(preference$spref) != "externalptr") {
-    stop('Type of "spref" must be "externalptr" or "character".')
-  }
-  
-  if (typeof(preference$tpref) == "character") {
-    compile_tpref <- TRUE
-    cpp_code <- paste(cpp_code, "\n",
-                      "// [[Rcpp::export]]
-      double tpref_func(double outs, double ins) {
-        return ",
-                      preference$tpref,
-                      ";
-      }
-      // [[Rcpp::export]]
-      XPtr<funcPtrD> put_tpref_XPtr() {
-        return(XPtr<funcPtrD>(new funcPtrD(tpref_func)));
-      }", collapse = "\n")
-  }
-  else if (typeof(preference$tpref) != "externalptr") {
-    stop('Type of "tpref" must be "externalptr" or "character".')
-  }
-  
-  if (typeof(preference$pref) == "character") {
-    compile_pref <- TRUE
-    cpp_code <- paste(cpp_code, "\n",
-                      "typedef double (*funcPtrUnd)(double x);
-      // [[Rcpp::export]]
-      double pref_func(double s) {
-        return ",
-                      preference$pref,
-                      ";
-      }
-      // [[Rcpp::export]]
-      XPtr<funcPtrUnd> put_pref_XPtr() {
-        return(XPtr<funcPtrUnd>(new funcPtrUnd(pref_func)));
-      }", collapse = "\n")
-  }
-  else if (typeof(preference$pref) != "externalptr") {
-    stop('Type of "pref" must be "externalptr" or "character".')
-  }
-  
-  if (compile_spref | compile_tpref | compile_pref) {
-    cat("Compiling preference function(s)...\n")
-    Rcpp::sourceCpp(code = cpp_code)
-    # cat("Done.\n")
-  }
-  preference$spref.pointer <- ifelse(compile_spref, 
-                                  put_spref_XPtr(),
-                                  preference$spref)
-  preference$tpref.pointer <- ifelse(compile_tpref, 
-                                  put_tpref_XPtr(),
-                                  preference$tpref)
-  preference$pref.pointer <- ifelse(compile_pref, 
-                                 put_pref_XPtr(),
-                                 preference$pref)
-  # test functions
-  test_pref_func_directed(preference$spref.pointer, 1, 1)
-  test_pref_func_directed(preference$tpref.pointer, 1, 1)
-  test_pref_func_undirected(preference$pref.pointer, 1)
-  preference
 }
