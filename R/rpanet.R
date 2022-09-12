@@ -18,6 +18,7 @@
 
 #' @importFrom utils modifyList
 #' @importFrom stats rgamma rpois
+#' @importFrom RcppXPtrUtils checkXPtr
 NULL
 
 #' Generate PA networks.
@@ -137,28 +138,20 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   }
   control <- control.default + control
   rm(control.default)
-  control$preference$ftype.temp <- 1
   if (control$preference$ftype == "customized") {
-    if (any(is.null(control$preference$spref.pointer),
-            is.null(control$preference$tpref.pointer),
-            is.null(control$preference$pref.pointer))) {
-      stop("Preference functions are not valid.")
+    if (directed) {
+      RcppXPtrUtils::checkXPtr(ptr = control$preference$spref.pointer,
+                               type = "double",
+                               args = c("double", "double"))
+      RcppXPtrUtils::checkXPtr(ptr = control$preference$tpref.pointer,
+                               type = "double",
+                               args = c("double", "double"))
     }
-    test_pref_func_directed(control$preference$spref.pointer, 1, 1)
-    test_pref_func_directed(control$preference$tpref.pointer, 1, 1)
-    test_pref_func_undirected(control$preference$pref.pointer, 1)
-    control$preference$ftype.temp <- 2
-    control$preference$sparams <- NULL
-    control$preference$tparams <- NULL
-    control$preference$params <- NULL
-  }
-  else {
-    control$preference$spref <- NULL
-    control$preference$tpref <- NULL
-    control$preference$pref <- NULL
-    control$preference$spref.pointer <- NULL
-    control$preference$tpref.pointer <- NULL
-    control$preference$pref.pointer <- NULL
+    else {
+      RcppXPtrUtils::checkXPtr(ptr = control$preference$pref.pointer,
+                               type = "double",
+                               args = "double")
+    }
   }
   
   if (is.function(control$newedge$distribution)) {

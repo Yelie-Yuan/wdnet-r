@@ -71,6 +71,8 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                                      seednetwork$edgelist[, 2], 
                                      seednetwork$edgeweight,
                                      nnode, weighted = TRUE)
+  control$preference$ftype.temp <- ifelse(control$preference$ftype == "default", 
+                                          yes = 1, no = 2)
   if (directed) {
     outstrength <- double(node_vec_length)
     instrength <- double(node_vec_length)
@@ -157,6 +159,29 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
   control$preference$spref.pointer <- NULL
   control$preference$tpref.pointer <- NULL
   control$preference$pref.pointer <- NULL
+  if (control$preference$ftype == "customized") {
+    control$preference$sparams <- NULL
+    control$preference$tparams <- NULL
+    control$preference$params <- NULL
+  }
+  else {
+    control$preference$spref <- NULL
+    control$preference$tpref <- NULL
+    control$preference$pref <- NULL
+  }
+  if (directed) {
+    control$newedge$node.replace <- NULL
+    control$preference$params <- NULL
+    control$preference$pref <- NULL
+  }
+  else {
+    control$newedge$snode.replace <- NULL
+    control$newedge$tnode.replace <- NULL
+    control$preference$sparams <- NULL
+    control$preference$tparams <- NULL
+    control$preference$spref <- NULL
+    control$preference$tpref <- NULL
+  }
   nnode <- ret_c$nnode
   nedge <- ret_c$nedge
   ret <- list("edgelist" = cbind(ret_c$node_vec1[1:nedge] + 1, 
@@ -171,20 +196,11 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
   if (directed) {
     ret$outstrength <- ret_c$outstrength[1:nnode]
     ret$instrength <- ret_c$instrength[1:nnode]
-    ret$control$newedge$node.replace <- NULL
-    ret$control$preference$params <- NULL
-    ret$control$preference$pref <- NULL
     ret$spref <- ret_c$source_pref[1:nnode]
     ret$tpref <- ret_c$target_pref[1:nnode]
   }
   else {
     ret$strength <- ret_c$strength[1:nnode]
-    ret$control$newedge$snode.replace <- NULL
-    ret$control$newedge$tnode.replace <- NULL
-    ret$control$preference$sparams <- NULL
-    ret$control$preference$tparams <- NULL
-    ret$control$preference$spref <- NULL
-    ret$control$preference$tpref <- NULL
     ret$pref <- ret_c$pref[1:nnode]
   }
   if (sample.recip) {

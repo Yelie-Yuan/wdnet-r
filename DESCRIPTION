@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
 Version: 0.0.5
-Date: 2022-09-09
+Date: 2022-09-12
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
@@ -25,7 +25,7 @@ Description: Implementations of network analysis including
 Depends: R (>= 4.2.0)
 License: GPL (>= 3.0)
 Encoding: UTF-8
-Imports: stats, igraph, wdm, Rcpp, rARPACK, Matrix, CVXR
+Imports: CVXR, igraph, Matrix, rARPACK, Rcpp, RcppXPtrUtils, stats, wdm
 LinkingTo: Rcpp, RcppArmadillo
 BugReports: https://gitlab.com/wdnetwork/wdnet/-/issues
 URL: https://gitlab.com/wdnetwork/wdnet

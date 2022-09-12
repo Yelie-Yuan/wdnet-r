@@ -249,28 +249,3 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// test_pref_func_directed
-double test_pref_func_directed(SEXP xpsexp, double outs, double ins);
-RcppExport SEXP _wdnet_test_pref_func_directed(SEXP xpsexpSEXP, SEXP outsSEXP, SEXP insSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type xpsexp(xpsexpSEXP);
-    Rcpp::traits::input_parameter< double >::type outs(outsSEXP);
-    Rcpp::traits::input_parameter< double >::type ins(insSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_pref_func_directed(xpsexp, outs, ins));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_pref_func_undirected
-double test_pref_func_undirected(SEXP xpsexp, double s);
-RcppExport SEXP _wdnet_test_pref_func_undirected(SEXP xpsexpSEXP, SEXP sSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type xpsexp(xpsexpSEXP);
-    Rcpp::traits::input_parameter< double >::type s(sSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_pref_func_undirected(xpsexp, s));
-    return rcpp_result_gen;
-END_RCPP
-}

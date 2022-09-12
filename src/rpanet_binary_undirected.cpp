@@ -2,8 +2,7 @@
 #include<queue>
 #include<R.h>
 #include "funcPtrUnd.h"
-#include<RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include<Rcpp.h>
 using namespace std;
 funcPtrUnd prefFuncCpp;
 
@@ -199,7 +198,6 @@ Rcpp::List rpanet_binary_undirected_cpp(
   bool node_unique = ! newedge_ctl["node.replace"];
   Rcpp::List preference_ctl = control["preference"];
   Rcpp::NumericVector params(2);
-  // funcPtrUnd prefFuncCpp;
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {
@@ -208,8 +206,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
     break;
   case 2: {
       SEXP pref_func_ptr = preference_ctl["pref.pointer"];
-      Rcpp::XPtr<funcPtrUnd> xpfun(pref_func_ptr);
-      prefFuncCpp = *xpfun;
+      prefFuncCpp = *Rcpp::XPtr<funcPtrUnd>(pref_func_ptr);
       break;
     }
   }

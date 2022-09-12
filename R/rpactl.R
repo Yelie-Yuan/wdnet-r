@@ -57,7 +57,7 @@ NULL
   e1
 }
 
-#' Set parameters for controlling the probability of edge scenarios
+#' Control edge scenarios. Defined for \code{rpanet}.
 #'
 #' @param alpha Probability of adding an edge from a new node to an existing
 #'   node.
@@ -98,7 +98,7 @@ rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
             class = "rpactl")
 }
 
-#' Set parameters for controlling weight of new edges
+#' Control weight of new edges. Defined for \code{rpanet}.
 #'
 #' @param distribution Distribution function for edge weights. Default is
 #'   \code{NA}. If specified, its first argument must be the number of
@@ -139,7 +139,7 @@ rpactl.edgeweight <- function(distribution = NA,
             class = "rpactl")
 }
 
-#' Set parameters for controlling new edges in each step
+#' Control new edges in each step. Defined for \code{rpanet}.
 #'
 #' @param distribution Distribution function for number of new edges. Default is
 #'   \code{NA}. If specified, its first argument must be the number of
@@ -186,21 +186,24 @@ rpactl.newedge <- function(distribution = NA,
   structure(list("newedge" = newedge), class = "rpactl")
 }
 
-#' Set preference function(s).
+#' Set preference function(s). Defined for \code{rpanet}.
 #'
-#' @param spref Character expression or an object of class "externalptr" giving
+#' @param spref Character expression or an object of class \code{XPtr} giving
 #'   the customized source preference function. Defined for directed networks.
 #'   Default value is \code{"outs + 1"}, i.e., node out-strength + 1. See
-#'   'Details' and 'Examples' for more information.
-#' @param tpref Character expression or an object of class "externalptr" giving
+#'   Details and Examples for more information.
+#' @param tpref Character expression or an object of class \code{XPtr} giving
 #'   the customized target preference function. Defined for directed networks.
 #'   Default value is \code{"ins + 1"}, i.e., node in-strength + 1.
-#' @param pref Character expression or an object of class "externalptr" giving
-#'   the customized preference function. Defined for undirected networks.
-#'   Default value is \code{"s + 1"}, i.e, node strenght + 1.
+#' @param pref Character expression or an object of class \code{XPtr} giving the
+#'   customized preference function. Defined for undirected networks. Default
+#'   value is \code{"s + 1"}, i.e, node strenght + 1.
 #' @param ftype Preference function type. Either "default" or "customized".
 #'   "customized" preference functions require "binary" or "naive" generation
-#'   methods. See 'Details' for more information.
+#'   methods. If using default preference functions, \code{sparams},
+#'   \code{tparams} and \code{params} must be specified. If using costomized
+#'   preference functions, \code{spref}, \code{tpref} and \code{pref} must be
+#'   specified.
 #' @param sparams A numerical vector of length 5 giving the parameters of the
 #'   default source preference function. Defined for directed networks.
 #'   Probability of choosing an existing node as the source node is proportional
@@ -216,33 +219,30 @@ rpactl.newedge <- function(distribution = NA,
 #'   of choosing an existing node is proportional to \code{strength^params[1] +
 #'   params[2].}
 #'
-#' @details The default preference function for directed networks has the form
-#'   \code{a[1] * out-strength^a[2] + a[3] * in-strength^a[4] + a[5]}, where
-#'   \code{a} is a numerical vector of length 5. The default preference function
-#'   for undirected networks has the form \code{strength^b[1] + b[2]}, where
-#'   \code{b} is a numerical vector of length 2. If choosing default preference
-#'   functions, \code{sparams}, \code{tparams} and \code{params} must be
-#'   specified.
+#' @details If choosing customized preference functions, \code{spref},
+#'   \code{tpref} and and \code{pref} will be used and the network generation
+#'   method must be "binary" or "naive". \code{spref} (\code{tpref}) defines the
+#'   source (target) preference function, it can be a character expression or an
+#'   object of class \code{XPtr}. \itemize{ \item{Character expression: } {it
+#'   must be an \code{C++} style function of \code{outs} (node out-strength) and
+#'   \code{ins} (node-instrength). For example, \code{"pow(outs, 2) + 1"},
+#'   \code{"pow(outs, 2) + pow(ins, 2) + 1"}, etc. The expression will be used
+#'   to define an \code{XPtr} via \code{RcppXPtrUtils::cppXPtr}. The \code{XPtr}
+#'   will be passed to the network generation function. The expression must not
+#'   have variables other than \code{outs} and \code{ins}.} \item{\code{XPtr}: }
+#'   {an external pointer wrapped in an object of class \code{XPtr} defined via
+#'   \code{RcppXPtrUtils::cppXPtr}. An example for defining an \code{XPtr} with
+#'   \code{C++} source code is included in Examples. For more information
+#'   about passing function pointers, see
+#'   \url{https://gallery.rcpp.org/articles/passing-cpp-function-pointers-rcppxptrutils/}.
+#'    Please note the supplied \code{C++} function takes two \code{double}
+#'   arguments and returns a \code{double}. The first and second arguments
+#'   represent node out- and in-strength, respectively.}}
 #'
-#'   If choosing customized preference functions, \code{spref}, \code{tpref} and
-#'   and \code{pref} will be used and the network generation method must be
-#'   "binary" or "naive". \code{spref} defines the source preference function,
-#'   it can be a character expression or an object of class "externalptr".
-#'   \itemize{ \item{Character expression: } {it must be an \code{Rcpp} style
-#'   function of \code{outs} (node out-strength) and \code{ins}
-#'   (node-instrength). For example, \code{"pow(outs, 2) + 1"}, \code{"pow(outs,
-#'   2) + pow(ins, 2) + 1"}, etc. The expression will be used to compile the
-#'   source preference function \code{spref_func}, and its external pointer
-#'   \code{put_spref_XPtr()} will be passed to the network generation function.
-#'   It must not have variables other than \code{outs} and \code{ins}.}
-#'   \item{"externalptr": } {an external pointer of an \code{Rcpp} function. An
-#'   example for creating a source preference function and getting its pointer
-#'   is included in 'Examples'. For more information about passing \code{Rcpp}
-#'   function pointers, see
-#'   \url{https://gallery.rcpp.org/articles/passing-cpp-function-pointers/}.}}
-#'   \code{tpref} and \code{pref} are defined analogously. Please note
-#'   \code{tpref} must not have variables other than \code{outs} and \code{ins};
-#'   \code{pref} must not have variables other than \code{s}.
+#'   \code{pref} is defined analogously. If using character expression, it must
+#'   be a \code{C++} style function of \code{s} (node strength). If using
+#'   \code{XPtr}, the supplied \code{C++} function takes only one \code{double}
+#'   argument and returns a \code{double}.
 #'
 #' @return A list of class \code{rpactl} with components \code{ftype},
 #'   \code{sparams}, \code{tparams}, \code{params} or \code{ftype},
@@ -254,34 +254,21 @@ rpactl.newedge <- function(distribution = NA,
 #' @examples
 #' \donttest{
 #' # Set source preference as out-strength^2 + in-strength + 1,
-#' # target preference as out-strength + in-strength^2 + 1
+#' # target preference as out-strength + in-strength^2 + 1.
 #' # 1. use default preference functions
 #' control1 <- rpactl.preference(ftype = "default",
 #'     sparams = c(1, 2, 1, 1, 1), tparams = c(1, 1, 1, 2, 1))
 #' # 2. use character expressions
 #' control2 <- rpactl.preference(ftype = "customized",
 #'     spref = "pow(outs, 2) + ins + 1", tpref = "outs + pow(ins, 2) + 1")
-#' # 3. define cpp functions and export function pointers
-#' Rcpp::sourceCpp(code = "
-#'     // [[Rcpp::depends(RcppArmadillo)]]
-#'     #include <RcppArmadillo.h>
-#'     #include <math.h>
-#'     using namespace Rcpp;
-#'     typedef double (*myfuncPtr)(double outs, double ins);
-#'     // [[Rcpp::export]]
-#'     double myfunc(double outs, double ins) {
-#'       double ret = 0;
-#'       // compute node preference
-#'       ret = pow(outs, 2) + ins + 1;
-#'       return ret;
-#'     }
-#'     // [[Rcpp::export]]
-#'     XPtr<myfuncPtr> put_myfunc_XPtr() {
-#'   	  return(XPtr<myfuncPtr>(new myfuncPtr(myfunc)));
-#'     }")
+#' # 3. define XPtr's with C++ source code
+#' spref.pointer <- RcppXPtrUtils::cppXPtr(code =
+#'     "double spref(double outs, double ins) {return pow(outs, 2) + ins + 1;}")
+#' tpref.pointer <- RcppXPtrUtils::cppXPtr(code =
+#'     "double tpref(double outs, double ins) {return outs + pow(ins, 2) + 1;}")
 #' control3 <- rpactl.preference(ftype = "customized",
-#'     spref = put_myfunc_XPtr(),
-#'     tpref = "outs + pow(ins, 2) + 1")
+#'     spref = spref.pointer,
+#'     tpref = tpref.pointer)
 #' ret <- rpanet(1e5, control = control3)
 #' }
 rpactl.preference <- function(ftype = c("default", "customized"),
@@ -316,7 +303,7 @@ rpactl.preference <- function(ftype = c("default", "customized"),
             class = "rpactl")
 }
 
-#' Set parameters for controlling reciprocal edges
+#' Control reciprocal edges. Defined for \code{rpanet}.
 #'
 #' @param group.prob A vector of probability weights for sampling the group of
 #'   new nodes. Defined for directed networks. Groups are from 1 to

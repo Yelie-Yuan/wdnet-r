@@ -16,103 +16,59 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom Rcpp sourceCpp
+#' @importFrom RcppXPtrUtils checkXPtr cppXPtr
 NULL
 
 #' Compile preference functions via \code{Rcpp}.
 #'
 #' @param preference A list for defining the preference functions.
-#' @param fname A list of function names: \code{spref_func} represents the name
-#'   of source preference function; \code{spref_XPtr} represents the function
-#'   for returning the pointer of \code{spref_func}; \code{tpref_func},
-#'   \code{tpref_XPtr}, \code{pref_func} and \code{pref_XPtr} are defined
-#'   analogously. \code{pref_func} and \code{pref_XPtr} are defined for
-#'   undirected networks.
 #'
 #' @return Preference functions and external pointers.
-compile_pref_func <- function(preference,
-                              fname = list(
-                                spref_func = "spref_func",
-                                tpref_func = "tpref_func",
-                                pref_func = "pref_func",
-                                spref_XPtr = "spref_XPtr",
-                                tpref_XPtr = "tpref_XPtr",
-                                pref_XPtr = "pref_XPtr"
-                              )) {
-  compile_spref <- compile_tpref <- compile_pref <- FALSE
-  cpp_code <- paste("// [[Rcpp::depends(RcppArmadillo)]]\n",
-    "#include <RcppArmadillo.h>\n",
-    "#include <math.h>\n",
-    "using namespace Rcpp;\n",
-    "typedef double (*funcPtrD)(double x, double y);\n", sep = "")
-  get_func_d <- function(fname, fname_XPtr, ret) {
-    return(paste("\n", 
-                 "// [[Rcpp::export]]\n",
-                 "double ", fname, "(double outs, double ins) {\n",
-                 "return ", ret, ";\n",
-                 "}\n", 
-                 "// [[Rcpp::export]]\n", 
-                 "XPtr<funcPtrD> ", fname_XPtr, "() {\n",
-                 "return(XPtr<funcPtrD>(new funcPtrD(", fname, ")));\n",
-                 "}", sep = ""))
+compile_pref_func <- function(preference) {
+  if (inherits(preference$spref, "character")) {
+    temp <- paste("double spref(double outs, double ins) { return ",
+                  preference$spref, ";}", sep = "")
+    preference$spref.pointer <- RcppXPtrUtils::cppXPtr(code = temp)
+    rm(temp)
   }
-  get_func_und <- function(fname, fname_XPtr, ret) {
-    return(paste("\n",
-                 "typedef double (*funcPtrUnd)(double x);\n", 
-                 "// [[Rcpp::export]]\n",
-                 "double ", fname, "(double s) {\n",
-                 "return ", ret, ";\n",
-                 "}\n", 
-                 "// [[Rcpp::export]]\n", 
-                 "XPtr<funcPtrUnd> ", fname_XPtr, "() {\n",
-                 "return(XPtr<funcPtrUnd>(new funcPtrUnd(", fname, ")));\n",
-                 "}", sep = ""))
+  else if (inherits(preference$spref, "XPtr")) {
+    RcppXPtrUtils::checkXPtr(ptr = preference$spref,
+                             type = "double",
+                             args = c("double", "double"))
+    preference$spref.pointer <- preference$spref
   }
-  if (typeof(preference$spref) == "character") {
-    compile_spref <- TRUE
-    cpp_code <- paste(cpp_code, get_func_d(fname$spref_func,
-                                           fname$spref_XPtr,
-                                           preference$spref))
+  else {
+    stop('Class of "spref" must be "XPtr" or "character".')
   }
-  else if (typeof(preference$spref) != "externalptr") {
-    stop('Type of "spref" must be "externalptr" or "character".')
+  if (inherits(preference$tpref, "character")) {
+    temp <- paste("double tpref(double outs, double ins) { return ",
+                  preference$tpref, ";}", sep = "")
+    preference$tpref.pointer <- RcppXPtrUtils::cppXPtr(code = temp)
+    rm(temp)
   }
-  if (typeof(preference$tpref) == "character") {
-    compile_tpref <- TRUE
-    cpp_code <- paste(cpp_code, get_func_d(fname$tpref_func,
-                                           fname$tpref_XPtr,
-                                           preference$tpref))
+  else if (inherits(preference$tpref, "XPtr")) {
+    RcppXPtrUtils::checkXPtr(ptr = preference$tpref,
+                             type = "double",
+                             args = c("double", "double"))
+    preference$tpref.pointer <- preference$tpref
   }
-  else if (typeof(preference$tpref) != "externalptr") {
-    stop('Type of "tpref" must be "externalptr" or "character".')
+  else {
+    stop('Class of "tpref" must be "externalptr" or "character".')
   }
-
-  if (typeof(preference$pref) == "character") {
-    compile_pref <- TRUE
-    cpp_code <- paste(cpp_code, get_func_und(fname$pref_func,
-                                             fname$pref_XPtr,
-                                             preference$pref))
+  if (inherits(preference$pref, "character")) {
+    temp <- paste("double pref(double s) { return ",
+                  preference$pref, ";}", sep = "")
+    preference$pref.pointer <- RcppXPtrUtils::cppXPtr(code = temp)
+    rm(temp)
   }
-  else if (typeof(preference$pref) != "externalptr") {
-    stop('Type of "pref" must be "externalptr" or "character".')
+  else if (inherits(preference$pref, "XPtr")) {
+    RcppXPtrUtils::checkXPtr(ptr = preference$pref,
+                             type = "double",
+                             args = "double")
+    preference$pref.pointer <- preference$pref
   }
-  if (compile_spref | compile_tpref | compile_pref) {
-    cat("Compiling preference function(s)...\t")
-    Rcpp::sourceCpp(code = cpp_code)
-    cat("Done.\n")
+  else {
+    stop('Class of "pref" must be "externalptr" or "character".')
   }
-  preference$spref.pointer <- ifelse(compile_spref,
-                                     get(fname$spref_XPtr, envir = .GlobalEnv)(),
-                                     preference$spref)
-  preference$tpref.pointer <- ifelse(compile_tpref,
-                                     get(fname$tpref_XPtr)(),
-                                     preference$tpref)
-  preference$pref.pointer <- ifelse(compile_pref,
-                                    get(fname$pref_XPtr)(),
-                                    preference$pref)
-  # test functions
-  test_pref_func_directed(preference$spref.pointer, 1, 1)
-  test_pref_func_directed(preference$tpref.pointer, 1, 1)
-  test_pref_func_undirected(preference$pref.pointer, 1)
   preference
 }

@@ -228,24 +228,3 @@ fill_weight_cpp <- function(adj, edgelist, edgeweight) {
     .Call(`_wdnet_fill_weight_cpp`, adj, edgelist, edgeweight)
 }
 
-#' Test user supplied preference function.
-#' 
-#' @param xpsexp Pointer of a cpp function.
-#' @param outs Outstrength.
-#' @param ins Instrength.
-#' @return Node preference.
-#'
-test_pref_func_directed <- function(xpsexp, outs, ins) {
-    .Call(`_wdnet_test_pref_func_directed`, xpsexp, outs, ins)
-}
-
-#' Test user supplied preference function.
-#' 
-#' @param xpsexp Pointer of a cpp function.
-#' @param s Strength.
-#' @return Node preference.
-#'
-test_pref_func_undirected <- function(xpsexp, s) {
-    .Call(`_wdnet_test_pref_func_undirected`, xpsexp, s)
-}
-

@@ -2,8 +2,7 @@
 #include<queue>
 #include<R.h>
 #include "funcPtrD.h"
-#include<RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include<Rcpp.h>
 
 using namespace std;
 funcPtrD sourcePrefFuncCppNaive;
@@ -222,8 +221,6 @@ Rcpp::List rpanet_naive_directed_cpp(
   Rcpp::List preference_ctl = control["preference"];
   Rcpp::NumericVector sparams(5);
   Rcpp::NumericVector tparams(5);
-  // funcPtrD sourcePrefFuncCppNaive;
-  // funcPtrD targetPrefFuncCppNaive;
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {
@@ -233,11 +230,9 @@ Rcpp::List rpanet_naive_directed_cpp(
     break;
   case 2: {
       SEXP source_pref_func_ptr = preference_ctl["spref.pointer"];
-      Rcpp::XPtr<funcPtrD> xpfunSource(source_pref_func_ptr);
-      sourcePrefFuncCppNaive = *xpfunSource;
+      sourcePrefFuncCppNaive = *Rcpp::XPtr<funcPtrD>(source_pref_func_ptr);
       SEXP target_pref_func_ptr = preference_ctl["tpref.pointer"];
-      Rcpp::XPtr<funcPtrD> xpfunTarget(target_pref_func_ptr);
-      targetPrefFuncCppNaive = *xpfunTarget;
+      targetPrefFuncCppNaive = *Rcpp::XPtr<funcPtrD>(target_pref_func_ptr);
       break;
     }
   }

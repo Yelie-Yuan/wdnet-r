@@ -25,8 +25,6 @@ extern SEXP _wdnet_rpanet_naive_directed_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 extern SEXP _wdnet_rpanet_naive_undirected_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_rpanet_nodelist_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_sample_node_cpp(SEXP);
-extern SEXP _wdnet_test_pref_func_directed(SEXP, SEXP, SEXP);
-extern SEXP _wdnet_test_pref_func_undirected(SEXP, SEXP);
 
 static const R_CMethodDef CEntries[] = {
     {"netSim", (DL_FUNC) &netSim, 12},
@@ -48,8 +46,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_wdnet_rpanet_naive_undirected_cpp",  (DL_FUNC) &_wdnet_rpanet_naive_undirected_cpp,  11},
     {"_wdnet_rpanet_nodelist_cpp",          (DL_FUNC) &_wdnet_rpanet_nodelist_cpp,           8},
     {"_wdnet_sample_node_cpp",              (DL_FUNC) &_wdnet_sample_node_cpp,               1},
-    {"_wdnet_test_pref_func_directed",      (DL_FUNC) &_wdnet_test_pref_func_directed,       3},
-    {"_wdnet_test_pref_func_undirected",    (DL_FUNC) &_wdnet_test_pref_func_undirected,     2},
     {NULL, NULL, 0}
 };
 
