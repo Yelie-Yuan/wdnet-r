@@ -28,6 +28,8 @@ NULL
 #' @param joint_dist Logical, whether to return edge-level distributions.
 #'
 #' @return A list of distributions and degree vectors.
+#' 
+#' @keywords internal
 #'   
 get_dist <- function(edgelist = NA, directed = TRUE, 
                      joint_dist = FALSE) {
@@ -105,13 +107,15 @@ get_dist <- function(edgelist = NA, directed = TRUE,
 }
 
 #' Get the constraints for the optimization problem. This function is defined
-#' for \code{get_eta_directed}.
+#' for \code{get_eta_directed()}.
 #'
 #' @param constrs A list of constraints.
 #' @param target.assortcoef A list of target assortativity levels.
 #' @param rho A list of variable objects.
 #'
 #' @return A list of constraints.
+#' 
+#' @keywords internal
 #' 
 get_constr <- function(constrs, target.assortcoef, rho) {
   for (type in names(target.assortcoef)) {
@@ -129,13 +133,15 @@ get_constr <- function(constrs, target.assortcoef, rho) {
 }
 
 #' Get the value of an object from the optimization problem. This function is
-#' defined for \code{get_eta_directed}.
+#' defined for \code{get_eta_directed()}.
 #'
 #' @param object An object from the optimization problem.
 #' @param result A list returned from \code{CVXR::solve()}.
 #' @param mydist A list returned from \code{get_dist()}.
 #'
 #' @return Value of the object.
+#' 
+#' @keywords internal
 #'
 get_values <- function(object, result, mydist) {
   # if ("r-out-out" %in% names(object)) {
@@ -233,6 +239,8 @@ cvxr.control <- function(solver = "ECOS",
 #'   \code{which.range} is specified, the range of the interested coefficient
 #'   and the corresponding joint distributions will be returned, provided the
 #'   predetermined \code{target.assortcoef} is satisfied.
+#' 
+#' @keywords internal
 #' 
 get_eta_directed <- function(edgelist, 
                              target.assortcoef = list("outout" = NULL, "outin" = NULL,
@@ -368,6 +376,8 @@ get_eta_directed <- function(edgelist,
 #'   solving for \code{eta} or computing the range of assortativity coefficient.
 #'
 #' @return Assortativity level and corresponding edge-level distribution.
+#' 
+#' @keywords internal
 #'
 get_eta_undirected <- function(edgelist, target.assortcoef = NULL, 
                                eta.obj = function(x) 0,

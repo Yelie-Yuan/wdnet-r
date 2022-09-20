@@ -48,7 +48,8 @@ NULL
 #'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho). The edges in the seed graph are
 #'   denoted as scenario 0.
 #'   
-
+#' @keywords internal
+#' 
 rpanet_simple <- function(nstep, seednetwork, control, directed,
                           m, sum_m, w, ex_node, ex_edge, method) {
   delta <- control$preference$params[2]

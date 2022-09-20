@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
-Version: 0.0.5
-Date: 2022-09-12
+Version: 0.0.5.9000
+Date: 2022-09-20
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
@@ -22,7 +22,7 @@ Description: Implementations of network analysis including
     Clemente and Grassi (2018) <doi:10.1016/j.chaos.2017.12.007>,
     (4) network rewiring,
     (5) preferential attachment network generation.
-Depends: R (>= 4.2.0)
+Depends: R (>= 4.1.0)
 License: GPL (>= 3.0)
 Encoding: UTF-8
 Imports: CVXR, igraph, Matrix, rARPACK, Rcpp, RcppXPtrUtils, stats, wdm

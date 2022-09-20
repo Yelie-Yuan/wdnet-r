@@ -42,6 +42,8 @@ NULL
 #'   edgelist, for example Edge1:(v_1, v_2) and Edge2:(v_3, v_4), if the
 #'   rewiring attempt is accepted, the sampled edges are replaced as (v_1, v_4),
 #'   (v_3, v_2).
+#' 
+#' @keywords internal
 #'
 dprewire_directed <- function(edgelist, eta, 
                               iteration = 200, nattempts = NULL, 
@@ -149,6 +151,8 @@ dprewire_directed <- function(edgelist, eta,
 #'   for example Edge1:\{v_1, v_2\} and Edge2:\{v_3, v_4\}, the function try to 
 #'   rewire the sampled edges as \{v_1, v_4\}, \{v_3, v_2\} (rewire type 1) 
 #'   or \{v_1, v_3\}, \{v_2, v_4\} (rewire type 2) with probability 1/2.
+#' 
+#' @keywords internal
 #'
 dprewire_undirected <- function(edgelist, eta, 
                                 iteration = 200, nattempts = NULL, 

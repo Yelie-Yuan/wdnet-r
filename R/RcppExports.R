@@ -46,6 +46,8 @@ fx <- function(x, Y, z) {
 #' @return Target node sequence, four directed assortativity coefficients after
 #'   each iteration, and rewire history.
 #'
+#' @keywords internal
+#'
 dprewire_directed_cpp <- function(iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, index_s, index_t, eta, rewire_history) {
     .Call(`_wdnet_dprewire_directed_cpp`, iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, index_s, index_t, eta, rewire_history)
 }
@@ -70,6 +72,8 @@ dprewire_directed_cpp <- function(iteration, nattempts, targetNode, sourceOut, s
 #' @return Node sequences, assortativity coefficient after each iteration
 #'   and rewiring history.
 #'
+#' @keywords internal
+#'
 dprewire_undirected_cpp <- function(iteration, nattempts, node1, node2, degree1, degree2, index1, index2, e, rewire_history) {
     .Call(`_wdnet_dprewire_undirected_cpp`, iteration, nattempts, node1, node2, degree1, degree2, index1, index2, e, rewire_history)
 }
@@ -93,6 +97,8 @@ dprewire_undirected_cpp <- function(iteration, nattempts, node1, node2, degree1,
 #' @param control List of controlling arguments.
 #' @return Sampled network.
 #'
+#' @keywords internal
+#'
 rpanet_binary_directed <- function(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref, target_pref, control) {
     .Call(`_wdnet_rpanet_binary_directed`, nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref, target_pref, control)
 }
@@ -111,6 +117,8 @@ rpanet_binary_directed <- function(nstep, m, new_node_id, new_edge_id, source_no
 #' @param pref Sequence of node preference.
 #' @param control List of controlling arguments.
 #' @return Sampled network.
+#'
+#' @keywords internal
 #'
 rpanet_binary_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref, control) {
     .Call(`_wdnet_rpanet_binary_undirected_cpp`, nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref, control)
@@ -135,6 +143,8 @@ rpanet_binary_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, nod
 #' @param control List of controlling arguments.
 #' @return Sampled network.
 #'
+#' @keywords internal
+#'
 rpanet_naive_directed_cpp <- function(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref, target_pref, control) {
     .Call(`_wdnet_rpanet_naive_directed_cpp`, nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref, target_pref, control)
 }
@@ -154,6 +164,8 @@ rpanet_naive_directed_cpp <- function(nstep, m, new_node_id, new_edge_id, source
 #' @param control List of controlling arguments.
 #' @return Sampled network.
 #'
+#' @keywords internal
+#'
 rpanet_naive_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref, control) {
     .Call(`_wdnet_rpanet_naive_undirected_cpp`, nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref, control)
 }
@@ -170,6 +182,8 @@ rpanet_naive_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, node
 #' @param delta_in Tuning parameter.
 #' @param directed Whether the network is directed.
 #' @return Number of nodes, sequences of source and target nodes.
+#'
+#' @keywords internal
 #' 
 rpanet_nodelist_cpp <- function(snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed) {
     .Call(`_wdnet_rpanet_nodelist_cpp`, snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed)
@@ -180,6 +194,9 @@ rpanet_nodelist_cpp <- function(snode, tnode, scenario, nnode, nedge, delta_out,
 #' @param nodes Source/target nodes, missing nodes are denoted as 0.
 #' @param edges Sampled edges according to preferential attachment.
 #' @return Source/target nodes.
+#'
+#' @keywords internal
+#'
 find_node_cpp <- function(nodes, edges) {
     .Call(`_wdnet_find_node_cpp`, nodes, edges)
 }
@@ -191,6 +208,9 @@ find_node_cpp <- function(nodes, edges) {
 #' @param start_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 #' @param end_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 #' @return Node sequence.
+#'
+#' @keywords internal
+#'
 find_node_undirected_cpp <- function(node1, node2, start_edge, end_edge) {
     .Call(`_wdnet_find_node_undirected_cpp`, node1, node2, start_edge, end_edge)
 }
@@ -204,6 +224,9 @@ find_node_undirected_cpp <- function(node1, node2, start_edge, end_edge) {
 #' @param weighted Logical, true if the edges are weighted, 
 #'   false if not.
 #' @return Out-strength and in-strength.
+#'
+#' @keywords internal
+#'
 node_strength_cpp <- function(snode, tnode, weight, nnode, weighted = TRUE) {
     .Call(`_wdnet_node_strength_cpp`, snode, tnode, weight, nnode, weighted)
 }
@@ -213,6 +236,9 @@ node_strength_cpp <- function(snode, tnode, weight, nnode, weighted = TRUE) {
 #'
 #' @param total_node Number of existing nodes at each time step.
 #' @return Sampled nodes.
+#'
+#' @keywords internal
+#'
 sample_node_cpp <- function(total_node) {
     .Call(`_wdnet_sample_node_cpp`, total_node)
 }
@@ -224,6 +250,9 @@ sample_node_cpp <- function(total_node) {
 #' @param edgelist A two column matrix represents the edgelist.
 #' @param edgeweight A vector represents the weight of edges.
 #' @return Adjacency matrix with edge weight.
+#'
+#' @keywords internal
+#'
 fill_weight_cpp <- function(adj, edgelist, edgeweight) {
     .Call(`_wdnet_fill_weight_cpp`, adj, edgelist, edgeweight)
 }

@@ -19,6 +19,8 @@
 //' @return Target node sequence, four directed assortativity coefficients after
 //'   each iteration, and rewire history.
 //'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 Rcpp::List dprewire_directed_cpp(
     int iteration, 
@@ -146,6 +148,8 @@ Rcpp::List dprewire_directed_cpp(
 //' @param rewire_history Logical, whether the rewiring history should be returned.
 //' @return Node sequences, assortativity coefficient after each iteration
 //'   and rewiring history.
+//'
+//' @keywords internal
 //'
 // [[Rcpp::export]]
 Rcpp::List dprewire_undirected_cpp(

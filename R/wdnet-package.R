@@ -27,7 +27,7 @@
 ##' }
 ##'
 ##' The development version of this package is available on Gitlab 
-##' (https://gitlab.com/wdnetwork/wdnet).
+##' (\url{https://gitlab.com/wdnetwork/wdnet/tree/dev}).
 ##' 
 ##' @docType package
 ##' @name wdnet

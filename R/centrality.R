@@ -48,6 +48,8 @@ NULL
 #' in package \code{igraph} and an alternative of function \code{degree_w} in 
 #' package \code{tnet}. Function \code{degree_c} uses adjacency matrix as
 #' input.
+#' 
+#' @keywords internal
 #'
 
 degree_c <- function(adj, alpha = 1, mode = "out"){
@@ -116,6 +118,8 @@ degree_c <- function(adj, alpha = 1, mode = "out"){
 #' in package \code{igraph} and function \code{closeness_w} in 
 #' package \code{tnet}. The method of computing distances between vertices
 #' is the \emph{Dijkstra's algorithm}.
+#' 
+#' @keywords internal
 #'
 
 closeness_c <- function(adj, alpha = 1, mode = "out",
@@ -191,6 +195,8 @@ closeness_c <- function(adj, alpha = 1, mode = "out",
 #' @note 
 #' Function \code{wpr} is an extension of function \code{page_rank} 
 #' in package \code{igraph}.
+#' 
+#' @keywords internal
 #'
 
 wpr <- function(adj, gamma = 0.85, theta = 1, prior.info){

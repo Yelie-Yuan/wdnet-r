@@ -56,6 +56,8 @@ NULL
 #'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as
 #'   0.
 #'   
+#' @keywords internal
+#' 
 rpanet_general <- function(nstep, seednetwork, control, directed,
                            m, sum_m, w,
                            nnode, nedge, method, sample.recip) {  

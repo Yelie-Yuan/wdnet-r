@@ -24,6 +24,9 @@ NULL
 #' @param preference A list for defining the preference functions.
 #'
 #' @return Preference functions and external pointers.
+#' 
+#' @keywords internal
+#' 
 compile_pref_func <- function(preference) {
   if (inherits(preference$spref, "character")) {
     temp <- paste("double spref(double outs, double ins) { return ",

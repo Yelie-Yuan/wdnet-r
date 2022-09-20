@@ -32,6 +32,8 @@
 #' @return A list with the following components: in_degree,
 #'     out_degree, edge_start, edge_end, evolution
 #'
+#' @keywords internal
+#' 
 
 
 rpanet_wan <- function(alpha, beta, gamma, xi,

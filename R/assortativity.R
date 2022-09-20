@@ -41,6 +41,8 @@ NULL
 #' networks), \code{dw_assort} returns the assortativity coefficient proposed in
 #' Foster et al. (2010).
 #' 
+#' @keywords internal
+#' 
 
 dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
   stopifnot(dim(adj)[1] == dim(adj)[2])
@@ -194,6 +196,8 @@ assortcoef <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed 
 #' f1 <- runif(20)
 #' f2 <- abs(rnorm(20))
 #' ret <- assortcoef(adj = adj, f1 = f1, f2 = f2)
+#' 
+#' @keywords internal
 #' 
 dw_feature_assort <- function(edgelist, edgeweight, f1, f2) {
   nnode <- max(edgelist)

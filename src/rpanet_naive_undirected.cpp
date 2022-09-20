@@ -118,6 +118,8 @@ int sampleNodeUndNaive(int n_existing, Rcpp::NumericVector pref, double total_pr
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 Rcpp::List rpanet_naive_undirected_cpp(
     int nstep, 

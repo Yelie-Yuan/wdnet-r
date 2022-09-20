@@ -175,6 +175,8 @@ node_und *sampleNodeUnd(node_und *root) {
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 Rcpp::List rpanet_binary_undirected_cpp(
     int nstep, 

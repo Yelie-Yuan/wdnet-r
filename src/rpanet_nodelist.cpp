@@ -13,6 +13,8 @@
 //' @param delta_in Tuning parameter.
 //' @param directed Whether the network is directed.
 //' @return Number of nodes, sequences of source and target nodes.
+//'
+//' @keywords internal
 //' 
 // [[Rcpp::export]]
 Rcpp::List rpanet_nodelist_cpp(arma::vec snode,

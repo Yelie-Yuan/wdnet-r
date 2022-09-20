@@ -8,6 +8,9 @@
 //' @param nodes Source/target nodes, missing nodes are denoted as 0.
 //' @param edges Sampled edges according to preferential attachment.
 //' @return Source/target nodes.
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 arma::vec find_node_cpp(arma::vec nodes, 
                        arma::vec edges) {
@@ -28,6 +31,9 @@ arma::vec find_node_cpp(arma::vec nodes,
 //' @param start_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 //' @param end_edge Index of sampled edges, corresponds to the missing nodes in node1 and node2.
 //' @return Node sequence.
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 Rcpp::List find_node_undirected_cpp(arma::vec node1, 
                        arma::vec node2, 
@@ -73,6 +79,9 @@ Rcpp::List find_node_undirected_cpp(arma::vec node1,
 //' @param weighted Logical, true if the edges are weighted, 
 //'   false if not.
 //' @return Out-strength and in-strength.
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 Rcpp::List node_strength_cpp(arma::vec snode, 
                             arma::vec tnode,
@@ -105,6 +114,9 @@ Rcpp::List node_strength_cpp(arma::vec snode,
 //'
 //' @param total_node Number of existing nodes at each time step.
 //' @return Sampled nodes.
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 arma::vec sample_node_cpp(arma::vec total_node) {
   GetRNGstate();
@@ -124,6 +136,9 @@ arma::vec sample_node_cpp(arma::vec total_node) {
 //' @param edgelist A two column matrix represents the edgelist.
 //' @param edgeweight A vector represents the weight of edges.
 //' @return Adjacency matrix with edge weight.
+//'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 arma::mat fill_weight_cpp(arma::mat adj, arma::mat edgelist, arma::vec edgeweight) {
   GetRNGstate();

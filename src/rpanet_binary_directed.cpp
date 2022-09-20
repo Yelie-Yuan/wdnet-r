@@ -286,6 +286,8 @@ int sampleGroup(Rcpp::NumericVector group_prob) {
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
+//' @keywords internal
+//'
 // [[Rcpp::export]]
 Rcpp::List rpanet_binary_directed(
     int nstep, 
