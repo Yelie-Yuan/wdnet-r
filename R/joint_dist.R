@@ -168,10 +168,9 @@ get_values <- function(object, result, mydist) {
        "inout" = in_out, "inin" = in_in)
 }
 
-#' Parameters passed to CVXR::solver().
+#' Parameters passed to CVXR::solve().
 #'
-#' Defined for the convex optimization problems for solving \code{eta}. The
-#' control list is passed to \code{dprewire} and \code{dprewire.range}.
+#' Defined for the convex optimization problems for solving \code{eta}.
 #'
 #' @param solver (Optional) A string indicating the solver to use. Defaults to
 #'   "ECOS".
@@ -186,8 +185,9 @@ get_values <- function(object, result, mydist) {
 #' @param gp (Optional) A logical value indicating whether the problem is a
 #'   geometric program. Defaults to FALSE.
 #' @param feastol The feasible tolerance on the primal and dual residual.
-#' @param reltol The relative tolerance on the duality gap.
-#' @param abstol The absolute tolerance on the duality gap.
+#'   Defaults t0 1e-5.
+#' @param reltol The relative tolerance on the duality gap. Defaults to 1e-5.
+#' @param abstol The absolute tolerance on the duality gap. Defaults to 1e-5.
 #' @param num_iter The maximum number of iterations.
 #' @param ... Additional options that will be passed to the specific solver. In
 #'   general, these options will override any default settings imposed by CVXR.
@@ -203,9 +203,9 @@ cvxr.control <- function(solver = "ECOS",
                          verbose = FALSE,
                          parallel = FALSE,
                          gp = FALSE,
-                         feastol = NULL,
-                         reltol = NULL,
-                         abstol = NULL,
+                         feastol = 1e-5,
+                         reltol = 1e-5,
+                         abstol = 1e-5,
                          num_iter = NULL,
                          ...) {
   return(list(solver = solver,
