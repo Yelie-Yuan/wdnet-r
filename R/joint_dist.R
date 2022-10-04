@@ -185,7 +185,7 @@ get_values <- function(object, result, mydist) {
 #' @param gp (Optional) A logical value indicating whether the problem is a
 #'   geometric program. Defaults to FALSE.
 #' @param feastol The feasible tolerance on the primal and dual residual.
-#'   Defaults t0 1e-5.
+#'   Defaults to 1e-5.
 #' @param reltol The relative tolerance on the duality gap. Defaults to 1e-5.
 #' @param abstol The absolute tolerance on the duality gap. Defaults to 1e-5.
 #' @param num_iter The maximum number of iterations.

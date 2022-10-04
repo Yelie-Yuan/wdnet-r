@@ -1,5 +1,10 @@
 # wdnet (development version)
 
++ Updated default values of the arguments in `rpanet`.
+  + `seednetwork = NULL` to 
+  `seednetwork = list(edgelist = matrix(c(1, 2), nrow = 1))`.
+  + `control = NULL` to `control = list()`.
+
 # wdnet 0.0.5
 
 ## Minor changes
@@ -7,7 +12,7 @@
 + Updated returned items from `dprewire` and `dprewire.range`.
   + Removed solved `eta` and corresponding assortativity levels.
   + Added solver results from `CVXR`.
-+ Allow user-defined preference functions in `rpactl.preference`.
++ Allowed user-defined preference functions in `rpactl.preference`.
 
 # wdnet 0.0.4
 

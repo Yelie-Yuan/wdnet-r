@@ -27,19 +27,22 @@ NULL
 #' preference functions.
 #'
 #' @param nstep Number of steps when generating a network.
-#' @param seednetwork A list represents the seed network. If \code{NULL},
-#'   \code{seednetwork} will have one edge from node 1 to node 2 with weight 1.
-#'   It consists of the following components: a two column matrix
-#'   \code{edgelist} represents the edges; a vector \code{edgeweight} represents
-#'   the weight of edges; an integer vector \code{nodegroup} represents the
-#'   group of nodes. \code{nodegroup} is defined for directed networks, if
-#'   \code{NULL}, all nodes from the seed graph are considered from group 1.
-#' @param control A list of parameters that controls the PA generation process.
-#'   The default value is \code{rpactl.scenario() + rpactl.edgeweight() +
-#'   rpactl.newedge() + rpactl.preference() + rpactl.reciprocal()}. Under the
-#'   default setup, in each step, a new edge of weight 1 is added from a new
-#'   node \code{A} to an existing node \code{B} (\code{alpha} scenario), where
-#'   \code{B} is chosen with probability proportional to its in-strength + 1.
+#' @param seednetwork A list represents the seed network. By default,
+#'   \code{seednetwork} has one edge from node 1 to node 2 with weight 1. It
+#'   consists of the following components: a two column matrix \code{edgelist}
+#'   represents the edges; a vector \code{edgeweight} represents the weight of
+#'   edges; an integer vector \code{nodegroup} represents the group of nodes.
+#'   \code{nodegroup} is defined for directed networks, if \code{NULL}, all
+#'   nodes from the seed graph are considered from group 1.
+#' @param control A list of parameters that controls the PA network generation
+#'   process. Defaults to an empty list, i.e., all the controlling parameters
+#'   are set as default. For more details about available controlling
+#'   parameters, see \code{rpactl.scenario}, \code{rpactl.newedge},
+#'   \code{rpactl.edgeweight}, \code{rpactl.preference} and
+#'   \code{rpactl.reciprocal}. Under the default setup, in each step, a new edge
+#'   of weight 1 is added from a new node \code{A} to an existing node \code{B}
+#'   (\code{alpha} scenario), where \code{B} is chosen with probability
+#'   proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
 #' @param method Which method to use: \code{binary}, \code{naive},
@@ -58,9 +61,8 @@ NULL
 #'   \code{edgeweight}, \code{strength} for undirected networks,
 #'   \code{outstrength} and \code{instrength} for directed networks, number of
 #'   new edges in each step \code{newedge} (reciprocal edges are not included),
-#'   control list
-#'   \code{control}, node group \code{nodegroup} (if applicable) and edge
-#'   scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
+#'   control list \code{control}, node group \code{nodegroup} (if applicable)
+#'   and edge scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
 #'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as
 #'   0.
 #'
@@ -97,21 +99,18 @@ NULL
 #'     dparams = list(lambda = 2), shift = 1)
 #' ret3 <- rpanet(nstep = 1e3, seednetwork = ret2, control = control)
 #' 
-rpanet <- function(nstep = 10^3, seednetwork = NULL,
-                   control = NULL,
+rpanet <- function(nstep = 10^3, seednetwork = list(
+                    edgelist = matrix(c(1, 2), nrow = 1)),
+                   control = list(),
                    directed = TRUE,
                    method = c("binary", "naive", "edgesampler", "nodelist")) {
   method <- match.arg(method)
   stopifnot("nstep must be greater than 0." = nstep > 0)
-  if (is.null(seednetwork)) {
-    seednetwork <- list("edgelist" = matrix(1:2, ncol = 2),
-                        "edgeweight" = NULL,
-                        "nodegroup" = NULL)
-  }
   nnode <- max(seednetwork$edgelist)
   stopifnot("Nodes must be consecutive integers starting from 1." = 
             min(seednetwork$edgelist) == 1 & 
             nnode == length(unique(c(seednetwork$edgelist))))
+  stopifnot(ncol(seednetwork$edgelist) == 2)
   nedge <- nrow(seednetwork$edgelist)
   if (is.null(seednetwork$edgeweight)) {
     seednetwork$edgeweight[1:nedge] <- 1
@@ -133,9 +132,8 @@ rpanet <- function(nstep = 10^3, seednetwork = NULL,
   
   control.default <- rpactl.scenario() + rpactl.edgeweight() +
     rpactl.newedge() + rpactl.reciprocal() + rpactl.preference()
-  if (! is.list(control)) {
-    control <- structure(list(), class = "rpactl")
-  }
+  stopifnot(is.list(control))
+  control <- structure(control, class = "rpactl")
   control <- control.default + control
   rm(control.default)
   if (control$preference$ftype == "customized") {
