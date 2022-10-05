@@ -341,7 +341,7 @@ Rcpp::List rpanet_binary_directed(
   
   double u, p, temp_p;
   bool m_error;
-  int i, j, n_existing, current_scenario;
+  int i, j, n_existing, current_scenario, n_reciprocal;
   node_d *node1, *node2;
   // initialize a tree from the seed graph
   node_d *root = createNodeD(0);
@@ -361,6 +361,7 @@ Rcpp::List rpanet_binary_directed(
   // sample edges
   GetRNGstate();
   for (i = 0; i < nstep; i++) {
+    n_reciprocal = 0;
     m_error = false;
     n_existing = new_node_id;
     for (j = 0; j < m[i]; j++) {
@@ -524,6 +525,7 @@ Rcpp::List rpanet_binary_directed(
           p = unif_rand();
           if (p <= recip_prob(node2->group, node1->group)) {
             new_edge_id++;
+            n_reciprocal++;
             node2->outs += edgeweight[new_edge_id];
             node1->ins += edgeweight[new_edge_id];
             source_node[new_edge_id] = node2->id;
@@ -534,9 +536,11 @@ Rcpp::List rpanet_binary_directed(
       }
       new_edge_id++;
     }
+    m[i] += n_reciprocal;
     if (m_error) {
-      m[i] = j;
-      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", current_scenario, i + 1, j);
+      m[i] = j + n_reciprocal;
+      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", 
+        current_scenario, i + 1, m[i]);
     }
     while(! q1.empty()) {
       updatePrefD(q1.front(), func_type, sparams, tparams, sourcePrefFuncCpp, targetPrefFuncCpp);

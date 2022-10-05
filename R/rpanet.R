@@ -60,7 +60,7 @@ NULL
 #' @return A list with the following components: \code{edgelist},
 #'   \code{edgeweight}, \code{strength} for undirected networks,
 #'   \code{outstrength} and \code{instrength} for directed networks, number of
-#'   new edges in each step \code{newedge} (reciprocal edges are not included),
+#'   new edges in each step \code{newedge} (including reciprocal edges),
 #'   control list \code{control}, node group \code{nodegroup} (if applicable)
 #'   and edge scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
 #'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as

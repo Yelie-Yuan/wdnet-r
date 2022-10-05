@@ -241,7 +241,7 @@ Rcpp::List rpanet_naive_directed_cpp(
 
   double u, p, temp_p;
   bool m_error;
-  int i, j, k, n_existing, current_scenario;
+  int i, j, k, n_existing, current_scenario, n_reciprocal;
   int node1, node2, temp_node;
   double total_source_pref = 0, total_target_pref = 0;
   queue<int> q1;
@@ -254,6 +254,7 @@ Rcpp::List rpanet_naive_directed_cpp(
   // sample edges
   GetRNGstate();
   for (i = 0; i < nstep; i++) {
+    n_reciprocal = 0;
     m_error = false;
     n_existing = new_node_id;
     for (j = 0; j < m[i]; j++) {
@@ -435,6 +436,7 @@ Rcpp::List rpanet_naive_directed_cpp(
           p = unif_rand();
           if (p <= recip_prob(node_group[node2], node_group[node1])) {
             new_edge_id++;
+            n_reciprocal++;
             outs[node2] += edgeweight[new_edge_id];
             ins[node1] += edgeweight[new_edge_id];
             source_node[new_edge_id] = node2;
@@ -445,9 +447,11 @@ Rcpp::List rpanet_naive_directed_cpp(
       }
       new_edge_id++;
     }
+    m[i] += n_reciprocal;
     if (m_error) {
-      m[i] = j;
-      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", current_scenario, i + 1, j);
+      m[i] = j + n_reciprocal;
+      Rprintf("No enough unique nodes for a scenario %d edge at step %d. Added %d edge(s) at current step.\n", 
+        current_scenario, i + 1, m[i]);
     }
     while(! q1.empty()) {
       temp_node = q1.front();
