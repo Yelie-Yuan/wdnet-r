@@ -30,8 +30,8 @@ NULL
 #'   of nodes. \code{nodegroup} is defined for directed networks, if
 #'   \code{NULL}, all nodes from the seed graph are considered from group 1.
 #' @param control A list of parameters that controls the PA generation process.
-#'   The default value is \code{rpactl.scenario() + rpactl.edgeweight() +
-#'   rpactl.newedge() + rpactl.preference() + rpactl.reciprocal()}. By
+#'   The default value is \code{rpacontrol.scenario() + rpacontrol.edgeweight() +
+#'   rpacontrol.newedge() + rpacontrol.preference() + rpacontrol.reciprocal()}. By
 #'   default, in each step, a new edge of weight 1 is added from a new node
 #'   \code{A} to an existing node \code{B} (\code{alpha} scenario), where
 #'   $\code{B} is chosen with probability proportional to its in-strength + 1.

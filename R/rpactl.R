@@ -23,31 +23,31 @@ NULL
 #' Add components to the control list
 #'
 #' `+` is used to combine components to control the PA network generation
-#' process. Available components are \code{rpactl.scenario()},
-#' \code{rpactl.edgeweight()}, \code{rpactl.newedge()},
-#' \code{rpactl.preference()} and \code{rpactl.reciprocal()}.
+#' process. Available components are \code{rpacontrol.scenario()},
+#' \code{rpacontrol.edgeweight()}, \code{rpacontrol.newedge()},
+#' \code{rpacontrol.preference()} and \code{rpacontrol.reciprocal()}.
 #'
-#' @param e1 A list of class \code{rpactl}.
-#' @param e2 A list of class \code{rpactl}.
+#' @param e1 A list of class \code{rpacontrol}.
+#' @param e2 A list of class \code{rpacontrol}.
 #'
-#' @return A list of class \code{rpactl} with components from
-#'   \code{e1} and \code{e2}.
+#' @return A list of class \code{rpacontrol} with components from \code{e1} and
+#'   \code{e2}.
 #' @export
 #'
 #' @examples
 #' \donttest{
-#' control <- rpactl.scenario(alpha = 0.5, beta = 0.5) +
-#'     rpactl.preference(ftype = "customized",
+#' control <- rpacontrol.scenario(alpha = 0.5, beta = 0.5) +
+#'     rpacontrol.preference(ftype = "customized",
 #'     spref = "pow(outs, 2) + 1",
 #'     tpref = "pow(ins, 2) + 1")
 #' }
 #'
-#' control <- rpactl.scenario(alpha = 1) +
-#'     rpactl.edgeweight(distribution = rgamma,
+#' control <- rpacontrol.scenario(alpha = 1) +
+#'     rpacontrol.edgeweight(distribution = rgamma,
 #'         dparams = list(shape = 5, scale = 0.2),
 #'         shift = 1)
-"+.rpactl" <- function(e1, e2) {
-  e1 <- structure(utils::modifyList(e1, e2, keep.null = TRUE), class = "rpactl")
+"+.rpacontrol" <- function(e1, e2) {
+  e1 <- structure(utils::modifyList(e1, e2, keep.null = TRUE), class = "rpacontrol")
   if (is.list(e2$edgeweight$dparams)) {
     e1$edgeweight$dparams <- e2$edgeweight$dparams
   }
@@ -73,17 +73,17 @@ NULL
 #'   from existing nodes before the target node is sampled; if \code{FALSE}, the
 #'   target node is sampled from existing nodes before the source node is
 #'   sampled. Default value is \code{TRUE}.
-#' 
-#' @return A list of class \code{rpactl} with components \code{alpha},
+#'
+#' @return A list of class \code{rpacontrol} with components \code{alpha},
 #'   \code{beta}, \code{gamma}, \code{xi}, \code{rho}, \code{beta.loop} and
 #'   \code{source.first} with meanings as explained under 'Arguments'.
 #'
 #' @export
 #'
 #' @examples
-#' control <- rpactl.scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
+#' control <- rpacontrol.scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
 #' 
-rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
+rpacontrol.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
                             beta.loop = TRUE, source.first = TRUE) {
   stopifnot('"alpha + beta + gamma + xi + rho" must equal to 1.' =
               round(alpha + beta + gamma + xi + rho, 10) == 1)
@@ -95,7 +95,7 @@ rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
                    "beta.loop" = beta.loop, 
                    "source.first" = source.first)
   structure(list("scenario" = scenario),
-            class = "rpactl")
+            class = "rpacontrol")
 }
 
 #' Control weight of new edges. Defined for \code{rpanet}.
@@ -108,22 +108,22 @@ rpactl.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
 #' @param shift A constant add to the specified distribution. Default value is
 #'   1.
 #'
-#' @return A list of class \code{rpactl} with components 
-#'   \code{distribution}, \code{dparams}, and \code{shift} with meanings as 
+#' @return A list of class \code{rpacontrol} with components
+#'   \code{distribution}, \code{dparams}, and \code{shift} with meanings as
 #'   explained under 'Arguments'.
-#' 
+#'
 #' @export
 #'
 #' @examples
 #' # Edge weight follows Gamma(5, 0.2).
-#' control <- rpactl.edgeweight(distribution = rgamma,
+#' control <- rpacontrol.edgeweight(distribution = rgamma,
 #'     dparams = list(shape = 5, scale = 0.2),
 #'     shift = 0)
 #'
 #' # Constant edge weight
-#' control <- rpactl.edgeweight(shift = 2)
+#' control <- rpacontrol.edgeweight(shift = 2)
 #' 
-rpactl.edgeweight <- function(distribution = NA,
+rpacontrol.edgeweight <- function(distribution = NA,
                               dparams = list(),
                               shift = 1) {
   edgeweight <- list("distribution" = distribution,
@@ -136,7 +136,7 @@ rpactl.edgeweight <- function(distribution = NA,
                 is.function(distribution))
   }
   structure(list("edgeweight" = edgeweight),
-            class = "rpactl")
+            class = "rpacontrol")
 }
 
 #' Control new edges in each step. Defined for \code{rpanet}.
@@ -153,21 +153,22 @@ rpactl.edgeweight <- function(distribution = NA,
 #' @param tnode.replace Logical, whether the target nodes in the same step
 #'   should be sampled with replacement. Defined for directed networks.
 #' @param node.replace Logical, whether the nodes in the same step should be
-#'   sampled with replacement. Defined for undirected networks. If FALSE, 
-#'   self-loops will not be allowed under beta scenario. 
-#' 
-#' @return A list of class \code{rpactl} with components \code{distribution},
-#'   \code{dparams}, \code{shift}, \code{snode.replace}, \code{tnode.replace} and 
-#'   \code{node.replace} with meanings as explained under 'Arguments'.
+#'   sampled with replacement. Defined for undirected networks. If FALSE,
+#'   self-loops will not be allowed under beta scenario.
+#'
+#' @return A list of class \code{rpacontrol} with components
+#'   \code{distribution}, \code{dparams}, \code{shift}, \code{snode.replace},
+#'   \code{tnode.replace} and \code{node.replace} with meanings as explained
+#'   under 'Arguments'.
 #'
 #' @export
 #'
 #' @examples
-#' control <- rpactl.newedge(distribution = rpois,
+#' control <- rpacontrol.newedge(distribution = rpois,
 #'     dparams = list(lambda = 2),
 #'     shift = 1,
 #'     node.replace = FALSE)
-rpactl.newedge <- function(distribution = NA,
+rpacontrol.newedge <- function(distribution = NA,
                            dparams = list(),
                            shift = 1,
                            snode.replace = TRUE,
@@ -183,7 +184,7 @@ rpactl.newedge <- function(distribution = NA,
     stopifnot("Please specify the name of distribution parameters" = 
                 all(! is.null(names(newedge$dparams))))
   }
-  structure(list("newedge" = newedge), class = "rpactl")
+  structure(list("newedge" = newedge), class = "rpacontrol")
 }
 
 #' Set preference function(s). Defined for \code{rpanet}.
@@ -244,7 +245,7 @@ rpactl.newedge <- function(distribution = NA,
 #'   \code{XPtr}, the supplied \code{C++} function takes only one \code{double}
 #'   argument and returns a \code{double}.
 #'
-#' @return A list of class \code{rpactl} with components \code{ftype},
+#' @return A list of class \code{rpacontrol} with components \code{ftype},
 #'   \code{sparams}, \code{tparams}, \code{params} or \code{ftype},
 #'   \code{spref}, \code{tpref}, \code{pref} with function pointers
 #'   \code{spref.pointer}, \code{tpref.pointer}, \code{pref.pointer}.
@@ -256,22 +257,22 @@ rpactl.newedge <- function(distribution = NA,
 #' # Set source preference as out-strength^2 + in-strength + 1,
 #' # target preference as out-strength + in-strength^2 + 1.
 #' # 1. use default preference functions
-#' control1 <- rpactl.preference(ftype = "default",
+#' control1 <- rpacontrol.preference(ftype = "default",
 #'     sparams = c(1, 2, 1, 1, 1), tparams = c(1, 1, 1, 2, 1))
 #' # 2. use character expressions
-#' control2 <- rpactl.preference(ftype = "customized",
+#' control2 <- rpacontrol.preference(ftype = "customized",
 #'     spref = "pow(outs, 2) + ins + 1", tpref = "outs + pow(ins, 2) + 1")
 #' # 3. define XPtr's with C++ source code
 #' spref.pointer <- RcppXPtrUtils::cppXPtr(code =
 #'     "double spref(double outs, double ins) {return pow(outs, 2) + ins + 1;}")
 #' tpref.pointer <- RcppXPtrUtils::cppXPtr(code =
 #'     "double tpref(double outs, double ins) {return outs + pow(ins, 2) + 1;}")
-#' control3 <- rpactl.preference(ftype = "customized",
+#' control3 <- rpacontrol.preference(ftype = "customized",
 #'     spref = spref.pointer,
 #'     tpref = tpref.pointer)
 #' ret <- rpanet(1e5, control = control3)
 #' }
-rpactl.preference <- function(ftype = c("default", "customized"),
+rpacontrol.preference <- function(ftype = c("default", "customized"),
                               sparams = c(1, 1, 0, 0, 1),
                               tparams = c(0, 0, 1, 1, 1),
                               params = c(1, 1),
@@ -300,7 +301,7 @@ rpactl.preference <- function(ftype = c("default", "customized"),
     preference <- compile_pref_func(preference)
   }
   structure(list("preference" = preference),
-            class = "rpactl")
+            class = "rpacontrol")
 }
 
 #' Control reciprocal edges. Defined for \code{rpanet}.
@@ -317,23 +318,23 @@ rpactl.preference <- function(ftype = c("default", "customized"),
 #'   directed edge from \code{B} to \code{A} is added.
 #' @param selfloop.recip Logical, whether reciprocal edge of self-loops are
 #'   allowed.
-#' 
-#' @return A list of class \code{rpactl} with components 
-#'   \code{group.prob}, \code{recip.prob}, and \code{selfloop.recip} with
-#'   meanings as explained under 'Arguments'.
+#'
+#' @return A list of class \code{rpacontrol} with components \code{group.prob},
+#'   \code{recip.prob}, and \code{selfloop.recip} with meanings as explained
+#'   under 'Arguments'.
 #'
 #' @export
 #'
 #' @examples
-#' control <- rpactl.reciprocal(group.prob = c(0.4, 0.6),
+#' control <- rpacontrol.reciprocal(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
-rpactl.reciprocal <- function(group.prob = NULL,
-                              recip.prob = NULL, 
+rpacontrol.reciprocal <- function(group.prob = NA,
+                              recip.prob = NA, 
                               selfloop.recip = FALSE) {
-  if (! is.null(group.prob)) {
+  if (! any(is.na(group.prob))) {
     stopifnot('"group.prob" must sum to 1.' = 
                 round(sum(group.prob), 10) == 1)
-    if (! is.null(recip.prob)) {
+    if (! any(is.na(recip.prob))) {
       recip.prob <- as.matrix(recip.prob)
       stopifnot('"recip.prob" or "group.prob" is not valid.' =
                   length(group.prob) == nrow(recip.prob) &
@@ -349,14 +350,14 @@ rpactl.reciprocal <- function(group.prob = NULL,
       stop('"recip.prob" can not be NA when "group.prob" is specified.')
     }
   }
-  if (is.null(group.prob)) {
-    if (! is.null(recip.prob)) {
-      stop('Please specify "group.prob".')
+  if (any(is.na(group.prob))) {
+    if (! is.na(recip.prob)) {
+      stop('"group.prob" is not valid.')
     }
   }
   reciprocal <- list("group.prob" = group.prob,
                      "recip.prob" = recip.prob, 
                      "selfloop.recip" = selfloop.recip)
   structure(list("reciprocal" = reciprocal),
-            class = "rpactl")
+            class = "rpacontrol")
 }

@@ -37,9 +37,9 @@ NULL
 #' @param control A list of parameters that controls the PA network generation
 #'   process. Defaults to an empty list, i.e., all the controlling parameters
 #'   are set as default. For more details about available controlling
-#'   parameters, see \code{rpactl.scenario}, \code{rpactl.newedge},
-#'   \code{rpactl.edgeweight}, \code{rpactl.preference} and
-#'   \code{rpactl.reciprocal}. Under the default setup, in each step, a new edge
+#'   parameters, see \code{rpacontrol.scenario}, \code{rpacontrol.newedge},
+#'   \code{rpacontrol.edgeweight}, \code{rpacontrol.preference} and
+#'   \code{rpacontrol.reciprocal}. Under the default setup, in each step, a new edge
 #'   of weight 1 is added from a new node \code{A} to an existing node \code{B}
 #'   (\code{alpha} scenario), where \code{B} is chosen with probability
 #'   proportional to its in-strength + 1.
@@ -51,8 +51,8 @@ NULL
 #'   out-degree (out-strength) plus a nonnegative constant, the target
 #'   preference function must be in-degree (in-strength) plus a nonnegative
 #'   constant, \code{beta.loop} must be TRUE. Besides, \code{nodelist} method
-#'   only works for unweighted networks, \code{rpactl.edgeweight},
-#'   \code{rpactl.newedge}, \code{rpactl.reciprocal} must set as default;
+#'   only works for unweighted networks, \code{rpacontrol.edgeweight},
+#'   \code{rpacontrol.newedge}, \code{rpacontrol.reciprocal} must set as default;
 #'   \code{node.replace}, \code{snode.replace}, \code{tnode.replace} must be
 #'   TRUE for \code{edgesampler} method.
 #'
@@ -79,23 +79,23 @@ NULL
 #' @export
 #'
 #' @examples
-#' # Control edge scenario and edge weight through rpactl.scenario()
-#' # and rpactl.edgeweight(), respectively, while keeping rpactl.newedge(),
-#' # rpactl.preference() and rpactl.reciprocal() as default.
+#' # Control edge scenario and edge weight through rpacontrol.scenario()
+#' # and rpacontrol.edgeweight(), respectively, while keeping rpacontrol.newedge(),
+#' # rpacontrol.preference() and rpacontrol.reciprocal() as default.
 #' set.seed(123)
-#' control <- rpactl.scenario(alpha = 0.5, beta = 0.5) +
-#'     rpactl.edgeweight(distribution = rgamma,
+#' control <- rpacontrol.scenario(alpha = 0.5, beta = 0.5) +
+#'     rpacontrol.edgeweight(distribution = rgamma,
 #'         dparams = list(shape = 5, scale = 0.2), shift = 0)
 #' ret1 <- rpanet(nstep = 1e3, control = control)
 #'
 #' # In addition, set node groups and probability of creating reciprocal edges.
-#' control <- control + rpactl.reciprocal(group.prob = c(0.4, 0.6),
+#' control <- control + rpacontrol.reciprocal(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
 #' ret2 <- rpanet(nstep = 1e3, control = control)
 #'
 #' # Further, set the number of new edges in each step as Poisson(2) + 1 and use
 #' # ret2 as a seed network.
-#' control <- control + rpactl.newedge(distribution = rpois,
+#' control <- control + rpacontrol.newedge(distribution = rpois,
 #'     dparams = list(lambda = 2), shift = 1)
 #' ret3 <- rpanet(nstep = 1e3, seednetwork = ret2, control = control)
 #' 
@@ -130,10 +130,10 @@ rpanet <- function(nstep = 10^3, seednetwork = list(
               max(seednetwork$nodegroup) <= length(control$reciprocal$group.prob))
   }
   
-  control.default <- rpactl.scenario() + rpactl.edgeweight() +
-    rpactl.newedge() + rpactl.reciprocal() + rpactl.preference()
+  control.default <- rpacontrol.scenario() + rpacontrol.edgeweight() +
+    rpacontrol.newedge() + rpacontrol.reciprocal() + rpacontrol.preference()
   stopifnot(is.list(control))
-  control <- structure(control, class = "rpactl")
+  control <- structure(control, class = "rpacontrol")
   control <- control.default + control
   rm(control.default)
   if (control$preference$ftype == "customized") {
@@ -165,7 +165,7 @@ rpanet <- function(nstep = 10^3, seednetwork = list(
   
   sum_m <- sum(m)
   sample.recip <- TRUE
-  if (identical(control$reciprocal, rpactl.reciprocal()$reciprocal)) {
+  if (identical(control$reciprocal, rpacontrol.reciprocal()$reciprocal)) {
     sample.recip <- FALSE
   }
   if (is.function(control$edgeweight$distribution)) {
@@ -201,17 +201,17 @@ rpanet <- function(nstep = 10^3, seednetwork = list(
       stopifnot('Preference must be degree plus a constant for "nodelist" and "edgesampler" methods.' = 
                   control$preference$params[1] == 1)
     }
-    stopifnot('"rpactl.reciprocal" must set as default for "nodelist" and "edgesampler" methods.' = 
-                identical(control$reciprocal, rpactl.reciprocal()$reciprocal))
+    stopifnot('"rpacontrol.reciprocal" must set as default for "nodelist" and "edgesampler" methods.' = 
+                identical(control$reciprocal, rpacontrol.reciprocal()$reciprocal))
     stopifnot('"beta.loop" must be TRUE for "nodelist" and "edgesampler" methods.' = 
                 control$scenario$beta.loop)
     if (method == "nodelist") {
-      stopifnot('"rpactl.edgeweight" must set as default for "nodelist" method.' = 
-                  identical(control$edgeweight, rpactl.edgeweight()$edgeweight))
+      stopifnot('"rpacontrol.edgeweight" must set as default for "nodelist" method.' = 
+                  identical(control$edgeweight, rpacontrol.edgeweight()$edgeweight))
       stopifnot('Weight of existing edges must be 1 for "nodelist" method.' =
                   all(seednetwork$edgeweight == 1))
-      stopifnot('"rpactl.newedge" must set as default for "nodelist" method.' = 
-                  identical(control$newedge, rpactl.newedge()$newedge))
+      stopifnot('"rpacontrol.newedge" must set as default for "nodelist" method.' = 
+                  identical(control$newedge, rpacontrol.newedge()$newedge))
     }
     if (method == "edgesampler") {
       if (directed) {

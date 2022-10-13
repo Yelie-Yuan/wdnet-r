@@ -3,12 +3,12 @@ test_that("Test rpanet with default preference functions", {
   set.seed(1234)
   nstep <- 1e5
   for (method in c("naive", "binary")) {
-    control <- rpactl.preference(ftype = "default",
+    control <- rpacontrol.preference(ftype = "default",
                                  sparams = runif(5, 1, 3),
                                  tparams = runif(5, 1, 3),
                                  params = runif(2, 1, 3)) +
-      rpactl.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
-      rpactl.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
+      rpacontrol.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
+      rpacontrol.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
     net1 <- rpanet(control = control, nstep = nstep, directed = TRUE, method = method)
     net2 <- rpanet(control = control, nstep = nstep, directed = FALSE, method = method)
     
@@ -52,12 +52,12 @@ test_that("Test rpanet with customized preference functions", {
   set.seed(12345)
   nstep <- 1e5
   for (method in c("naive", "binary")) {
-    control <- rpactl.preference(ftype = "customized",
+    control <- rpacontrol.preference(ftype = "customized",
                                  spref = "outs + pow(ins, 0.5) + 1",
                                  tpref = "pow(outs, 0.5) + ins + 1",
                                  pref = "pow(s, 1.5) + 1") +
-      rpactl.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
-      rpactl.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
+      rpacontrol.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
+      rpacontrol.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
     net1 <- rpanet(control = control, nstep = nstep, directed = TRUE, method = method)
     net2 <- rpanet(control = control, nstep = nstep, directed = FALSE, method = method)
     

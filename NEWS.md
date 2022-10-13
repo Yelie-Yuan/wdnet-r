@@ -4,6 +4,7 @@
   + `seednetwork = NULL` to 
   `seednetwork = list(edgelist = matrix(c(1, 2), nrow = 1))`.
   + `control = NULL` to `control = list()`.
++ Changed `rpactl` to `rpacontrol`.
 
 # wdnet 0.0.5
 
