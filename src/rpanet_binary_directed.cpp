@@ -34,7 +34,7 @@ struct node_d {
  * 
  * @return Source preference of a node.
  */
-double sourcePrefFuncDefault(double outs, double ins, Rcpp::NumericVector sparams) {
+double sourcePrefFuncDefault(double outs, double ins, double *sparams) {
   return sparams[0] * pow(outs, sparams[1]) + 
     sparams[2] * pow(ins, sparams[3]) + sparams[4];
 }
@@ -47,7 +47,7 @@ double sourcePrefFuncDefault(double outs, double ins, Rcpp::NumericVector sparam
  * @param tparams Parameters passed to the target preference function.
  * @return Target preference of a node.
  */
-double targetPrefFuncDefault(double outs, double ins, Rcpp::NumericVector tparams) {
+double targetPrefFuncDefault(double outs, double ins, double *tparams) {
   return tparams[0] * pow(outs, tparams[1]) + 
     tparams[2] * pow(ins, tparams[3]) + tparams[4];
 }
@@ -103,7 +103,7 @@ void updateTotalTargetp(node_d *current_node) {
  * @param targetPrefFuncCpp Pointer of customized target preference function.
  */
 void updatePrefD(node_d *temp_node, int func_type, 
-                 Rcpp::NumericVector sparams, Rcpp::NumericVector tparams,
+                 double *sparams, double *tparams,
                  funcPtrD sourcePrefFuncCpp, 
                  funcPtrD targetPrefFuncCpp) {
   double temp_sourcep = temp_node->sourcep, temp_targetp = temp_node->targetp;
@@ -254,7 +254,7 @@ node_d* sampleNodeD(node_d *root, char type) {
  * 
  * @return Sampled group for the new node.
  */
-int sampleGroup(Rcpp::NumericVector group_prob) {
+int sampleGroup(double *group_prob) {
   double g = 0;
   int i = 0;
   while ((g == 0) || (g == 1)) {
@@ -318,17 +318,21 @@ Rcpp::List rpanet_binary_directed(
   bool tnode_unique = ! newedge_ctl["tnode.replace"];
   Rcpp::List reciprocal_ctl = control["reciprocal"];
   bool selfloop_recip = reciprocal_ctl["selfloop.recip"];
-  Rcpp::NumericVector group_prob = reciprocal_ctl["group.prob"];
+  Rcpp::NumericVector group_prob_vec = reciprocal_ctl["group.prob"];
+  double *group_prob = &(group_prob_vec[0]);
   Rcpp::NumericMatrix recip_prob = reciprocal_ctl["recip.prob"];
   Rcpp::List preference_ctl = control["preference"];
-  Rcpp::NumericVector sparams(5);
-  Rcpp::NumericVector tparams(5);
+  Rcpp::NumericVector sparams_vec(5);
+  Rcpp::NumericVector tparams_vec(5);
+  double *sparams, *tparams;
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {
   case 1: 
-    sparams = preference_ctl["sparams"];
-    tparams = preference_ctl["tparams"];
+    sparams_vec = preference_ctl["sparams"];
+    tparams_vec = preference_ctl["tparams"];
+    sparams = &(sparams_vec[0]);
+    tparams = &(tparams_vec[0]);
     break;
   case 2: {
       SEXP source_pref_func_ptr = preference_ctl["spref.pointer"];

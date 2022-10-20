@@ -145,10 +145,13 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
   if (directed) {
     ret$outstrength <- c(strength$outstrength)
     ret$instrength <- c(strength$instrength)
+    ret$spref <- ret$outstrength + control$preference$sparams[5]
+    ret$tpref <- ret$instrength + control$preference$tparams[5]
     ret$control$preference$params <- NULL
   }
   else {
     ret$strength <- c(strength$outstrength) + c(strength$instrength)
+    ret$pref <- ret$strength + control$preference$params[2]
     ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
     ret$control$preference$sparams <- ret$control$preference$tparams <- NULL
   }

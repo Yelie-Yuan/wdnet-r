@@ -17,7 +17,7 @@ funcPtrD targetPrefFuncCppNaive;
  *  
  * @return Source preference of a node.
  */
-double sourcePrefFuncDefaultNaive(double outs, double ins, Rcpp::NumericVector sparams) {
+double sourcePrefFuncDefaultNaive(double outs, double ins, double *sparams) {
   return sparams[0] * pow(outs, sparams[1]) + 
     sparams[2] * pow(ins, sparams[3]) + sparams[4];
 }
@@ -31,7 +31,7 @@ double sourcePrefFuncDefaultNaive(double outs, double ins, Rcpp::NumericVector s
  *  
  * @return Target preference of a node.
  */
-double targetPrefFuncDefaultNaive(double outs, double ins, Rcpp::NumericVector tparams) {
+double targetPrefFuncDefaultNaive(double outs, double ins, double *tparams) {
   return tparams[0] * pow(outs, tparams[1]) + 
     tparams[2] * pow(ins, tparams[3]) + tparams[4];
 }
@@ -50,7 +50,7 @@ double targetPrefFuncDefaultNaive(double outs, double ins, Rcpp::NumericVector t
 double calcSourcePrefNaive(int func_type, 
                           double outs,
                           double ins,
-                          Rcpp::NumericVector sparams, 
+                          double *sparams, 
                           funcPtrD sourcePrefFuncCppNaive) {
   if (func_type == 1) {
     return sourcePrefFuncDefaultNaive(outs, ins, sparams);
@@ -74,7 +74,7 @@ double calcSourcePrefNaive(int func_type,
 double calcTargetPrefNaive(int func_type, 
                           double outs,
                           double ins,
-                          Rcpp::NumericVector tparams, 
+                          double *tparams, 
                           funcPtrD targetPrefFuncCppNaive) {
   if (func_type == 1) {
     return targetPrefFuncDefaultNaive(outs, ins, tparams);
@@ -93,7 +93,7 @@ double calcTargetPrefNaive(int func_type,
  *  
  * @return Sampled source/target node.
  */
-int sampleNodeDNaive(int n_existing, Rcpp::NumericVector pref, double total_pref) {
+int sampleNodeDNaive(int n_existing, double *pref, double total_pref) {
   double w = 1;
   int i = 0;
   while (w == 1) {
@@ -118,7 +118,7 @@ int sampleNodeDNaive(int n_existing, Rcpp::NumericVector pref, double total_pref
  *  
  * @return Sampled group for the new node.
  */
-int sampleGroupNaive(Rcpp::NumericVector group_prob) {
+int sampleGroupNaive(double *group_prob) {
   double g = 0;
   int i = 0;
   while ((g == 0) || (g == 1)) {
@@ -202,8 +202,8 @@ Rcpp::List rpanet_naive_directed_cpp(
     Rcpp::IntegerVector scenario,
     bool sample_recip, 
     Rcpp::IntegerVector node_group, 
-    Rcpp::NumericVector source_pref, 
-    Rcpp::NumericVector target_pref, 
+    Rcpp::NumericVector source_pref_vec, 
+    Rcpp::NumericVector target_pref_vec, 
     Rcpp::List control) {
   Rcpp::List scenario_ctl = control["scenario"];
   double alpha = scenario_ctl["alpha"];
@@ -218,17 +218,23 @@ Rcpp::List rpanet_naive_directed_cpp(
   bool tnode_unique = ! newedge_ctl["tnode.replace"];
   Rcpp::List reciprocal_ctl = control["reciprocal"];
   bool selfloop_recip = reciprocal_ctl["selfloop.recip"];
-  Rcpp::NumericVector group_prob = reciprocal_ctl["group.prob"];
+  Rcpp::NumericVector group_prob_vec = reciprocal_ctl["group.prob"];
+  double *group_prob = &(group_prob_vec[0]);
   Rcpp::NumericMatrix recip_prob = reciprocal_ctl["recip.prob"];
   Rcpp::List preference_ctl = control["preference"];
-  Rcpp::NumericVector sparams(5);
-  Rcpp::NumericVector tparams(5);
+  Rcpp::NumericVector sparams_vec(5);
+  Rcpp::NumericVector tparams_vec(5);
+  double *sparams, *tparams;
+  double *source_pref = &(source_pref_vec[0]);
+  double *target_pref = &(target_pref_vec[0]);
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {
   case 1: 
-    sparams = preference_ctl["sparams"];
-    tparams = preference_ctl["tparams"];
+    sparams_vec = preference_ctl["sparams"];
+    tparams_vec = preference_ctl["tparams"];
+    sparams = &(sparams_vec[0]);
+    tparams = &(tparams_vec[0]);
     break;
   case 2: {
       SEXP source_pref_func_ptr = preference_ctl["spref.pointer"];
@@ -478,7 +484,7 @@ Rcpp::List rpanet_naive_directed_cpp(
   ret["instrength"] = ins;
   ret["scenario"] = scenario;
   ret["nodegroup"] = node_group;
-  ret["source_pref"] = source_pref;
-  ret["target_pref"] = target_pref;
+  ret["source_pref"] = source_pref_vec;
+  ret["target_pref"] = target_pref_vec;
   return ret;
 }

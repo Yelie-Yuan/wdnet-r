@@ -13,8 +13,6 @@ test_that("Test rpanet with default preference functions", {
     net2 <- rpanet(control = control, nstep = nstep, directed = FALSE, method = method)
     
     # check node preference
-    n1 <- length(net1$outstrength)
-    n2 <- length(net2$strength)
     sparams <- control$preference$sparams
     tparams <- control$preference$tparams
     params <- control$preference$params
@@ -62,8 +60,6 @@ test_that("Test rpanet with customized preference functions", {
     net2 <- rpanet(control = control, nstep = nstep, directed = FALSE, method = method)
     
     # check node preference
-    n1 <- length(net1$outstrength)
-    n2 <- length(net2$strength)
     ret1.1 <- range(net1$spref - (net1$outstrength + net1$instrength^0.5 + 1))
     ret1.2 <- range(net1$tpref - (net1$outstrength^0.5 + net1$instrength + 1))
     ret2 <- range(net2$pref - (net2$strength^1.5 + 1))

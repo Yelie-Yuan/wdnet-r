@@ -14,7 +14,7 @@ funcPtrUnd prefFuncCppNaive;
  *
  * @return Preference of a node.
  */
-double prefFuncDefaultNaive(double strength, Rcpp::NumericVector params) {
+double prefFuncDefaultNaive(double strength, double *params) {
   return pow(strength, params[0]) + params[1];
 }
 
@@ -30,7 +30,7 @@ double prefFuncDefaultNaive(double strength, Rcpp::NumericVector params) {
  */
 double calcPrefNaive(int func_type, 
                     double strength,
-                    Rcpp::NumericVector params, 
+                    double *params, 
                     funcPtrUnd prefFuncCppNaive) {
   if (func_type == 1) {
     return prefFuncDefaultNaive(strength, params);
@@ -49,7 +49,7 @@ double calcPrefNaive(int func_type,
  *
  * @return Sampled node.
  */
-int sampleNodeUndNaive(int n_existing, Rcpp::NumericVector pref, double total_pref) {
+int sampleNodeUndNaive(int n_existing, double *pref, double total_pref) {
   double w = 1;
   int i = 0;
   while (w == 1) {
@@ -131,7 +131,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
     Rcpp::NumericVector strength, 
     Rcpp::NumericVector edgeweight, 
     Rcpp::IntegerVector scenario,
-    Rcpp::NumericVector pref, 
+    Rcpp::NumericVector pref_vec, 
     Rcpp::List control) {
   Rcpp::List scenario_ctl = control["scenario"];
   double alpha = scenario_ctl["alpha"];
@@ -142,12 +142,15 @@ Rcpp::List rpanet_naive_undirected_cpp(
   Rcpp::List newedge_ctl = control["newedge"];
   bool node_unique = ! newedge_ctl["node.replace"];
   Rcpp::List preference_ctl = control["preference"];
-  Rcpp::NumericVector params(2);
+  Rcpp::NumericVector params_vec(2);
+  double *params;
+  double *pref = &(pref_vec[0]);
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {
   case 1: 
-    params = preference_ctl["params"];
+    params_vec = preference_ctl["params"];
+    params = &(params_vec[0]);
     break;
   case 2: {
       SEXP pref_func_ptr = preference_ctl["pref.pointer"];
@@ -300,7 +303,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
   ret["nedge"] = new_edge_id;
   ret["node_vec1"] = node_vec1;
   ret["node_vec2"] = node_vec2;
-  ret["pref"] = pref;
+  ret["pref"] = pref_vec;
   ret["strength"] = strength;
   ret["scenario"] = scenario;
   return ret;

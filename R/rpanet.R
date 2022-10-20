@@ -39,30 +39,32 @@ NULL
 #'   are set as default. For more details about available controlling
 #'   parameters, see \code{rpacontrol.scenario}, \code{rpacontrol.newedge},
 #'   \code{rpacontrol.edgeweight}, \code{rpacontrol.preference} and
-#'   \code{rpacontrol.reciprocal}. Under the default setup, in each step, a new edge
-#'   of weight 1 is added from a new node \code{A} to an existing node \code{B}
-#'   (\code{alpha} scenario), where \code{B} is chosen with probability
+#'   \code{rpacontrol.reciprocal}. Under the default setup, in each step, a new
+#'   edge of weight 1 is added from a new node \code{A} to an existing node
+#'   \code{B} (\code{alpha} scenario), where \code{B} is chosen with probability
 #'   proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
 #' @param method Which method to use: \code{binary}, \code{naive},
 #'   \code{edgesampler} or \code{nodelist}. For \code{nodelist} and
-#'   \code{edgesampler} methods, the source preference function must be
-#'   out-degree (out-strength) plus a nonnegative constant, the target
-#'   preference function must be in-degree (in-strength) plus a nonnegative
-#'   constant, \code{beta.loop} must be TRUE. Besides, \code{nodelist} method
-#'   only works for unweighted networks, \code{rpacontrol.edgeweight},
-#'   \code{rpacontrol.newedge}, \code{rpacontrol.reciprocal} must set as default;
-#'   \code{node.replace}, \code{snode.replace}, \code{tnode.replace} must be
-#'   TRUE for \code{edgesampler} method.
+#'   \code{edgesampler} methods, \code{beta.loop} must be \code{TRUE}; default
+#'   preference functions must be used and \code{sparams = c(1, 1, 0, 0, a)},
+#'   \code{tparams = c(0, 0, 1, 1, b)}, \code{param = c(1, c)}, where \code{a},
+#'   \code{b} and \code{c} are non-negative constants; reciprocal edges and
+#'   sampling without replacement are not considered, i.e., option
+#'   \code{rpacontrol.reciprocal} must be set as default, \code{snode.replace},
+#'   \code{tnode.replace} and \code{node.replace} must be \code{TRUE}. In
+#'   addition, \code{nodelsit} method only works for unweighted networks and
+#'   does not consider multiple edges, i.e., \code{rpacontrol.edgeweight} and
+#'   \code{rpacontrol.newedge} must be set as default.
 #'
 #'
 #' @return A list with the following components: \code{edgelist},
 #'   \code{edgeweight}, \code{strength} for undirected networks,
 #'   \code{outstrength} and \code{instrength} for directed networks, number of
-#'   new edges in each step \code{newedge} (including reciprocal edges),
-#'   control list \code{control}, node group \code{nodegroup} (if applicable)
-#'   and edge scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
+#'   new edges in each step \code{newedge} (including reciprocal edges), control
+#'   list \code{control}, node group \code{nodegroup} (if applicable) and edge
+#'   scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
 #'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as
 #'   0.
 #'
@@ -190,16 +192,19 @@ rpanet <- function(nstep = 10^3, seednetwork = list(
     stopifnot('"nodelist" and "edgesampler" methods require "default" preference functions.' = 
                 control$preference$ftype == "default")
     if (directed) {
-      stopifnot('Source preference must be out-degree plus a constant for "nodelist" and "edgesampler" methods.' = 
+      stopifnot('Source preference must be out-degree plus a non-negative constant for "nodelist" and "edgesampler" methods.' = 
                   all(control$preference$sparams[1:2] == 1,
-                      control$preference$sparams[3:4] == 0))
-      stopifnot('Target preference must be in-degree plus a constant for "nodelist" and "edgesampler" methods.' = 
+                      control$preference$sparams[3:4] == 0,
+                      control$preference$sparams[5] >= 0))
+      stopifnot('Target preference must be in-degree plus a non-negative constant for "nodelist" and "edgesampler" methods.' = 
                   all(control$preference$tparams[1:2] == 0,
-                      control$preference$tparams[3:4] == 1))
+                      control$preference$tparams[3:4] == 1,
+                      control$preference$tparams[5] >= 0))
     }
     else {
-      stopifnot('Preference must be degree plus a constant for "nodelist" and "edgesampler" methods.' = 
-                  control$preference$params[1] == 1)
+      stopifnot('Preference must be degree plus a non-negative constant for "nodelist" and "edgesampler" methods.' = 
+                  control$preference$params[1] == 1 & 
+                    control$preference$params[2] >= 0)
     }
     stopifnot('"rpacontrol.reciprocal" must set as default for "nodelist" and "edgesampler" methods.' = 
                 identical(control$reciprocal, rpacontrol.reciprocal()$reciprocal))

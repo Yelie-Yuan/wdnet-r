@@ -29,7 +29,7 @@ struct node_und {
  * 
  * @return Preference of a node.
  */
-double prefFuncDefault(double strength, Rcpp::NumericVector params) {
+double prefFuncDefault(double strength, double *params) {
   return pow(strength, params[0]) + params[1];
 }
 
@@ -63,7 +63,7 @@ void updateTotalp(node_und *current_node) {
 
  */
 void updatePrefUnd(node_und *temp_node, int func_type, 
-                         Rcpp::NumericVector params,
+                         double *params,
                          funcPtrUnd prefFuncCpp) {
   if (func_type == 1) {
     temp_node->p = prefFuncDefault(temp_node->strength, params);
@@ -199,12 +199,14 @@ Rcpp::List rpanet_binary_undirected_cpp(
   Rcpp::List newedge_ctl = control["newedge"];
   bool node_unique = ! newedge_ctl["node.replace"];
   Rcpp::List preference_ctl = control["preference"];
-  Rcpp::NumericVector params(2);
+  Rcpp::NumericVector params_vec(2);
+  double *params;
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type) {
   case 1: 
-    params = preference_ctl["params"];
+    params_vec = preference_ctl["params"];
+    params = &(params_vec[0]);
     break;
   case 2: {
       SEXP pref_func_ptr = preference_ctl["pref.pointer"];
