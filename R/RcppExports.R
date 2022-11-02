@@ -145,8 +145,8 @@ rpanet_binary_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, nod
 #'
 #' @keywords internal
 #'
-rpanet_naive_directed_cpp <- function(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref_vec, target_pref_vec, control) {
-    .Call(`_wdnet_rpanet_naive_directed_cpp`, nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref_vec, target_pref_vec, control)
+rpanet_linear_directed_cpp <- function(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref_vec, target_pref_vec, control) {
+    .Call(`_wdnet_rpanet_linear_directed_cpp`, nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref_vec, target_pref_vec, control)
 }
 
 #' Preferential attachment algorithm.
@@ -166,8 +166,8 @@ rpanet_naive_directed_cpp <- function(nstep, m, new_node_id, new_edge_id, source
 #'
 #' @keywords internal
 #'
-rpanet_naive_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref_vec, control) {
-    .Call(`_wdnet_rpanet_naive_undirected_cpp`, nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref_vec, control)
+rpanet_linear_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref_vec, control) {
+    .Call(`_wdnet_rpanet_linear_undirected_cpp`, nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref_vec, control)
 }
 
 #' Preferential attachment algorithm for simple situations, 

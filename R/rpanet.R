@@ -45,7 +45,7 @@ NULL
 #'   proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
-#' @param method Which method to use: \code{binary}, \code{naive},
+#' @param method Which method to use: \code{binary}, \code{linear},
 #'   \code{edgesampler} or \code{nodelist}. For \code{nodelist} and
 #'   \code{edgesampler} methods, \code{beta.loop} must be \code{TRUE}; default
 #'   preference functions must be used and \code{sparams = c(1, 1, 0, 0, a)},
@@ -105,7 +105,7 @@ rpanet <- function(nstep = 10^3, seednetwork = list(
                     edgelist = matrix(c(1, 2), nrow = 1)),
                    control = list(),
                    directed = TRUE,
-                   method = c("binary", "naive", "edgesampler", "nodelist")) {
+                   method = c("binary", "linear", "edgesampler", "nodelist")) {
   method <- match.arg(method)
   stopifnot("nstep must be greater than 0." = nstep > 0)
   nnode <- max(seednetwork$edgelist)

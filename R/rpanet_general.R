@@ -43,7 +43,7 @@ NULL
 #' @param nnode Integer, number of nodes in \code{seednetwork}.
 #' @param nedge Integer, number of edges in \code{seednetwork}.
 #' @param method Which method to use when generating PA networks: "binary" or
-#'   "naive".
+#'   "linear".
 #' @param sample.recip Whether reciprocal edges will be added.
 #'
 #' @return A list with the following components: \code{edgelist},
@@ -107,7 +107,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                                       control)
     } 
     else {
-      ret_c <- rpanet_naive_directed_cpp(nstep,
+      ret_c <- rpanet_linear_directed_cpp(nstep,
                                          m,
                                          nnode,
                                          nedge,
@@ -144,7 +144,7 @@ rpanet_general <- function(nstep, seednetwork, control, directed,
                                             control)
     }
     else {
-      ret_c <- rpanet_naive_undirected_cpp(nstep,
+      ret_c <- rpanet_linear_undirected_cpp(nstep,
                                            m,
                                            nnode,
                                            nedge,

@@ -4,7 +4,7 @@
 #include "funcPtrUnd.h"
 #include<Rcpp.h>
 using namespace std;
-funcPtrUnd prefFuncCppNaive;
+funcPtrUnd prefFuncCppLinear;
 
 /**
  * Defult preference function.
@@ -14,7 +14,7 @@ funcPtrUnd prefFuncCppNaive;
  *
  * @return Preference of a node.
  */
-double prefFuncDefaultNaive(double strength, double *params) {
+double prefFuncDefaultLinear(double strength, double *params) {
   return pow(strength, params[0]) + params[1];
 }
 
@@ -24,19 +24,19 @@ double prefFuncDefaultNaive(double strength, double *params) {
  * @param func_type Default or customized preference function.
  * @param strength Node strength.
  * @param params Parameters passed to the default preference function.
- * @param prefFuncCppNaive Pointer of the customized source preference function.
+ * @param prefFuncCppLinear Pointer of the customized source preference function.
  *
  * @return Node preference.
  */
-double calcPrefNaive(int func_type, 
+double calcPrefLinear(int func_type, 
                     double strength,
                     double *params, 
-                    funcPtrUnd prefFuncCppNaive) {
+                    funcPtrUnd prefFuncCppLinear) {
   if (func_type == 1) {
-    return prefFuncDefaultNaive(strength, params);
+    return prefFuncDefaultLinear(strength, params);
   }
   else {
-    return prefFuncCppNaive(strength);
+    return prefFuncCppLinear(strength);
   }
 }
 
@@ -49,7 +49,7 @@ double calcPrefNaive(int func_type,
  *
  * @return Sampled node.
  */
-int sampleNodeUndNaive(int n_existing, double *pref, double total_pref) {
+int sampleNodeUndLinear(int n_existing, double *pref, double total_pref) {
   double w = 1;
   int i = 0;
   while (w == 1) {
@@ -121,7 +121,7 @@ int sampleNodeUndNaive(int n_existing, double *pref, double total_pref) {
 //' @keywords internal
 //'
 // [[Rcpp::export]]
-Rcpp::List rpanet_naive_undirected_cpp(
+Rcpp::List rpanet_linear_undirected_cpp(
     int nstep, 
     Rcpp::IntegerVector m,
     int new_node_id, 
@@ -154,7 +154,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
     break;
   case 2: {
       SEXP pref_func_ptr = preference_ctl["pref.pointer"];
-      prefFuncCppNaive = *Rcpp::XPtr<funcPtrUnd>(pref_func_ptr);
+      prefFuncCppLinear = *Rcpp::XPtr<funcPtrUnd>(pref_func_ptr);
       break;
     }
   }
@@ -165,7 +165,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
   int node1, node2, temp_node;
   queue<int> q1;
   for (i = 0; i < new_node_id; i++) {
-    pref[i] = calcPrefNaive(func_type, strength[i], params, prefFuncCppNaive);
+    pref[i] = calcPrefLinear(func_type, strength[i], params, prefFuncCppLinear);
     total_pref += pref[i];
   }
   // sample edges
@@ -209,10 +209,10 @@ Rcpp::List rpanet_naive_undirected_cpp(
         case 1:
           node1 = new_node_id;
           new_node_id++;
-          node2 = sampleNodeUndNaive(n_existing, pref, total_pref);
+          node2 = sampleNodeUndLinear(n_existing, pref, total_pref);
           break;
         case 2:
-          node1 = sampleNodeUndNaive(n_existing, pref, total_pref);
+          node1 = sampleNodeUndLinear(n_existing, pref, total_pref);
           if (! beta_loop) {
             if (pref[node1] == total_pref) {
               m_error = true;
@@ -233,16 +233,16 @@ Rcpp::List rpanet_naive_undirected_cpp(
               break;
             }
 
-            node2 = sampleNodeUndNaive(n_existing, pref, total_pref);
+            node2 = sampleNodeUndLinear(n_existing, pref, total_pref);
             pref[node1] = temp_p;
             total_pref += temp_p;
           }
           else {
-            node2 = sampleNodeUndNaive(n_existing, pref, total_pref);
+            node2 = sampleNodeUndLinear(n_existing, pref, total_pref);
           }
           break;
         case 3:
-          node1 = sampleNodeUndNaive(n_existing, pref, total_pref);
+          node1 = sampleNodeUndLinear(n_existing, pref, total_pref);
           node2 = new_node_id;
           new_node_id++;
           break;
@@ -289,7 +289,7 @@ Rcpp::List rpanet_naive_undirected_cpp(
     while (! q1.empty()) {
       temp_node = q1.front();
       total_pref -= pref[temp_node];
-      pref[temp_node] = calcPrefNaive(func_type, strength[temp_node], params, prefFuncCppNaive);
+      pref[temp_node] = calcPrefLinear(func_type, strength[temp_node], params, prefFuncCppLinear);
       total_pref += pref[temp_node];
       q1.pop();
     }

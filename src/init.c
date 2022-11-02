@@ -21,8 +21,8 @@ extern SEXP _wdnet_hello_world();
 extern SEXP _wdnet_node_strength_cpp(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_rpanet_binary_directed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_rpanet_binary_undirected_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _wdnet_rpanet_naive_directed_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _wdnet_rpanet_naive_undirected_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _wdnet_rpanet_linear_directed_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);      
+extern SEXP _wdnet_rpanet_linear_undirected_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_rpanet_nodelist_cpp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _wdnet_sample_node_cpp(SEXP);
 
@@ -42,8 +42,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_wdnet_node_strength_cpp",            (DL_FUNC) &_wdnet_node_strength_cpp,             5},
     {"_wdnet_rpanet_binary_directed",       (DL_FUNC) &_wdnet_rpanet_binary_directed,       15},
     {"_wdnet_rpanet_binary_undirected_cpp", (DL_FUNC) &_wdnet_rpanet_binary_undirected_cpp, 11},
-    {"_wdnet_rpanet_naive_directed_cpp",    (DL_FUNC) &_wdnet_rpanet_naive_directed_cpp,    15},
-    {"_wdnet_rpanet_naive_undirected_cpp",  (DL_FUNC) &_wdnet_rpanet_naive_undirected_cpp,  11},
+    {"_wdnet_rpanet_linear_directed_cpp",   (DL_FUNC) &_wdnet_rpanet_linear_directed_cpp,   15},
+    {"_wdnet_rpanet_linear_undirected_cpp", (DL_FUNC) &_wdnet_rpanet_linear_undirected_cpp, 11},
     {"_wdnet_rpanet_nodelist_cpp",          (DL_FUNC) &_wdnet_rpanet_nodelist_cpp,           8},
     {"_wdnet_sample_node_cpp",              (DL_FUNC) &_wdnet_sample_node_cpp,               1},
     {NULL, NULL, 0}

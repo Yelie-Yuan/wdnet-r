@@ -5,8 +5,8 @@
 #include<Rcpp.h>
 
 using namespace std;
-funcPtrD sourcePrefFuncCppNaive;
-funcPtrD targetPrefFuncCppNaive;
+funcPtrD sourcePrefFuncCppLinear;
+funcPtrD targetPrefFuncCppLinear;
 
 /**
  * Default source preference function.
@@ -17,7 +17,7 @@ funcPtrD targetPrefFuncCppNaive;
  *  
  * @return Source preference of a node.
  */
-double sourcePrefFuncDefaultNaive(double outs, double ins, double *sparams) {
+double sourcePrefFuncDefaultLinear(double outs, double ins, double *sparams) {
   return sparams[0] * pow(outs, sparams[1]) + 
     sparams[2] * pow(ins, sparams[3]) + sparams[4];
 }
@@ -31,7 +31,7 @@ double sourcePrefFuncDefaultNaive(double outs, double ins, double *sparams) {
  *  
  * @return Target preference of a node.
  */
-double targetPrefFuncDefaultNaive(double outs, double ins, double *tparams) {
+double targetPrefFuncDefaultLinear(double outs, double ins, double *tparams) {
   return tparams[0] * pow(outs, tparams[1]) + 
     tparams[2] * pow(ins, tparams[3]) + tparams[4];
 }
@@ -43,20 +43,20 @@ double targetPrefFuncDefaultNaive(double outs, double ins, double *tparams) {
  * @param outs Node out-strength.
  * @param ins Node in-strength.
  * @param sparams Parameters passed to the default source preference function.
- * @param sourcePrefFuncCppNaive Pointer of the customized source preference function.
+ * @param sourcePrefFuncCppLinear Pointer of the customized source preference function.
  *  
  * @return Node source preference.
  */
-double calcSourcePrefNaive(int func_type, 
+double calcSourcePrefLinear(int func_type, 
                           double outs,
                           double ins,
                           double *sparams, 
-                          funcPtrD sourcePrefFuncCppNaive) {
+                          funcPtrD sourcePrefFuncCppLinear) {
   if (func_type == 1) {
-    return sourcePrefFuncDefaultNaive(outs, ins, sparams);
+    return sourcePrefFuncDefaultLinear(outs, ins, sparams);
   }
   else {
-    return sourcePrefFuncCppNaive(outs, ins);
+    return sourcePrefFuncCppLinear(outs, ins);
   }
 }
 
@@ -67,20 +67,20 @@ double calcSourcePrefNaive(int func_type,
  * @param outs Node out-strength.
  * @param ins Node in-strength.
  * @param tparams Parameters passed to the default target preference function.
- * @param targetPrefFuncCppNaive Pointer of the customized target preference function.
+ * @param targetPrefFuncCppLinear Pointer of the customized target preference function.
  *  
  * @return Node target preference.
  */
-double calcTargetPrefNaive(int func_type, 
+double calcTargetPrefLinear(int func_type, 
                           double outs,
                           double ins,
                           double *tparams, 
-                          funcPtrD targetPrefFuncCppNaive) {
+                          funcPtrD targetPrefFuncCppLinear) {
   if (func_type == 1) {
-    return targetPrefFuncDefaultNaive(outs, ins, tparams);
+    return targetPrefFuncDefaultLinear(outs, ins, tparams);
   }
   else {
-    return targetPrefFuncCppNaive(outs, ins);
+    return targetPrefFuncCppLinear(outs, ins);
   }
 }
 
@@ -93,7 +93,7 @@ double calcTargetPrefNaive(int func_type,
  *  
  * @return Sampled source/target node.
  */
-int sampleNodeDNaive(int n_existing, double *pref, double total_pref) {
+int sampleNodeDLinear(int n_existing, double *pref, double total_pref) {
   double w = 1;
   int i = 0;
   while (w == 1) {
@@ -118,7 +118,7 @@ int sampleNodeDNaive(int n_existing, double *pref, double total_pref) {
  *  
  * @return Sampled group for the new node.
  */
-int sampleGroupNaive(double *group_prob) {
+int sampleGroupLinear(double *group_prob) {
   double g = 0;
   int i = 0;
   while ((g == 0) || (g == 1)) {
@@ -189,7 +189,7 @@ int sampleGroupNaive(double *group_prob) {
 //' @keywords internal
 //'
 // [[Rcpp::export]]
-Rcpp::List rpanet_naive_directed_cpp(
+Rcpp::List rpanet_linear_directed_cpp(
     int nstep, 
     Rcpp::IntegerVector m, 
     int new_node_id, 
@@ -238,9 +238,9 @@ Rcpp::List rpanet_naive_directed_cpp(
     break;
   case 2: {
       SEXP source_pref_func_ptr = preference_ctl["spref.pointer"];
-      sourcePrefFuncCppNaive = *Rcpp::XPtr<funcPtrD>(source_pref_func_ptr);
+      sourcePrefFuncCppLinear = *Rcpp::XPtr<funcPtrD>(source_pref_func_ptr);
       SEXP target_pref_func_ptr = preference_ctl["tpref.pointer"];
-      targetPrefFuncCppNaive = *Rcpp::XPtr<funcPtrD>(target_pref_func_ptr);
+      targetPrefFuncCppLinear = *Rcpp::XPtr<funcPtrD>(target_pref_func_ptr);
       break;
     }
   }
@@ -252,8 +252,8 @@ Rcpp::List rpanet_naive_directed_cpp(
   double total_source_pref = 0, total_target_pref = 0;
   queue<int> q1;
   for (int i = 0; i < new_node_id; i++) {
-    source_pref[i] = calcSourcePrefNaive(func_type, outs[i], ins[i], sparams, sourcePrefFuncCppNaive);
-    target_pref[i] = calcTargetPrefNaive(func_type, outs[i], ins[i], tparams, targetPrefFuncCppNaive);
+    source_pref[i] = calcSourcePrefLinear(func_type, outs[i], ins[i], sparams, sourcePrefFuncCppLinear);
+    target_pref[i] = calcTargetPrefLinear(func_type, outs[i], ins[i], tparams, targetPrefFuncCppLinear);
     total_source_pref += source_pref[i];
     total_target_pref += target_pref[i];
   }
@@ -312,16 +312,16 @@ Rcpp::List rpanet_naive_directed_cpp(
         case 1:
           node1 = new_node_id;
           if (sample_recip) {
-            node_group[node1] = sampleGroupNaive(group_prob);
+            node_group[node1] = sampleGroupLinear(group_prob);
           }
           new_node_id++;
-          node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
+          node2 = sampleNodeDLinear(n_existing, target_pref, total_target_pref);
           break;
         case 2:
           if (source_first) {
-            node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
+            node1 = sampleNodeDLinear(n_existing, source_pref, total_source_pref);
             if (beta_loop) {
-              node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
+              node2 = sampleNodeDLinear(n_existing, target_pref, total_target_pref);
             }
             else {
               if (target_pref[node1] == total_target_pref) {
@@ -329,7 +329,7 @@ Rcpp::List rpanet_naive_directed_cpp(
                 break;
               }
               if (target_pref[node1] == 0) {
-                node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
+                node2 = sampleNodeDLinear(n_existing, target_pref, total_target_pref);
               }
               else {
                 temp_p = target_pref[node1];
@@ -347,16 +347,16 @@ Rcpp::List rpanet_naive_directed_cpp(
                   break;
                 }
 
-                node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
+                node2 = sampleNodeDLinear(n_existing, target_pref, total_target_pref);
                 target_pref[node1] = temp_p;
                 total_target_pref += temp_p;
               }
             }
           }
           else {
-            node2 = sampleNodeDNaive(n_existing, target_pref, total_target_pref);
+            node2 = sampleNodeDLinear(n_existing, target_pref, total_target_pref);
             if (beta_loop) {
-              node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
+              node1 = sampleNodeDLinear(n_existing, source_pref, total_source_pref);
             }
             else {
               if (source_pref[node2] == total_source_pref) {
@@ -364,7 +364,7 @@ Rcpp::List rpanet_naive_directed_cpp(
                 break;
               }
               if (source_pref[node2] == 0) {
-                node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
+                node1 = sampleNodeDLinear(n_existing, source_pref, total_source_pref);
               }
               else {
                 temp_p = source_pref[node2];
@@ -382,7 +382,7 @@ Rcpp::List rpanet_naive_directed_cpp(
                   break;
                 }
 
-                node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
+                node1 = sampleNodeDLinear(n_existing, source_pref, total_source_pref);
                 source_pref[node2] = temp_p;
                 total_source_pref += temp_p;
               }
@@ -390,10 +390,10 @@ Rcpp::List rpanet_naive_directed_cpp(
           }
           break;
         case 3:
-          node1 = sampleNodeDNaive(n_existing, source_pref, total_source_pref);
+          node1 = sampleNodeDLinear(n_existing, source_pref, total_source_pref);
           node2 = new_node_id;
           if (sample_recip) {
-            node_group[node2] = sampleGroupNaive(group_prob);
+            node_group[node2] = sampleGroupLinear(group_prob);
           }
           new_node_id++;
           break;
@@ -403,14 +403,14 @@ Rcpp::List rpanet_naive_directed_cpp(
           node2 = new_node_id;
           new_node_id++;
           if (sample_recip) {
-            node_group[node1] = sampleGroupNaive(group_prob);
-            node_group[node2] = sampleGroupNaive(group_prob);
+            node_group[node1] = sampleGroupLinear(group_prob);
+            node_group[node2] = sampleGroupLinear(group_prob);
           }
           break;
         case 5:
           node1 = node2 = new_node_id;
           if (sample_recip) {
-            node_group[node1] = sampleGroupNaive(group_prob);
+            node_group[node1] = sampleGroupLinear(group_prob);
           }
           new_node_id++;
           break;
@@ -463,8 +463,8 @@ Rcpp::List rpanet_naive_directed_cpp(
       temp_node = q1.front();
       total_source_pref -= source_pref[temp_node];
       total_target_pref -= target_pref[temp_node];
-      source_pref[temp_node] = calcSourcePrefNaive(func_type, outs[temp_node], ins[temp_node], sparams, sourcePrefFuncCppNaive);
-      target_pref[temp_node] = calcTargetPrefNaive(func_type, outs[temp_node], ins[temp_node], tparams, targetPrefFuncCppNaive);
+      source_pref[temp_node] = calcSourcePrefLinear(func_type, outs[temp_node], ins[temp_node], sparams, sourcePrefFuncCppLinear);
+      target_pref[temp_node] = calcTargetPrefLinear(func_type, outs[temp_node], ins[temp_node], tparams, targetPrefFuncCppLinear);
       total_source_pref += source_pref[temp_node];
       total_target_pref += target_pref[temp_node];
       q1.pop();

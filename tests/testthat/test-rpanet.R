@@ -2,7 +2,7 @@ test_that("Test rpanet with default preference functions", {
   # sample PA networks
   set.seed(1234)
   nstep <- 1e5
-  for (method in c("naive", "binary")) {
+  for (method in c("linear", "binary")) {
     control <- rpacontrol.preference(ftype = "default",
                                  sparams = runif(5, 1, 3),
                                  tparams = runif(5, 1, 3),
@@ -49,7 +49,7 @@ test_that("Test rpanet with customized preference functions", {
   # sample PA networks
   set.seed(12345)
   nstep <- 1e5
-  for (method in c("naive", "binary")) {
+  for (method in c("linear", "binary")) {
     control <- rpacontrol.preference(ftype = "customized",
                                  spref = "outs + pow(ins, 0.5) + 1",
                                  tpref = "pow(outs, 0.5) + ins + 1",

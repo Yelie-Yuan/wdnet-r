@@ -200,7 +200,7 @@ rpacontrol.newedge <- function(distribution = NA,
 #'   customized preference function. Defined for undirected networks. Default
 #'   value is \code{"s + 1"}, i.e, node strenght + 1.
 #' @param ftype Preference function type. Either "default" or "customized".
-#'   "customized" preference functions require "binary" or "naive" generation
+#'   "customized" preference functions require "binary" or "linear" generation
 #'   methods. If using default preference functions, \code{sparams},
 #'   \code{tparams} and \code{params} must be specified. If using costomized
 #'   preference functions, \code{spref}, \code{tpref} and \code{pref} must be
@@ -222,7 +222,7 @@ rpacontrol.newedge <- function(distribution = NA,
 #'
 #' @details If choosing customized preference functions, \code{spref},
 #'   \code{tpref} and and \code{pref} will be used and the network generation
-#'   method must be "binary" or "naive". \code{spref} (\code{tpref}) defines the
+#'   method must be "binary" or "linear". \code{spref} (\code{tpref}) defines the
 #'   source (target) preference function, it can be a character expression or an
 #'   object of class \code{XPtr}. \itemize{ \item{Character expression: } {it
 #'   must be an \code{C++} style function of \code{outs} (node out-strength) and
