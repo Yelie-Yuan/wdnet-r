@@ -74,19 +74,12 @@ dprewire_directed <- function(edgelist, eta,
   
   index_s <- df_s[match(type_s, df_s$type), "index"]
   index_t <- df_t[match(type_t, df_t$type), "index"]
-  
-  # r_sourceOut <- rank(outd[sourceNode], ties.method = "average")
-  # r_sourceIn <- rank(ind[sourceNode], ties.method = "average")
-  # r_targetOut <- rank(outd[targetNode], ties.method = "average")
-  # r_targetIn <- rank(ind[targetNode], ties.method = "average")
   rm(df_s, df_t, type_s, type_t, temp, outd, ind)
   
   ret <- dprewire_directed_cpp(iteration, nattempts, 
                                targetNode, 
                                sourceOut, sourceIn,
                                targetOut, targetIn,
-                               #  r_sourceOut, r_sourceIn,
-                               #  r_targetOut, r_targetIn,
                                index_s, index_t, 
                                eta, rewire.history)
   rho <- data.frame("Iteration" = c(0:iteration), 
@@ -94,11 +87,6 @@ dprewire_directed <- function(edgelist, eta,
                     "outin" = NA, 
                     "inout" = NA, 
                     "inin" = NA)
-  # rankRho <- data.frame("Iteration" = c(0:iteration), 
-  #                       "r-out-out" = NA, 
-  #                       "r-out-in" = NA, 
-  #                       "r-in-out" = NA, 
-  #                       "r-in-in" = NA)
   rho[1, 2:5] <- c("outout" = stats::cor(sourceOut, targetOut), 
                    "outin" = stats::cor(sourceOut, targetIn), 
                    "inout" = stats::cor(sourceIn, targetOut),
@@ -107,20 +95,10 @@ dprewire_directed <- function(edgelist, eta,
   rho[2:(iteration + 1), 3] <- ret$out_in
   rho[2:(iteration + 1), 4] <- ret$in_out
   rho[2:(iteration + 1), 5] <- ret$in_in
-  # rankRho[1, 2:5] <- c("r-out-out" = stats::cor(r_sourceOut, r_targetOut), 
-  #                      "r-out-in" = stats::cor(r_sourceOut, r_targetIn), 
-  #                      "r-in-out" = stats::cor(r_sourceIn, r_targetOut),
-  #                      "r-in-in" = stats::cor(r_sourceIn, r_targetIn))
-  # rankRho[2:(iteration + 1), 2] <- ret$r_out_out
-  # rankRho[2:(iteration + 1), 3] <- ret$r_out_in
-  # rankRho[2:(iteration + 1), 4] <- ret$r_in_out
-  # rankRho[2:(iteration + 1), 5] <- ret$r_in_in
   
   colnames(rho) <- c("Iteration", "outout", "outin", "inout", "inin")
-  # colnames(rankRho) <- c("Iteration", "r-out-out", "r-out-in", "r-in-out", "r-in-in")
   edgelist[, 2] <- ret$targetNode
   result <- list("assortcoef" = rho, 
-                 #  rankRho = rankRho,
                  "edgelist" = edgelist,
                  "iteration" = iteration,
                  "nattempts" = nattempts)
