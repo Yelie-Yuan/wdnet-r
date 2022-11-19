@@ -78,6 +78,25 @@ dprewire_undirected_cpp <- function(iteration, nattempts, node1, node2, degree1,
     .Call(`_wdnet_dprewire_undirected_cpp`, iteration, nattempts, node1, node2, degree1, degree2, index1, index2, e, rewire_history)
 }
 
+#' Preferential attachment algorithm for simple situations, 
+#' i.e., edge weight equals to 1, number of new edges per step is 1.
+#'
+#' @param snode Source nodes.
+#' @param tnode Target nodes.
+#' @param scenario Sequence of alpha, beta, gamma, xi, rho scenarios.
+#' @param nnode Number of nodes in seed network.
+#' @param nedge Number of edges in seed network.
+#' @param delta_out Tuning parameter.
+#' @param delta_in Tuning parameter.
+#' @param directed Whether the network is directed.
+#' @return Number of nodes, sequences of source and target nodes.
+#'
+#' @keywords internal
+#' 
+rpanet_bag_cpp <- function(snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed) {
+    .Call(`_wdnet_rpanet_bag_cpp`, snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed)
+}
+
 #' Preferential attachment algorithm.
 #'
 #' @param nstep Number of steps.
@@ -125,7 +144,7 @@ rpanet_binary_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, nod
 }
 
 #'  Preferential attachment algorithm.
-#' 
+#'
 #' @param nstep Number of steps.
 #' @param m Number of new edges in each step.
 #' @param new_node_id New node ID.
@@ -168,25 +187,6 @@ rpanet_linear_directed_cpp <- function(nstep, m, new_node_id, new_edge_id, sourc
 #'
 rpanet_linear_undirected_cpp <- function(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref_vec, control) {
     .Call(`_wdnet_rpanet_linear_undirected_cpp`, nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref_vec, control)
-}
-
-#' Preferential attachment algorithm for simple situations, 
-#' i.e., edge weight equals to 1, number of new edges per step is 1.
-#'
-#' @param snode Source nodes.
-#' @param tnode Target nodes.
-#' @param scenario Sequence of alpha, beta, gamma, xi, rho scenarios.
-#' @param nnode Number of nodes in seed network.
-#' @param nedge Number of edges in seed network.
-#' @param delta_out Tuning parameter.
-#' @param delta_in Tuning parameter.
-#' @param directed Whether the network is directed.
-#' @return Number of nodes, sequences of source and target nodes.
-#'
-#' @keywords internal
-#' 
-rpanet_nodelist_cpp <- function(snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed) {
-    .Call(`_wdnet_rpanet_nodelist_cpp`, snode, tnode, scenario, nnode, nedge, delta_out, delta_in, directed)
 }
 
 #' Fill missing nodes in the node sequence. Defined for \code{wdnet::rpanet}.

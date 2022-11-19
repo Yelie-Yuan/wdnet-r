@@ -9,8 +9,12 @@ test_that("Test rpanet with default preference functions", {
                                  params = runif(2, 1, 3)) +
       rpacontrol.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
       rpacontrol.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
-    net1 <- rpanet(control = control, nstep = nstep, directed = TRUE, method = method)
-    net2 <- rpanet(control = control, nstep = nstep, directed = FALSE, method = method)
+    seednetwork1 <- rpanet(1e3, directed = TRUE, control = control)
+    seednetwork2 <- rpanet(1e3, directed = FALSE, control = control)
+    net1 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork1,
+                   directed = TRUE, method = method)
+    net2 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork2,
+                   directed = FALSE, method = method)
     
     # check node preference
     sparams <- control$preference$sparams
@@ -56,8 +60,12 @@ test_that("Test rpanet with customized preference functions", {
                                  pref = "pow(s, 1.5) + 1") +
       rpacontrol.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
       rpacontrol.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
-    net1 <- rpanet(control = control, nstep = nstep, directed = TRUE, method = method)
-    net2 <- rpanet(control = control, nstep = nstep, directed = FALSE, method = method)
+    seednetwork1 <- rpanet(1e3, directed = TRUE, control = control)
+    seednetwork2 <- rpanet(1e3, directed = FALSE, control = control)
+    net1 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork1,
+                   directed = TRUE, method = method)
+    net2 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork2,
+                   directed = FALSE, method = method)
     
     # check node preference
     ret1.1 <- range(net1$spref - (net1$outstrength + net1$instrength^0.5 + 1))

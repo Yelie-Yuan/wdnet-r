@@ -41,7 +41,7 @@ NULL
 #' @param w Vector, weight of new edges.
 #' @param ex_node Integer, number of nodes in \code{seednetwork}.
 #' @param ex_edge Integer, number of edges in \code{seednetwork}.
-#' @param method Which method to use, \code{nodelist} or \code{edgesampler}.
+#' @param method Which method to use, \code{bag} or \code{edgesampler}.
 #'
 #' @return A list with the following components: edgelist, edgeweight, out- and
 #'   in-strength, number of edges per step (m), scenario of each new edge
@@ -65,11 +65,11 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
   if (! directed) {
     delta_out <- delta_in <- delta / 2
   }
-  if (method == "nodelist") {
+  if (method == "bag") {
     # stopifnot(all(edgeweight == 1) & all(m == 1))
     snode <- c(seednetwork$edgelist[, 1], rep(0, sum_m))
     tnode <- c(seednetwork$edgelist[, 2], rep(0, sum_m))
-    ret <- rpanet_nodelist_cpp(snode, tnode,
+    ret <- rpanet_bag_cpp(snode, tnode,
                                scenario,
                                ex_node, ex_edge,
                                delta_out, delta_in,

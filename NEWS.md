@@ -1,11 +1,12 @@
 # wdnet (development version)
 
 + Updated default values of the arguments in `rpanet`.
-  + `seednetwork = NULL` to 
+  + `seednetwork = NULL` to
   `seednetwork = list(edgelist = matrix(c(1, 2), nrow = 1))`.
   + `control = NULL` to `control = list()`.
-  + Renamed `naive` to `linear`.
+  + Renamed `naive` to `linear`; `nodelist` to `bag`.
 + Changed `rpactl` to `rpacontrol`.
++ Sort nodes from the seed network before the sampling process.
 
 # wdnet 0.0.5
 

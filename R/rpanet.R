@@ -46,7 +46,7 @@ NULL
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
 #' @param method Which method to use: \code{binary}, \code{linear},
-#'   \code{edgesampler} or \code{nodelist}. For \code{nodelist} and
+#'   \code{edgesampler} or \code{bag}. For \code{bag} and
 #'   \code{edgesampler} methods, \code{beta.loop} must be \code{TRUE}; default
 #'   preference functions must be used and \code{sparams = c(1, 1, 0, 0, a)},
 #'   \code{tparams = c(0, 0, 1, 1, b)}, \code{param = c(1, c)}, where \code{a},
@@ -68,7 +68,7 @@ NULL
 #'   6~reciprocal). The scenario of edges from \code{seednetwork} are denoted as
 #'   0.
 #'
-#' @note The \code{nodelist} method implements the algorithm from Wan et al.
+#' @note The \code{bag} method implements the algorithm from Wan et al.
 #'   (2017). The \code{edgesampler} first samples edges then find the
 #'   source/target node of the sampled edge. If all the edges are of weight 1,
 #'   the network can be considered as unweighted, node strength then equals node
@@ -105,7 +105,7 @@ rpanet <- function(nstep = 10^3, seednetwork = list(
                     edgelist = matrix(c(1, 2), nrow = 1)),
                    control = list(),
                    directed = TRUE,
-                   method = c("binary", "linear", "edgesampler", "nodelist")) {
+                   method = c("binary", "linear", "edgesampler", "bag")) {
   method <- match.arg(method)
   stopifnot("nstep must be greater than 0." = nstep > 0)
   nnode <- max(seednetwork$edgelist)
@@ -188,34 +188,34 @@ rpanet <- function(nstep = 10^3, seednetwork = list(
     warning('"node.replace" is ignored for directed networks.')
     control$newedge$node.replace <- TRUE
   }
-  if (method == "nodelist" | method == "edgesampler") {
-    stopifnot('"nodelist" and "edgesampler" methods require "default" preference functions.' = 
+  if (method == "bag" | method == "edgesampler") {
+    stopifnot('"bag" and "edgesampler" methods require "default" preference functions.' = 
                 control$preference$ftype == "default")
     if (directed) {
-      stopifnot('Source preference must be out-degree plus a non-negative constant for "nodelist" and "edgesampler" methods.' = 
+      stopifnot('Source preference must be out-degree plus a non-negative constant for "bag" and "edgesampler" methods.' = 
                   all(control$preference$sparams[1:2] == 1,
                       control$preference$sparams[3:4] == 0,
                       control$preference$sparams[5] >= 0))
-      stopifnot('Target preference must be in-degree plus a non-negative constant for "nodelist" and "edgesampler" methods.' = 
+      stopifnot('Target preference must be in-degree plus a non-negative constant for "bag" and "edgesampler" methods.' = 
                   all(control$preference$tparams[1:2] == 0,
                       control$preference$tparams[3:4] == 1,
                       control$preference$tparams[5] >= 0))
     }
     else {
-      stopifnot('Preference must be degree plus a non-negative constant for "nodelist" and "edgesampler" methods.' = 
+      stopifnot('Preference must be degree plus a non-negative constant for "bag" and "edgesampler" methods.' = 
                   control$preference$params[1] == 1 & 
                     control$preference$params[2] >= 0)
     }
-    stopifnot('"rpacontrol.reciprocal" must set as default for "nodelist" and "edgesampler" methods.' = 
+    stopifnot('"rpacontrol.reciprocal" must set as default for "bag" and "edgesampler" methods.' = 
                 identical(control$reciprocal, rpacontrol.reciprocal()$reciprocal))
-    stopifnot('"beta.loop" must be TRUE for "nodelist" and "edgesampler" methods.' = 
+    stopifnot('"beta.loop" must be TRUE for "bag" and "edgesampler" methods.' = 
                 control$scenario$beta.loop)
-    if (method == "nodelist") {
-      stopifnot('"rpacontrol.edgeweight" must set as default for "nodelist" method.' = 
+    if (method == "bag") {
+      stopifnot('"rpacontrol.edgeweight" must set as default for "bag" method.' = 
                   identical(control$edgeweight, rpacontrol.edgeweight()$edgeweight))
-      stopifnot('Weight of existing edges must be 1 for "nodelist" method.' =
+      stopifnot('Weight of existing edges must be 1 for "bag" method.' =
                   all(seednetwork$edgeweight == 1))
-      stopifnot('"rpacontrol.newedge" must set as default for "nodelist" method.' = 
+      stopifnot('"rpacontrol.newedge" must set as default for "bag" method.' = 
                   identical(control$newedge, rpacontrol.newedge()$newedge))
     }
     if (method == "edgesampler") {

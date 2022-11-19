@@ -17,7 +17,7 @@
 //' @keywords internal
 //' 
 // [[Rcpp::export]]
-Rcpp::List rpanet_nodelist_cpp(arma::vec snode,
+Rcpp::List rpanet_bag_cpp(arma::vec snode,
                                arma::vec tnode,
                                arma::vec scenario,
                                int nnode,
