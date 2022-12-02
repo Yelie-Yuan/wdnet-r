@@ -1,10 +1,11 @@
 #include <iostream>
 #include <queue>
 #include <R.h>
-#include "funcPtrUnd.h"
 #include <Rcpp.h>
+#include "rpanet_binary_linear.h"
+
 using namespace std;
-funcPtrUnd prefFuncCpp;
+funcPtrUnd custmPref;
 
 /**
  * Node structure in undirected networks.
@@ -21,19 +22,6 @@ struct node_und
   double p, totalp;
   node_und *left, *right, *parent;
 };
-
-/**
- * Default preference function.
- *
- * @param strength Node strength.
- * @param params Parameters passed to the preference function.
- *
- * @return Preference of a node.
- */
-double prefFuncDefault(double strength, double *params)
-{
-  return pow(strength, params[0]) + params[1];
-}
 
 /**
  * Update total preference from current node to root.
@@ -66,20 +54,20 @@ void updateTotalp(node_und *current_node)
  * @param temp_node The sampled/new node.
  * @param func_type Default or customized preference function.
  * @param params Parameters passed to the default preference function.
- * @param prefFuncCpp Pointer of the customized preference function.
+ * @param custmPref Pointer of the customized preference function.
 
  */
 void updatePrefUnd(node_und *temp_node, int func_type,
                    double *params,
-                   funcPtrUnd prefFuncCpp)
+                   funcPtrUnd custmPref)
 {
   if (func_type == 1)
   {
-    temp_node->p = prefFuncDefault(temp_node->strength, params);
+    temp_node->p = prefFuncUnd(temp_node->strength, params);
   }
   else
   {
-    temp_node->p = prefFuncCpp(temp_node->strength);
+    temp_node->p = custmPref(temp_node->strength);
   }
   updateTotalp(temp_node);
 }
@@ -235,7 +223,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   case 2:
   {
     SEXP pref_func_ptr = preference_ctl["pref.pointer"];
-    prefFuncCpp = *Rcpp::XPtr<funcPtrUnd>(pref_func_ptr);
+    custmPref = *Rcpp::XPtr<funcPtrUnd>(pref_func_ptr);
     break;
   }
   }
@@ -252,14 +240,14 @@ Rcpp::List rpanet_binary_undirected_cpp(
   {
     for (i = 0; i < new_node_id; i++)
     {
-      temp_pref[i] = prefFuncDefault(strength[i], params);
+      temp_pref[i] = prefFuncUnd(strength[i], params);
     }
   }
   else
   {
     for (i = 0; i < new_node_id; i++)
     {
-      temp_pref[i] = prefFuncCpp(strength[i]);
+      temp_pref[i] = custmPref(strength[i]);
     }
   }
   sort(sorted_node.begin(), sorted_node.end(),
@@ -269,7 +257,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   j = sorted_node[0];
   node_und *root = createNodeUnd(j);
   root->strength = strength[j];
-  updatePrefUnd(root, func_type, params, prefFuncCpp);
+  updatePrefUnd(root, func_type, params, custmPref);
   queue<node_und *> q, q1;
   q.push(root);
   for (i = 1; i < new_node_id; i++)
@@ -277,7 +265,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
     j = sorted_node[i];
     node1 = insertNodeUnd(q, j);
     node1->strength = strength[j];
-    updatePrefUnd(node1, func_type, params, prefFuncCpp);
+    updatePrefUnd(node1, func_type, params, custmPref);
   }
   // sample edges
   GetRNGstate();
@@ -405,7 +393,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
     }
     while (!q1.empty())
     {
-      updatePrefUnd(q1.front(), func_type, params, prefFuncCpp);
+      updatePrefUnd(q1.front(), func_type, params, custmPref);
       q1.pop();
     }
   }

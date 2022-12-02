@@ -1,23 +1,11 @@
 #include <iostream>
 #include <queue>
 #include <R.h>
-#include "funcPtrUnd.h"
 #include <Rcpp.h>
-using namespace std;
-funcPtrUnd prefFuncCppLinear;
+#include "rpanet_binary_linear.h"
 
-/**
- * Defult preference function.
- *
- * @param strength Node strength.
- * @param params Parameters passed to the preference function.
- *
- * @return Preference of a node.
- */
-double prefFuncDefaultLinear(double strength, double *params)
-{
-  return pow(strength, params[0]) + params[1];
-}
+using namespace std;
+funcPtrUnd custmPrefLinear;
 
 /**
  * Calculate node preference.
@@ -25,63 +13,23 @@ double prefFuncDefaultLinear(double strength, double *params)
  * @param func_type Default or customized preference function.
  * @param strength Node strength.
  * @param params Parameters passed to the default preference function.
- * @param prefFuncCppLinear Pointer of the customized source preference function.
+ * @param custmPrefLinear Pointer of the customized source preference function.
  *
  * @return Node preference.
  */
 double calcPrefLinear(int func_type,
                       double strength,
                       double *params,
-                      funcPtrUnd prefFuncCppLinear)
+                      funcPtrUnd custmPrefLinear)
 {
   if (func_type == 1)
   {
-    return prefFuncDefaultLinear(strength, params);
+    return prefFuncUnd(strength, params);
   }
   else
   {
-    return prefFuncCppLinear(strength);
+    return custmPrefLinear(strength);
   }
-}
-
-/**
- * Sample an existing node.
- *
- * @param n_existing Number of existing nodes.
- * @param pref Sequence of node preference.
- * @param total_pref Total preference of existing nodes.
- *
- * @return Sampled node.
- */
-int sampleNodeUndLinear(int n_existing, int n_seednode, double *pref,
-                        double total_pref, int *sorted_node)
-{
-  double w = 1;
-  int i = 0, j = 0;
-  while (w == 1)
-  {
-    w = unif_rand();
-  }
-  w *= total_pref;
-  while ((w > 0) && (i < n_existing))
-  {
-    if (i < n_seednode)
-    {
-      j = sorted_node[i];
-    }
-    else
-    {
-      j = i;
-    }
-    w -= pref[j];
-    i += 1;
-  }
-  if (w > 0)
-  {
-    Rprintf("Numerical error! Returning the last node (%d) as the sampled node. \n", n_existing);
-    // i = n_existing;
-  }
-  return j;
 }
 
 // /**
@@ -174,7 +122,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
   case 2:
   {
     SEXP pref_func_ptr = preference_ctl["pref.pointer"];
-    prefFuncCppLinear = *Rcpp::XPtr<funcPtrUnd>(pref_func_ptr);
+    custmPrefLinear = *Rcpp::XPtr<funcPtrUnd>(pref_func_ptr);
     break;
   }
   }
@@ -188,7 +136,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
   Rcpp::IntegerVector sorted_node_vec = Rcpp::seq(0, n_seednode - 1);
   for (i = 0; i < new_node_id; i++)
   {
-    pref[i] = calcPrefLinear(func_type, strength[i], params, prefFuncCppLinear);
+    pref[i] = calcPrefLinear(func_type, strength[i], params, custmPrefLinear);
     total_pref += pref[i];
   }
   sort(sorted_node_vec.begin(), sorted_node_vec.end(),
@@ -250,10 +198,10 @@ Rcpp::List rpanet_linear_undirected_cpp(
       case 1:
         node1 = new_node_id;
         new_node_id++;
-        node2 = sampleNodeUndLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
+        node2 = sampleNodeLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
         break;
       case 2:
-        node1 = sampleNodeUndLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
+        node1 = sampleNodeLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
         if (!beta_loop)
         {
           if (pref[node1] == total_pref)
@@ -279,17 +227,17 @@ Rcpp::List rpanet_linear_undirected_cpp(
             break;
           }
 
-          node2 = sampleNodeUndLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
+          node2 = sampleNodeLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
           pref[node1] = temp_p;
           total_pref += temp_p;
         }
         else
         {
-          node2 = sampleNodeUndLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
+          node2 = sampleNodeLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
         }
         break;
       case 3:
-        node1 = sampleNodeUndLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
+        node1 = sampleNodeLinear(n_existing, n_seednode, pref, total_pref, sorted_node);
         node2 = new_node_id;
         new_node_id++;
         break;
@@ -342,7 +290,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
     {
       temp_node = q1.front();
       total_pref -= pref[temp_node];
-      pref[temp_node] = calcPrefLinear(func_type, strength[temp_node], params, prefFuncCppLinear);
+      pref[temp_node] = calcPrefLinear(func_type, strength[temp_node], params, custmPrefLinear);
       total_pref += pref[temp_node];
       q1.pop();
     }

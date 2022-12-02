@@ -1,12 +1,12 @@
 #include <iostream>
 #include <queue>
 #include <R.h>
-#include "funcPtrD.h"
 #include <Rcpp.h>
+#include "rpanet_binary_linear.h"
 
 using namespace std;
-funcPtrD sourcePrefFuncCpp;
-funcPtrD targetPrefFuncCpp;
+funcPtrD custmSourcePref;
+funcPtrD custmTargetPref;
 
 /**
  * Node structure in directed networks.
@@ -25,35 +25,6 @@ struct node_d
   double sourcep, targetp, total_sourcep, total_targetp;
   node_d *left, *right, *parent;
 };
-
-/**
- * Default source preference function.
- *
- * @param outs Node out-strength.
- * @param ins Node in-strength.
- * @param sparams Parameters passed to the source preference function.
- *
- * @return Source preference of a node.
- */
-double sourcePrefFuncDefault(double outs, double ins, double *sparams)
-{
-  return sparams[0] * pow(outs, sparams[1]) +
-         sparams[2] * pow(ins, sparams[3]) + sparams[4];
-}
-
-/**
- * Default target preference function.
- *
- * @param outs Node out-strength.
- * @param ins Node in-strength.
- * @param tparams Parameters passed to the target preference function.
- * @return Target preference of a node.
- */
-double targetPrefFuncDefault(double outs, double ins, double *tparams)
-{
-  return tparams[0] * pow(outs, tparams[1]) +
-         tparams[2] * pow(ins, tparams[3]) + tparams[4];
-}
 
 /**
  * Update total source preference from current node to root.
@@ -112,24 +83,24 @@ void updateTotalTargetp(node_d *current_node)
  * @param func_type Default or customized preference function.
  * @param sparams Parameters passed to the default source preference function.
  * @param tparams Parameters passed to the default target preference function.
- * @param sourcePrefFuncCpp Pointer of customized source preference function.
- * @param targetPrefFuncCpp Pointer of customized target preference function.
+ * @param custmSourcePref Pointer of customized source preference function.
+ * @param custmTargetPref Pointer of customized target preference function.
  */
 void updatePrefD(node_d *temp_node, int func_type,
                  double *sparams, double *tparams,
-                 funcPtrD sourcePrefFuncCpp,
-                 funcPtrD targetPrefFuncCpp)
+                 funcPtrD custmSourcePref,
+                 funcPtrD custmTargetPref)
 {
   double temp_sourcep = temp_node->sourcep, temp_targetp = temp_node->targetp;
   if (func_type == 1)
   {
-    temp_node->sourcep = sourcePrefFuncDefault(temp_node->outs, temp_node->ins, sparams);
-    temp_node->targetp = targetPrefFuncDefault(temp_node->outs, temp_node->ins, tparams);
+    temp_node->sourcep = prefFuncD(temp_node->outs, temp_node->ins, sparams);
+    temp_node->targetp = prefFuncD(temp_node->outs, temp_node->ins, tparams);
   }
   else
   {
-    temp_node->sourcep = sourcePrefFuncCpp(temp_node->outs, temp_node->ins);
-    temp_node->targetp = targetPrefFuncCpp(temp_node->outs, temp_node->ins);
+    temp_node->sourcep = custmSourcePref(temp_node->outs, temp_node->ins);
+    temp_node->targetp = custmTargetPref(temp_node->outs, temp_node->ins);
   }
 
   if (temp_node->sourcep != temp_sourcep)
@@ -259,14 +230,13 @@ node_d *findTargetNode(node_d *root, double w)
  * Sample a source/target node from the tree.
  *
  * @param root Root node of the tree.
- * @param type Represent source node or target node.
+ * @param type Source node or target node.
  *
  * @return Sampled source/target node.
  */
 node_d *sampleNodeD(node_d *root, char type)
 {
   double w;
-  node_d *sampled_node;
   w = 1;
   while (w == 1)
   {
@@ -275,37 +245,13 @@ node_d *sampleNodeD(node_d *root, char type)
   if (type == 's')
   {
     w *= root->total_sourcep;
-    sampled_node = findSourceNode(root, w);
+    return findSourceNode(root, w);
   }
   else
   {
     w *= root->total_targetp;
-    sampled_node = findTargetNode(root, w);
+    return findTargetNode(root, w);
   }
-  return sampled_node;
-}
-
-/**
- * Sample a node group.
- *
- * @param group_prob Probability weights for sampling the group of new nodes.
- *
- * @return Sampled group for the new node.
- */
-int sampleGroup(double *group_prob)
-{
-  double g = 0;
-  int i = 0;
-  while ((g == 0) || (g == 1))
-  {
-    g = unif_rand();
-  }
-  while (g > 0)
-  {
-    g -= group_prob[i];
-    i++;
-  }
-  return i - 1;
 }
 
 //' Preferential attachment algorithm.
@@ -380,9 +326,9 @@ Rcpp::List rpanet_binary_directed(
   case 2:
   {
     SEXP source_pref_func_ptr = preference_ctl["spref.pointer"];
-    sourcePrefFuncCpp = *Rcpp::XPtr<funcPtrD>(source_pref_func_ptr);
+    custmSourcePref = *Rcpp::XPtr<funcPtrD>(source_pref_func_ptr);
     SEXP target_pref_func_ptr = preference_ctl["tpref.pointer"];
-    targetPrefFuncCpp = *Rcpp::XPtr<funcPtrD>(target_pref_func_ptr);
+    custmTargetPref = *Rcpp::XPtr<funcPtrD>(target_pref_func_ptr);
     break;
   }
   }
@@ -400,16 +346,16 @@ Rcpp::List rpanet_binary_directed(
   {
     for (i = 0; i < new_node_id; i++)
     {
-      temp_source_pref[i] = sourcePrefFuncDefault(outs[i], ins[i], sparams);
-      temp_target_pref[i] = targetPrefFuncDefault(outs[i], ins[i], tparams);
+      temp_source_pref[i] = prefFuncD(outs[i], ins[i], sparams);
+      temp_target_pref[i] = prefFuncD(outs[i], ins[i], tparams);
     }
   }
   else
   {
     for (i = 0; i < new_node_id; i++)
     {
-      temp_source_pref[i] = sourcePrefFuncCpp(outs[i], ins[i]);
-      temp_target_pref[i] = targetPrefFuncCpp(outs[i], ins[i]);
+      temp_source_pref[i] = custmSourcePref(outs[i], ins[i]);
+      temp_target_pref[i] = custmTargetPref(outs[i], ins[i]);
     }
   }
   if (alpha < gamma)
@@ -429,7 +375,7 @@ Rcpp::List rpanet_binary_directed(
   root->outs = outs[j];
   root->ins = ins[j];
   root->group = node_group[j];
-  updatePrefD(root, func_type, sparams, tparams, sourcePrefFuncCpp, targetPrefFuncCpp);
+  updatePrefD(root, func_type, sparams, tparams, custmSourcePref, custmTargetPref);
   queue<node_d *> q, q1;
   q.push(root);
   for (int i = 1; i < new_node_id; i++)
@@ -439,7 +385,7 @@ Rcpp::List rpanet_binary_directed(
     node1->outs = outs[j];
     node1->ins = ins[j];
     node1->group = node_group[j];
-    updatePrefD(node1, func_type, sparams, tparams, sourcePrefFuncCpp, targetPrefFuncCpp);
+    updatePrefD(node1, func_type, sparams, tparams, custmSourcePref, custmTargetPref);
   }
   // sample edges
   GetRNGstate();
@@ -661,7 +607,7 @@ Rcpp::List rpanet_binary_directed(
     }
     while (!q1.empty())
     {
-      updatePrefD(q1.front(), func_type, sparams, tparams, sourcePrefFuncCpp, targetPrefFuncCpp);
+      updatePrefD(q1.front(), func_type, sparams, tparams, custmSourcePref, custmTargetPref);
       q1.pop();
     }
   }
