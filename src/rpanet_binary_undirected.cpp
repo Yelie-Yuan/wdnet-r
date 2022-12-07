@@ -69,6 +69,12 @@ void updatePrefUnd(node_und *temp_node, int func_type,
   {
     temp_node->p = custmPref(temp_node->strength);
   }
+
+  if (temp_node->p < 0)
+  {
+    Rcpp::stop("Negative preference score returned, please check your preference function(s).");
+  }
+
   updateTotalp(temp_node);
 }
 

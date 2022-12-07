@@ -103,6 +103,11 @@ void updatePrefD(node_d *temp_node, int func_type,
     temp_node->targetp = custmTargetPref(temp_node->outs, temp_node->ins);
   }
 
+  if ((temp_node->sourcep < 0) || (temp_node->targetp < 0))
+  {
+    Rcpp::stop("Negative preference score returned, please check your preference function(s).");
+  }
+
   if (temp_node->sourcep != temp_sourcep)
   {
     updateTotalSourcep(temp_node);

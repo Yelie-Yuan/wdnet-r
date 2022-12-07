@@ -3,17 +3,17 @@ test_that("Test rpanet with default preference functions", {
   set.seed(1234)
   nstep <- 1e5
   for (method in c("linear", "binary")) {
-    control <- rpacontrol.preference(ftype = "default",
+    control <- rpa_control_preference(ftype = "default",
                                  sparams = runif(5, 1, 3),
                                  tparams = runif(5, 1, 3),
                                  params = runif(2, 1, 3)) +
-      rpacontrol.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
-      rpacontrol.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
-    seednetwork1 <- rpanet(1e3, directed = TRUE, control = control)
-    seednetwork2 <- rpanet(1e3, directed = FALSE, control = control)
-    net1 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork1,
+      rpa_control_scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
+      rpa_control_edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
+    initial.network1 <- rpanet(1e3, directed = TRUE, control = control)
+    initial.network2 <- rpanet(1e3, directed = FALSE, control = control)
+    net1 <- rpanet(control = control, nstep = nstep, initial.network = initial.network1,
                    directed = TRUE, method = method)
-    net2 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork2,
+    net2 <- rpanet(control = control, nstep = nstep, initial.network = initial.network2,
                    directed = FALSE, method = method)
     
     # check node preference
@@ -54,17 +54,17 @@ test_that("Test rpanet with customized preference functions", {
   set.seed(12345)
   nstep <- 1e5
   for (method in c("linear", "binary")) {
-    control <- rpacontrol.preference(ftype = "customized",
+    control <- rpa_control_preference(ftype = "customized",
                                  spref = "outs + pow(ins, 0.5) + 1",
                                  tpref = "pow(outs, 0.5) + ins + 1",
                                  pref = "pow(s, 1.5) + 1") +
-      rpacontrol.scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
-      rpacontrol.edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
-    seednetwork1 <- rpanet(1e3, directed = TRUE, control = control)
-    seednetwork2 <- rpanet(1e3, directed = FALSE, control = control)
-    net1 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork1,
+      rpa_control_scenario(alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1) +
+      rpa_control_edgeweight(distribution = rgamma, dparams = list(shape = 5, scale = 0.2))
+    initial.network1 <- rpanet(1e3, directed = TRUE, control = control)
+    initial.network2 <- rpanet(1e3, directed = FALSE, control = control)
+    net1 <- rpanet(control = control, nstep = nstep, initial.network = initial.network1,
                    directed = TRUE, method = method)
-    net2 <- rpanet(control = control, nstep = nstep, seednetwork = seednetwork2,
+    net2 <- rpanet(control = control, nstep = nstep, initial.network = initial.network2,
                    directed = FALSE, method = method)
     
     # check node preference

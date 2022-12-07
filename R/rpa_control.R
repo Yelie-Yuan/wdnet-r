@@ -23,9 +23,9 @@ NULL
 #' Add components to the control list
 #'
 #' `+` is used to combine components to control the PA network generation
-#' process. Available components are \code{rpacontrol.scenario()},
-#' \code{rpacontrol.edgeweight()}, \code{rpacontrol.newedge()},
-#' \code{rpacontrol.preference()} and \code{rpacontrol.reciprocal()}.
+#' process. Available components are \code{rpa_control_scenario()},
+#' \code{rpa_control_edgeweight()}, \code{rpa_control_newedge()},
+#' \code{rpa_control_preference()} and \code{rpa_control_reciprocal()}.
 #'
 #' @param e1 A list of class \code{rpacontrol}.
 #' @param e2 A list of class \code{rpacontrol}.
@@ -36,14 +36,14 @@ NULL
 #'
 #' @examples
 #' \donttest{
-#' control <- rpacontrol.scenario(alpha = 0.5, beta = 0.5) +
-#'     rpacontrol.preference(ftype = "customized",
+#' control <- rpa_control_scenario(alpha = 0.5, beta = 0.5) +
+#'     rpa_control_preference(ftype = "customized",
 #'     spref = "pow(outs, 2) + 1",
 #'     tpref = "pow(ins, 2) + 1")
 #' }
 #'
-#' control <- rpacontrol.scenario(alpha = 1) +
-#'     rpacontrol.edgeweight(distribution = rgamma,
+#' control <- rpa_control_scenario(alpha = 1) +
+#'     rpa_control_edgeweight(distribution = rgamma,
 #'         dparams = list(shape = 5, scale = 0.2),
 #'         shift = 1)
 "+.rpacontrol" <- function(e1, e2) {
@@ -81,9 +81,9 @@ NULL
 #' @export
 #'
 #' @examples
-#' control <- rpacontrol.scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
+#' control <- rpa_control_scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
 #' 
-rpacontrol.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
+rpa_control_scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
                             beta.loop = TRUE, source.first = TRUE) {
   stopifnot('"alpha + beta + gamma + xi + rho" must equal to 1.' =
               round(alpha + beta + gamma + xi + rho, 10) == 1)
@@ -116,14 +116,14 @@ rpacontrol.scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
 #'
 #' @examples
 #' # Edge weight follows Gamma(5, 0.2).
-#' control <- rpacontrol.edgeweight(distribution = rgamma,
+#' control <- rpa_control_edgeweight(distribution = rgamma,
 #'     dparams = list(shape = 5, scale = 0.2),
 #'     shift = 0)
 #'
 #' # Constant edge weight
-#' control <- rpacontrol.edgeweight(shift = 2)
+#' control <- rpa_control_edgeweight(shift = 2)
 #' 
-rpacontrol.edgeweight <- function(distribution = NA,
+rpa_control_edgeweight <- function(distribution = NA,
                               dparams = list(),
                               shift = 1) {
   edgeweight <- list("distribution" = distribution,
@@ -164,11 +164,11 @@ rpacontrol.edgeweight <- function(distribution = NA,
 #' @export
 #'
 #' @examples
-#' control <- rpacontrol.newedge(distribution = rpois,
+#' control <- rpa_control_newedge(distribution = rpois,
 #'     dparams = list(lambda = 2),
 #'     shift = 1,
 #'     node.replace = FALSE)
-rpacontrol.newedge <- function(distribution = NA,
+rpa_control_newedge <- function(distribution = NA,
                            dparams = list(),
                            shift = 1,
                            snode.replace = TRUE,
@@ -257,22 +257,22 @@ rpacontrol.newedge <- function(distribution = NA,
 #' # Set source preference as out-strength^2 + in-strength + 1,
 #' # target preference as out-strength + in-strength^2 + 1.
 #' # 1. use default preference functions
-#' control1 <- rpacontrol.preference(ftype = "default",
+#' control1 <- rpa_control_preference(ftype = "default",
 #'     sparams = c(1, 2, 1, 1, 1), tparams = c(1, 1, 1, 2, 1))
 #' # 2. use character expressions
-#' control2 <- rpacontrol.preference(ftype = "customized",
+#' control2 <- rpa_control_preference(ftype = "customized",
 #'     spref = "pow(outs, 2) + ins + 1", tpref = "outs + pow(ins, 2) + 1")
 #' # 3. define XPtr's with C++ source code
 #' spref.pointer <- RcppXPtrUtils::cppXPtr(code =
 #'     "double spref(double outs, double ins) {return pow(outs, 2) + ins + 1;}")
 #' tpref.pointer <- RcppXPtrUtils::cppXPtr(code =
 #'     "double tpref(double outs, double ins) {return outs + pow(ins, 2) + 1;}")
-#' control3 <- rpacontrol.preference(ftype = "customized",
+#' control3 <- rpa_control_preference(ftype = "customized",
 #'     spref = spref.pointer,
 #'     tpref = tpref.pointer)
 #' ret <- rpanet(1e5, control = control3)
 #' }
-rpacontrol.preference <- function(ftype = c("default", "customized"),
+rpa_control_preference <- function(ftype = c("default", "customized"),
                               sparams = c(1, 1, 0, 0, 1),
                               tparams = c(0, 0, 1, 1, 1),
                               params = c(1, 1),
@@ -326,9 +326,9 @@ rpacontrol.preference <- function(ftype = c("default", "customized"),
 #' @export
 #'
 #' @examples
-#' control <- rpacontrol.reciprocal(group.prob = c(0.4, 0.6),
+#' control <- rpa_control_reciprocal(group.prob = c(0.4, 0.6),
 #'     recip.prob = matrix(runif(4), ncol = 2))
-rpacontrol.reciprocal <- function(group.prob = NA,
+rpa_control_reciprocal <- function(group.prob = NA,
                               recip.prob = NA, 
                               selfloop.recip = FALSE) {
   if (! any(is.na(group.prob))) {

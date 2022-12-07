@@ -26,8 +26,8 @@ NULL
 #' (in-strength) plus a nonnegative constant.
 #'
 #' @param nstep Number of steps when generating a network.
-#' @param seednetwork A list represents the seed network. If \code{NULL},
-#'   \code{seednetwork} will have one edge from node 1 to node 2 with weight 1.
+#' @param initial.network A list represents the seed network. If \code{NULL},
+#'   \code{initial.network} will have one edge from node 1 to node 2 with weight 1.
 #'   It consists of the following components: a two column matrix
 #'   \code{edgelist} represents the edges; a vector \code{edgeweight} represents
 #'   the weight of edges; a integer vector \code{nodegroup} represents the group
@@ -39,8 +39,8 @@ NULL
 #' @param m Integer vector, number of new edges in each step.
 #' @param sum_m Integer, summation of \code{m}.
 #' @param w Vector, weight of new edges.
-#' @param ex_node Integer, number of nodes in \code{seednetwork}.
-#' @param ex_edge Integer, number of edges in \code{seednetwork}.
+#' @param ex_node Integer, number of nodes in \code{initial.network}.
+#' @param ex_edge Integer, number of edges in \code{initial.network}.
 #' @param method Which method to use, \code{bag} or \code{edgesampler}.
 #'
 #' @return A list with the following components: edgelist, edgeweight, out- and
@@ -50,14 +50,14 @@ NULL
 #'   
 #' @keywords internal
 #' 
-rpanet_simple <- function(nstep, seednetwork, control, directed,
+rpanet_simple <- function(nstep, initial.network, control, directed,
                           m, sum_m, w, ex_node, ex_edge, method) {
   delta <- control$preference$params[2]
   delta_out <- control$preference$sparams[5]
   delta_in <- control$preference$tparams[5]
-  ex_weight <- sum(seednetwork$edgeweight)
+  ex_weight <- sum(initial.network$edgeweight)
   
-  edgeweight <- c(seednetwork$edgeweight, w)
+  edgeweight <- c(initial.network$edgeweight, w)
   scenario <- sample(1:5, size = sum_m, replace = TRUE,
                      prob = c(control$scenario$alpha, control$scenario$beta,
                               control$scenario$gamma, control$scenario$xi,
@@ -67,8 +67,8 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
   }
   if (method == "bag") {
     # stopifnot(all(edgeweight == 1) & all(m == 1))
-    snode <- c(seednetwork$edgelist[, 1], rep(0, sum_m))
-    tnode <- c(seednetwork$edgelist[, 2], rep(0, sum_m))
+    snode <- c(initial.network$edgelist[, 1], rep(0, sum_m))
+    tnode <- c(initial.network$edgelist[, 2], rep(0, sum_m))
     ret <- rpanet_bag_cpp(snode, tnode,
                                scenario,
                                ex_node, ex_edge,
@@ -115,8 +115,8 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
         total_node[no_new_end][!temp_in])
     }
     
-    snode <- c(seednetwork$edgelist[, 1], snode)
-    tnode <- c(seednetwork$edgelist[, 2], tnode)
+    snode <- c(initial.network$edgelist[, 1], snode)
+    tnode <- c(initial.network$edgelist[, 2], tnode)
     start_edge <- findInterval(
       rand_out[temp_out], weight_intv, left.open = TRUE)
     end_edge <- findInterval(rand_in[temp_in], weight_intv, left.open = TRUE)
@@ -140,7 +140,7 @@ rpanet_simple <- function(nstep, seednetwork, control, directed,
               "scenario" = c(rep(0, ex_edge), scenario),
               "newedge" = m,
               "control" = control,
-              "seednetwork" = seednetwork[c("edgelist", "edgeweight")], 
+              "initial.network" = initial.network[c("edgelist", "edgeweight")], 
               "directed" = directed)
   if (directed) {
     ret$outstrength <- c(strength$outstrength)

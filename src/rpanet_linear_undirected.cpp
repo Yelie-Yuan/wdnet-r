@@ -17,19 +17,25 @@ funcPtrUnd custmPrefLinear;
  *
  * @return Node preference.
  */
-double calcPrefLinear(int func_type,
+double calcPrefLinearUnd(int func_type,
                       double strength,
                       double *params,
                       funcPtrUnd custmPrefLinear)
 {
+  double ret;
   if (func_type == 1)
   {
-    return prefFuncUnd(strength, params);
+    ret = prefFuncUnd(strength, params);
   }
   else
   {
-    return custmPrefLinear(strength);
+    ret = custmPrefLinear(strength);
   }
+  if (ret < 0)
+  {
+    Rcpp::stop("Negative preference score returned, please check your preference function(s).");
+  }
+  return ret;
 }
 
 // /**
@@ -136,7 +142,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
   Rcpp::IntegerVector sorted_node_vec = Rcpp::seq(0, n_seednode - 1);
   for (i = 0; i < new_node_id; i++)
   {
-    pref[i] = calcPrefLinear(func_type, strength[i], params, custmPrefLinear);
+    pref[i] = calcPrefLinearUnd(func_type, strength[i], params, custmPrefLinear);
     total_pref += pref[i];
   }
   sort(sorted_node_vec.begin(), sorted_node_vec.end(),
@@ -290,7 +296,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
     {
       temp_node = q1.front();
       total_pref -= pref[temp_node];
-      pref[temp_node] = calcPrefLinear(func_type, strength[temp_node], params, custmPrefLinear);
+      pref[temp_node] = calcPrefLinearUnd(func_type, strength[temp_node], params, custmPrefLinear);
       total_pref += pref[temp_node];
       q1.pop();
     }

@@ -14,52 +14,31 @@ funcPtrD custmTargetPrefLinear;
  * @param func_type Default or customized preference function.
  * @param outs Node out-strength.
  * @param ins Node in-strength.
- * @param sparams Parameters passed to the default source preference function.
- * @param custmSourcePrefLinear Pointer of the customized source preference function.
+ * @param params Parameters passed to the default source/target preference function.
+ * @param custmPrefLinear Pointer of the customized source/target preference function.
  *
  * @return Node source preference.
  */
-double calcSourcePrefLinear(int func_type,
-                            double outs,
-                            double ins,
-                            double *sparams,
-                            funcPtrD custmSourcePrefLinear)
+double calcPrefLinearD(int func_type,
+                       double outs,
+                       double ins,
+                       double *params,
+                       funcPtrD custmPrefLinear)
 {
+  double ret;
   if (func_type == 1)
   {
-    return prefFuncD(outs, ins, sparams);
+    ret = prefFuncD(outs, ins, params);
   }
   else
   {
-    return custmSourcePrefLinear(outs, ins);
+    ret = custmPrefLinear(outs, ins);
   }
-}
-
-/**
- *  Calculate node target preference.
- *
- * @param func_type Default or customized preference function.
- * @param outs Node out-strength.
- * @param ins Node in-strength.
- * @param tparams Parameters passed to the default target preference function.
- * @param custmTargetPrefLinear Pointer of the customized target preference function.
- *
- * @return Node target preference.
- */
-double calcTargetPrefLinear(int func_type,
-                            double outs,
-                            double ins,
-                            double *tparams,
-                            funcPtrD custmTargetPrefLinear)
-{
-  if (func_type == 1)
+  if (ret < 0)
   {
-    return prefFuncD(outs, ins, tparams);
+    Rcpp::stop("Negative preference score returned, please check your preference function(s).");
   }
-  else
-  {
-    return custmTargetPrefLinear(outs, ins);
-  }
+  return ret;
 }
 
 // /**
@@ -189,8 +168,8 @@ Rcpp::List rpanet_linear_directed_cpp(
   Rcpp::IntegerVector sorted_target_node_vec = Rcpp::seq(0, n_seednode - 1);
   for (int i = 0; i < new_node_id; i++)
   {
-    source_pref[i] = calcSourcePrefLinear(func_type, outs[i], ins[i], sparams, custmSourcePrefLinear);
-    target_pref[i] = calcTargetPrefLinear(func_type, outs[i], ins[i], tparams, custmTargetPrefLinear);
+    source_pref[i] = calcPrefLinearD(func_type, outs[i], ins[i], sparams, custmSourcePrefLinear);
+    target_pref[i] = calcPrefLinearD(func_type, outs[i], ins[i], tparams, custmTargetPrefLinear);
     total_source_pref += source_pref[i];
     total_target_pref += target_pref[i];
   }
@@ -456,8 +435,8 @@ Rcpp::List rpanet_linear_directed_cpp(
       temp_node = q1.front();
       total_source_pref -= source_pref[temp_node];
       total_target_pref -= target_pref[temp_node];
-      source_pref[temp_node] = calcSourcePrefLinear(func_type, outs[temp_node], ins[temp_node], sparams, custmSourcePrefLinear);
-      target_pref[temp_node] = calcTargetPrefLinear(func_type, outs[temp_node], ins[temp_node], tparams, custmTargetPrefLinear);
+      source_pref[temp_node] = calcPrefLinearD(func_type, outs[temp_node], ins[temp_node], sparams, custmSourcePrefLinear);
+      target_pref[temp_node] = calcPrefLinearD(func_type, outs[temp_node], ins[temp_node], tparams, custmTargetPrefLinear);
       total_source_pref += source_pref[temp_node];
       total_target_pref += target_pref[temp_node];
       q1.pop();

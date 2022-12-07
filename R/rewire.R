@@ -229,7 +229,7 @@ dprewire_undirected <- function(edgelist, eta,
 #' @examples
 #' \donttest{
 #' set.seed(123)
-#' edgelist <- rpanet(1e4, control = rpacontrol.scenario(
+#' edgelist <- rpanet(1e4, control = rpa_control_scenario(
 #'    alpha = 0.4, beta = 0.3, gamma = 0.3))$edgelist
 #' ## rewire a directed network to have predetermined assortativity coefficients
 #' target.assortcoef <- list("outout" = -0.2, "outin" = 0.2)
@@ -239,7 +239,7 @@ dprewire_undirected <- function(edgelist, eta,
 #' plot(ret1$assortcoef$Iteration, ret1$assortcoef$"outout")
 #' plot(ret1$assortcoef$Iteration, ret1$assortcoef$"outin")
 #'
-#' edgelist <- rpanet(1e4, control = rpacontrol.scenario(
+#' edgelist <- rpanet(1e4, control = rpa_control_scenario(
 #'                    alpha = 0.3, beta = 0.1, gamma = 0.3, xi = 0.3),
 #'                    directed = FALSE)$edgelist
 #' ## rewire an undirected network to have predetermined assortativity coefficient
@@ -362,7 +362,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
 #' \donttest{
 #' set.seed(123)
 #' edgelist <- rpanet(5e3, control =
-#'         rpacontrol.scenario(alpha = 0.5, beta = 0.5))$edgelist
+#'         rpa_control_scenario(alpha = 0.5, beta = 0.5))$edgelist
 #' ret1 <- dprewire.range(edgelist, directed = TRUE, which.range = "outin",
 #'         target.assortcoef = list("outout" = c(-0.3, 0.3), "inout" = 0.1))
 #' ret1$range
