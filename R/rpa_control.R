@@ -198,7 +198,7 @@ rpa_control_newedge <- function(distribution = NA,
 #'   Default value is \code{"ins + 1"}, i.e., node in-strength + 1.
 #' @param pref Character expression or an object of class \code{XPtr} giving the
 #'   customized preference function. Defined for undirected networks. Default
-#'   value is \code{"s + 1"}, i.e, node strenght + 1.
+#'   value is \code{"s + 1"}, i.e, node strength + 1.
 #' @param ftype Preference function type. Either "default" or "customized".
 #'   "customized" preference functions require "binary" or "linear" generation
 #'   methods. If using default preference functions, \code{sparams},

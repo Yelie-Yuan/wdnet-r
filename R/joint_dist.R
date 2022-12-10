@@ -167,8 +167,8 @@ get_values <- function(object, result, mydist) {
 #' @export
 #'
 #' @examples
-#' control <- cvxr.control(solver = "OSQP", abstol = 1e-5)
-cvxr.control <- function(solver = "ECOS", 
+#' control <- cvxr_control(solver = "OSQP", abstol = 1e-5)
+cvxr_control <- function(solver = "ECOS", 
                          ignore_dcp = FALSE,
                          warm_start = FALSE,
                          verbose = FALSE,
@@ -217,7 +217,7 @@ get_eta_directed <- function(edgelist,
                              target.assortcoef = list("outout" = NULL, "outin" = NULL,
                                                       "inout" = NULL, "inin" = NULL),
                              eta.obj = function(x) 0, which.range = NULL, 
-                             control = cvxr.control()) {
+                             control = cvxr_control()) {
   stopifnot(all(names(target.assortcoef) %in% c("outout", "outin", 
                                                 "inout", "inin")))
   mydist <- get_dist(edgelist = edgelist, directed = TRUE)
@@ -328,7 +328,7 @@ get_eta_directed <- function(edgelist,
 #'
 get_eta_undirected <- function(edgelist, target.assortcoef = NULL, 
                                eta.obj = function(x) 0,
-                               control = cvxr.control()) {
+                               control = cvxr_control()) {
   stopifnot((target.assortcoef <= 1 & target.assortcoef >= -1) | is.null(target.assortcoef))
   mydist <- get_dist(edgelist = edgelist, directed = FALSE)
   k <- mydist$d_out

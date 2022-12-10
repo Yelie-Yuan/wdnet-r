@@ -7,9 +7,10 @@
   + `control = NULL` to `control = list()`.
   + Renamed `naive` to `linear`; `nodelist` to `bag`.
 
-+ Sort nodes from the seed network before the sampling process.
-+ Renamed `rpanet` control functions:
-  `rpactl.foo` to  `rpa_control_foo`.
++ Sort nodes from the seed network according to their preference scores before
+  the sampling process.
++ Renamed `rpanet` control functions: `rpactl.foo()` to  `rpa_control_foo()`.
++ Renamed `cvxr.control()` to `cvxr_control()`.
 
 # wdnet 0.0.5
 

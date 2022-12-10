@@ -177,7 +177,7 @@ dprewire_undirected <- function(edgelist, eta,
 #'
 #' There are two steps in this algorithm. It first solves for an appropriate
 #' \code{eta} using \code{target.assortcoef}, \code{eta.obj}, and
-#' \code{cvxr.control}, then proceeds to the rewiring process and rewire the
+#' \code{cvxr_control}, then proceeds to the rewiring process and rewire the
 #' network towards the solved \code{eta}. If \code{eta} is given, the algorithm
 #' will skip the first step. The function only works for unweighted networks.
 #'
@@ -208,7 +208,7 @@ dprewire_undirected <- function(edgelist, eta,
 #'   recorded and returned.} \item{\code{eta.obj}} {A convex function of
 #'   \code{eta} to be minimized when solving for \code{eta} with given
 #'   \code{target.assortcoef}. Defaults to 0. It will be ignored if \code{eta}
-#'   is provided.} \item{\code{cvxr.control} {A list of parameters passed to
+#'   is provided.} \item{\code{cvxr_control} {A list of parameters passed to
 #'   \code{CVXR::solve()} for solving \code{eta} with given
 #'   \code{target.assortcoef}. It will be ignored if \code{eta} is provided.}}}
 #' @param eta An matrix represents the target network structure. If specified,
@@ -258,7 +258,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
                      control = list("iteration" = 200, 
                                     "nattempts" = NULL, 
                                     "history" = FALSE, 
-                                    "cvxr.control" = cvxr.control(),
+                                    "cvxr_control" = cvxr_control(),
                                     "eta.obj" = function(x) 0),
                      eta = NULL) {
   if (is.null(edgelist)) {
@@ -281,7 +281,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
   control.default <- list("iteration" = 200, 
                           "nattempts" = NULL, 
                           "history" = FALSE, 
-                          "cvxr.control" = cvxr.control(),
+                          "cvxr_control" = cvxr_control(),
                           "eta.obj" = function(x) 0)
   control <- utils::modifyList(control.default, control, keep.null = TRUE)
   rm(control.default)
@@ -292,7 +292,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
       solver.result <- get_eta_directed(edgelist = edgelist,
                                         target.assortcoef = target.assortcoef,
                                         eta.obj = control$eta.obj, 
-                                        control = control$cvxr.control)
+                                        control = control$cvxr_control)
     }
     else {
       stopifnot('"target.assortcoef" must be a constant between -1 and 1 if the network is undirected.' = 
@@ -301,7 +301,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
       solver.result <- get_eta_undirected(edgelist = edgelist,
                                           target.assortcoef = target.assortcoef,
                                           eta.obj = control$eta.obj, 
-                                          control = control$cvxr.control)
+                                          control = control$cvxr_control)
     }
     if (solver.result$status == "solver_error" | solver.result$status == "infeasible") {
       return(list("solver.result" = solver.result))
@@ -370,7 +370,7 @@ dprewire <- function(edgelist = NULL, directed = TRUE, adj = NULL,
 #' 
 dprewire.range <- function(edgelist = NULL, directed = TRUE, adj = NULL,
                            which.range = c("outout", "outin", "inout", "inin"),
-                           control = cvxr.control(),
+                           control = cvxr_control(),
                            target.assortcoef = list("outout" = NULL,
                                                     "outin" = NULL,
                                                     "inout" = NULL,
