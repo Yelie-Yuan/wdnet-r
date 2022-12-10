@@ -10,7 +10,7 @@ double prefFuncD(double outs, double ins, double *params);
 
 double prefFuncUnd(double strength, double *params);
 
-double sampleGroup(double *group_prob);
+int sampleGroup(double *group_prob);
 
 int sampleNodeLinear(int n_existing, int n_seednode, double *pref,
                      double total_pref, int *sorted_node);

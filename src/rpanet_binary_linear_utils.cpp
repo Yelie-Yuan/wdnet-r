@@ -83,7 +83,7 @@ int sampleNodeLinear(int n_existing, int n_seednode, double *pref,
       j = i;
     }
     w -= pref[j];
-    i += 1;
+    i++;
   }
   if (w > 0)
   {
