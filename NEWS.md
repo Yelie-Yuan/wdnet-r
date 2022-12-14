@@ -1,11 +1,11 @@
-# wdnet (development version)
+# wdnet 0.0.6
 
-+ Updated arguments in `rpanet`.
-  + Renamed `seednetwork` to `initial.network`
-  + `seednetwork = NULL` to
-  `initial.network = list(edgelist = matrix(c(1, 2), nrow = 1))`.
-  + `control = NULL` to `control = list()`.
-  + Renamed `naive` to `linear`; `nodelist` to `bag`.
++ Updated function `rpanet`.
+  + Renamed `seednetwork` to `initial.network` and changed `seednetwork = NULL`
+  to `initial.network = list(edgelist = matrix(c(1, 2), nrow = 1))`;
+  + Changed `control = NULL` to `control = list()`;
+  + Renamed `naive` to `linear`; `nodelist` to `bag`; `edgesampler` to `bagx`;
+  + Updated returns, put node strength and preference scores into a data frame.
 
 + Sort nodes from the seed network according to their preference scores before
   the sampling process.

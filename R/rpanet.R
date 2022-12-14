@@ -45,34 +45,33 @@ NULL
 #'   proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate directed networks. If
 #'   \code{FALSE}, the edge directions are omitted.
-#' @param method Which method to use: \code{binary}, \code{linear},
-#'   \code{edgesampler} or \code{bag}. For \code{bag} and
-#'   \code{edgesampler} methods, \code{beta.loop} must be \code{TRUE}; default
-#'   preference functions must be used and \code{sparams = c(1, 1, 0, 0, a)},
-#'   \code{tparams = c(0, 0, 1, 1, b)}, \code{param = c(1, c)}, where \code{a},
-#'   \code{b} and \code{c} are non-negative constants; reciprocal edges and
-#'   sampling without replacement are not considered, i.e., option
-#'   \code{rpa_control_reciprocal} must be set as default, \code{snode.replace},
-#'   \code{tnode.replace} and \code{node.replace} must be \code{TRUE}. In
-#'   addition, \code{nodelsit} method only works for unweighted networks and
-#'   does not consider multiple edges, i.e., \code{rpa_control_edgeweight} and
-#'   \code{rpa_control_newedge} must be set as default.
+#' @param method Which method to use: \code{binary}, \code{linear}, \code{bagx}
+#'   or \code{bag}. For \code{bag} and \code{bagx} methods, \code{beta.loop}
+#'   must be \code{TRUE}; default preference functions must be used and
+#'   \code{sparams = c(1, 1, 0, 0, a)}, \code{tparams = c(0, 0, 1, 1, b)},
+#'   \code{param = c(1, c)}, where \code{a}, \code{b} and \code{c} are
+#'   non-negative constants; reciprocal edges and sampling without replacement
+#'   are not considered, i.e., option \code{rpa_control_reciprocal} must be set
+#'   as default, \code{snode.replace}, \code{tnode.replace} and
+#'   \code{node.replace} must be \code{TRUE}. In addition, \code{nodelsit}
+#'   method only works for unweighted networks and does not consider multiple
+#'   edges, i.e., \code{rpa_control_edgeweight} and \code{rpa_control_newedge}
+#'   must be set as default.
 #'
 #'
-#' @return A list with the following components: \code{edgelist},
-#'   \code{edgeweight}, \code{strength} for undirected networks,
-#'   \code{outstrength} and \code{instrength} for directed networks, number of
-#'   new edges in each step \code{newedge} (including reciprocal edges), control
-#'   list \code{control}, node group \code{nodegroup} (if applicable) and edge
-#'   scenario \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho,
-#'   6~reciprocal). The scenario of edges from \code{initial.network} are denoted as
-#'   0.
+#' @return A list with the following components: \code{edgelist};
+#'   \code{edgeweight}; number of new edges in each step \code{newedge}
+#'   (reciprocal edges are not included); \code{node.attribute}, including node
+#'   strengths, preference scores and node group (if applicable); control list
+#'   \code{control}; edge scenario \code{scenario} (1~alpha, 2~beta, 3~gamma,
+#'   4~xi, 5~rho, 6~reciprocal). The edges from \code{initial.network} are
+#'   denoted as scenario 0.
 #'
-#' @note The \code{bag} method implements the algorithm from Wan et al.
-#'   (2017). The \code{edgesampler} first samples edges then find the
-#'   source/target node of the sampled edge. If all the edges are of weight 1,
-#'   the network can be considered as unweighted, node strength then equals node
-#'   degree.
+#' @note The \code{bianry} method implements binary search algorithm;
+#'   \code{linear} represents linear search algorithm; \code{bag} method
+#'   implements the algorithm from Wan et al. (2017); \code{bagx} puts all the
+#'   edges into a bag, then samples edges and find the source/target node of the
+#'   sampled edge.
 #'
 #' @references \itemize{ \item Wan P, Wang T, Davis RA, Resnick SI (2017).
 #'   Fitting the Linear Preferential Attachment Model. Electronic Journal of
@@ -105,7 +104,7 @@ rpanet <- function(nstep = 10^3, initial.network = list(
                     edgelist = matrix(c(1, 2), nrow = 1)),
                    control = list(),
                    directed = TRUE,
-                   method = c("binary", "linear", "edgesampler", "bag")) {
+                   method = c("binary", "linear", "bagx", "bag")) {
   method <- match.arg(method)
   stopifnot("nstep must be greater than 0." = nstep > 0)
   nnode <- max(initial.network$edgelist)
@@ -188,27 +187,27 @@ rpanet <- function(nstep = 10^3, initial.network = list(
     warning('"node.replace" is ignored for directed networks.')
     control$newedge$node.replace <- TRUE
   }
-  if (method == "bag" | method == "edgesampler") {
-    stopifnot('"bag" and "edgesampler" methods require "default" preference functions.' = 
+  if (method == "bag" | method == "bagx") {
+    stopifnot('"bag" and "bagx" methods require "default" preference functions.' = 
                 control$preference$ftype == "default")
     if (directed) {
-      stopifnot('Source preference must be out-degree plus a non-negative constant for "bag" and "edgesampler" methods.' = 
+      stopifnot('Source preference must be out-degree plus a non-negative constant for "bag" and "bagx" methods.' = 
                   all(control$preference$sparams[1:2] == 1,
                       control$preference$sparams[3:4] == 0,
                       control$preference$sparams[5] >= 0))
-      stopifnot('Target preference must be in-degree plus a non-negative constant for "bag" and "edgesampler" methods.' = 
+      stopifnot('Target preference must be in-degree plus a non-negative constant for "bag" and "bagx" methods.' = 
                   all(control$preference$tparams[1:2] == 0,
                       control$preference$tparams[3:4] == 1,
                       control$preference$tparams[5] >= 0))
     }
     else {
-      stopifnot('Preference must be degree plus a non-negative constant for "bag" and "edgesampler" methods.' = 
+      stopifnot('Preference must be degree plus a non-negative constant for "bag" and "bagx" methods.' = 
                   control$preference$params[1] == 1 & 
                     control$preference$params[2] >= 0)
     }
-    stopifnot('"rpa_control_reciprocal" must set as default for "bag" and "edgesampler" methods.' = 
+    stopifnot('"rpa_control_reciprocal" must set as default for "bag" and "bagx" methods.' = 
                 identical(control$reciprocal, rpa_control_reciprocal()$reciprocal))
-    stopifnot('"beta.loop" must be TRUE for "bag" and "edgesampler" methods.' = 
+    stopifnot('"beta.loop" must be TRUE for "bag" and "bagx" methods.' = 
                 control$scenario$beta.loop)
     if (method == "bag") {
       stopifnot('"rpa_control_edgeweight" must set as default for "bag" method.' = 
@@ -218,15 +217,15 @@ rpanet <- function(nstep = 10^3, initial.network = list(
       stopifnot('"rpa_control_newedge" must set as default for "bag" method.' = 
                   identical(control$newedge, rpa_control_newedge()$newedge))
     }
-    if (method == "edgesampler") {
+    if (method == "bagx") {
       if (directed) {
-        stopifnot('"snode.replace" must be TRUE for "edgesampler" method.' = 
+        stopifnot('"snode.replace" must be TRUE for "bagx" method.' = 
                     control$newedge$snode.replace)
-        stopifnot('"tnode.replace" must be TRUE for "edgesampler" method.' = 
+        stopifnot('"tnode.replace" must be TRUE for "bagx" method.' = 
                     control$newedge$tnode.replace)
       }
       else {
-        stopifnot('"node.replace" must be TRUE for "edgesampler" method.' = 
+        stopifnot('"node.replace" must be TRUE for "bagx" method.' = 
                     control$newedge$node.replace)
       }
     }
@@ -240,17 +239,6 @@ rpanet <- function(nstep = 10^3, initial.network = list(
     control$scenario$beta.loop <- FALSE
     warning('"beta.loop" is set as FALSE since "node.replace" is FALSE.')
   }
-  # if (directed & 
-  #     (! all(control$newedge$snode.replace, control$newedge$tnode.replace))) {
-  #   if (all(control$preference$sparams[c(3, 5)] <= 0) |
-  #       all(control$preference$tparams[c(1, 5)] <= 0) )
-  #     stop("Source preference function and target preference function must be strictly positive when sampling source/target nodes without replacement.")
-  # }
-  # if ((! directed) & (! control$newedge$node.replace)) {
-  #   if (control$preference$params[2] <= 0) {
-  #     stop("Preference function must be strictly positive when sampling nodes without replacement.")
-  #   }
-  # }
   return(rpanet_general(nstep = nstep, initial.network = initial.network, 
                         control = control, directed = directed, 
                         m = m, sum_m = sum_m, 

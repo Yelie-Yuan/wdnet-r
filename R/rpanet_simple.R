@@ -41,11 +41,14 @@ NULL
 #' @param w Vector, weight of new edges.
 #' @param ex_node Integer, number of nodes in \code{initial.network}.
 #' @param ex_edge Integer, number of edges in \code{initial.network}.
-#' @param method Which method to use, \code{bag} or \code{edgesampler}.
+#' @param method Which method to use, \code{bag} or \code{bagx}.
 #'
-#' @return A list with the following components: edgelist, edgeweight, out- and
-#'   in-strength, number of edges per step (m), scenario of each new edge
-#'   (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho). The edges in the seed graph are
+#' @return A list with the following components: \code{edgelist};
+#'   \code{edgeweight}; number of new edges in each step \code{newedge}
+#'   (reciprocal edges are not included); \code{node.attribute}, including node
+#'   strengths, preference scores and node group (if applicable); control list
+#'   \code{control}; edge scenario \code{scenario} (1~alpha, 2~beta, 3~gamma,
+#'   4~xi, 5~rho, 6~reciprocal). The edges from \code{initial.network} are
 #'   denoted as scenario 0.
 #'   
 #' @keywords internal
@@ -143,15 +146,28 @@ rpanet_simple <- function(nstep, initial.network, control, directed,
               "initial.network" = initial.network[c("edgelist", "edgeweight")], 
               "directed" = directed)
   if (directed) {
-    ret$outstrength <- c(strength$outstrength)
-    ret$instrength <- c(strength$instrength)
-    ret$spref <- ret$outstrength + control$preference$sparams[5]
-    ret$tpref <- ret$instrength + control$preference$tparams[5]
+    ret$node.attribute <- data.frame(
+      "outstrength" = c(strength$outstrength),
+      "instrength" = c(strength$instrength)
+    )
+    ret$node.attribute$spref <- ret$node.attribute$outstrength + 
+      control$preference$sparams[5]
+    ret$node.attribute$tpref <- ret$node.attribute$instrength + 
+      control$preference$tparams[5]
+    # ret$outstrength <- c(strength$outstrength)
+    # ret$instrength <- c(strength$instrength)
+    # ret$spref <- ret$outstrength + control$preference$sparams[5]
+    # ret$tpref <- ret$instrength + control$preference$tparams[5]
     ret$control$preference$params <- NULL
   }
   else {
-    ret$strength <- c(strength$outstrength) + c(strength$instrength)
-    ret$pref <- ret$strength + control$preference$params[2]
+    ret$node.attribute <- data.frame(
+      "strength" = c(strength$outstrength) + c(strength$instrength)
+    )
+    ret$node.attribute$pref <- ret$node.attribute$strength + 
+      control$preference$params[2]
+    # ret$strength <- c(strength$outstrength) + c(strength$instrength)
+    # ret$pref <- ret$strength + control$preference$params[2]
     ret$control$newedge$snode.replace <- ret$control$newedge$tnode.replace <- NULL
     ret$control$preference$sparams <- ret$control$preference$tparams <- NULL
   }
