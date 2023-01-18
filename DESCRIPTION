@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
-Version: 0.0.6
-Date: 2022-12-14
+Version: 1.0.0
+Date: 2023-01-18
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
@@ -30,7 +30,7 @@ Imports: CVXR, igraph, Matrix, rARPACK, Rcpp, RcppXPtrUtils, stats, wdm
 LinkingTo: Rcpp, RcppArmadillo
 BugReports: https://gitlab.com/wdnetwork/wdnet/-/issues
 URL: https://gitlab.com/wdnetwork/wdnet
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
