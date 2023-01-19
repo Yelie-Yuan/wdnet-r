@@ -23,7 +23,7 @@ install.packages("wdnet")
 
 ## Development
 
-The development version of this package is available on [Gitlab](https://gitlab.com/wdnetwork/wdnet/tree/dev).
+The development version of this package is available on [Gitlab](https://gitlab.com/wdnetwork/wdnet/).
 
 
 ## License
