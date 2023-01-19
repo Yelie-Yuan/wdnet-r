@@ -11,28 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// hello_world
-void hello_world();
-RcppExport SEXP _wdnet_hello_world() {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    hello_world();
-    return R_NilValue;
-END_RCPP
-}
-// fx
-double fx(arma::colvec x, arma::mat Y, arma::colvec z);
-RcppExport SEXP _wdnet_fx(SEXP xSEXP, SEXP YSEXP, SEXP zSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::colvec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::colvec >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(fx(x, Y, z));
-    return rcpp_result_gen;
-END_RCPP
-}
 // dprewire_directed_cpp
 Rcpp::List dprewire_directed_cpp(int iteration, int nattempts, arma::uvec targetNode, arma::vec sourceOut, arma::vec sourceIn, arma::vec targetOut, arma::vec targetIn, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewire_history);
 RcppExport SEXP _wdnet_dprewire_directed_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP targetNodeSEXP, SEXP sourceOutSEXP, SEXP sourceInSEXP, SEXP targetOutSEXP, SEXP targetInSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewire_historySEXP) {
