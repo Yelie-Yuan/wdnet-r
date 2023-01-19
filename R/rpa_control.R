@@ -100,13 +100,13 @@ rpa_control_scenario <- function(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0
 
 #' Control weight of new edges. Defined for \code{rpanet}.
 #'
-#' @param distribution Distribution function for edge weights. Default is
+#' @param distribution Distribution for drawing edge weights. Default is
 #'   \code{NA}. If specified, its first argument must be the number of
 #'   observations.
 #' @param dparams Additional parameters passed on to \code{distribution}. The
 #'   name of parameters must be specified.
-#' @param shift A constant add to the specified distribution. Default value is
-#'   1.
+#' @param shift A constant add to the values sampled from \code{distribution}. 
+#'   Default value is 1.
 #'
 #' @return A list of class \code{rpacontrol} with components
 #'   \code{distribution}, \code{dparams}, and \code{shift} with meanings as
@@ -141,13 +141,13 @@ rpa_control_edgeweight <- function(distribution = NA,
 
 #' Control new edges in each step. Defined for \code{rpanet}.
 #'
-#' @param distribution Distribution function for number of new edges. Default is
+#' @param distribution Distribution for drawing number of new edges. Default is
 #'   \code{NA}. If specified, its first argument must be the number of
 #'   observations.
 #' @param dparams Additional parameters passed on to \code{distribution}. The
 #'   name of parameters must be specified.
-#' @param shift A constant add to the specified distribution. Default value is
-#'   1.
+#' @param shift A constant add to the values sampled from \code{distribution}.
+#'   Default value is 1.
 #' @param snode.replace Logical, whether the source nodes in the same step
 #'   should be sampled with replacement. Defined for directed networks.
 #' @param tnode.replace Logical, whether the target nodes in the same step
@@ -189,16 +189,6 @@ rpa_control_newedge <- function(distribution = NA,
 
 #' Set preference function(s). Defined for \code{rpanet}.
 #'
-#' @param spref Character expression or an object of class \code{XPtr} giving
-#'   the customized source preference function. Defined for directed networks.
-#'   Default value is \code{"outs + 1"}, i.e., node out-strength + 1. See
-#'   Details and Examples for more information.
-#' @param tpref Character expression or an object of class \code{XPtr} giving
-#'   the customized target preference function. Defined for directed networks.
-#'   Default value is \code{"ins + 1"}, i.e., node in-strength + 1.
-#' @param pref Character expression or an object of class \code{XPtr} giving the
-#'   customized preference function. Defined for undirected networks. Default
-#'   value is \code{"s + 1"}, i.e, node strength + 1.
 #' @param ftype Preference function type. Either "default" or "customized".
 #'   "customized" preference functions require "binary" or "linear" generation
 #'   methods. If using default preference functions, \code{sparams},
@@ -219,13 +209,24 @@ rpa_control_newedge <- function(distribution = NA,
 #'   default preference function. Defined for undirected networks. Probability
 #'   of choosing an existing node is proportional to \code{strength^params[1] +
 #'   params[2].}
+#' @param spref Character expression or an object of class \code{XPtr} giving
+#'   the customized source preference function. Defined for directed networks.
+#'   Default value is \code{"outs + 1"}, i.e., node out-strength + 1. See
+#'   Details and Examples for more information.
+#' @param tpref Character expression or an object of class \code{XPtr} giving
+#'   the customized target preference function. Defined for directed networks.
+#'   Default value is \code{"ins + 1"}, i.e., node in-strength + 1.
+#' @param pref Character expression or an object of class \code{XPtr} giving the
+#'   customized preference function. Defined for undirected networks. Default
+#'   value is \code{"s + 1"}, i.e, node strength + 1.
 #'
 #' @details If choosing customized preference functions, \code{spref},
 #'   \code{tpref} and and \code{pref} will be used and the network generation
 #'   method must be "binary" or "linear". \code{spref} (\code{tpref}) defines the
 #'   source (target) preference function, it can be a character expression or an
 #'   object of class \code{XPtr}. \itemize{ \item{Character expression: } {it
-#'   must be an \code{C++} style function of \code{outs} (node out-strength) and
+#'   must be an one-line \code{C++} style expression of \code{outs}
+#'   (node out-strength) and
 #'   \code{ins} (node-instrength). For example, \code{"pow(outs, 2) + 1"},
 #'   \code{"pow(outs, 2) + pow(ins, 2) + 1"}, etc. The expression will be used
 #'   to define an \code{XPtr} via \code{RcppXPtrUtils::cppXPtr}. The \code{XPtr}
@@ -236,12 +237,13 @@ rpa_control_newedge <- function(distribution = NA,
 #'   \code{C++} source code is included in Examples. For more information
 #'   about passing function pointers, see
 #'   \url{https://gallery.rcpp.org/articles/passing-cpp-function-pointers-rcppxptrutils/}.
-#'    Please note the supplied \code{C++} function takes two \code{double}
+#'   Please note the supplied \code{C++} function takes two \code{double}
 #'   arguments and returns a \code{double}. The first and second arguments
 #'   represent node out- and in-strength, respectively.}}
 #'
 #'   \code{pref} is defined analogously. If using character expression, it must
-#'   be a \code{C++} style function of \code{s} (node strength). If using
+#'   be a one-line \code{C++} style expression of \code{s} (node strength). 
+#'   If using
 #'   \code{XPtr}, the supplied \code{C++} function takes only one \code{double}
 #'   argument and returns a \code{double}.
 #'

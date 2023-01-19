@@ -26,42 +26,42 @@ NULL
 #' Generate preferential attachment (PA) networks with linear or non-linear
 #' preference functions.
 #'
-#' @param nstep Number of steps when generating a network.
+#' @param nstep Number of steps.
 #' @param initial.network A list represents the seed network. By default,
 #'   \code{initial.network} has one edge from node 1 to node 2 with weight 1. It
 #'   consists of the following components: a two column matrix \code{edgelist}
 #'   represents the edges; a vector \code{edgeweight} represents the weight of
 #'   edges; an integer vector \code{nodegroup} represents the group of nodes.
 #'   \code{nodegroup} is defined for directed networks, if \code{NULL}, all
-#'   nodes from the seed graph are considered from group 1.
-#' @param control A list of parameters that controls the PA network generation
-#'   process. Defaults to an empty list, i.e., all the controlling parameters
-#'   are set as default. For more details about available controlling
-#'   parameters, see \code{rpa_control_scenario}, \code{rpa_control_newedge},
-#'   \code{rpa_control_edgeweight}, \code{rpa_control_preference} and
-#'   \code{rpa_control_reciprocal}. Under the default setup, in each step, a new
+#'   nodes from the seed network are considered from group 1.
+#' @param control A list of parameters controls the PA network generation
+#'   process. Defaults to an empty list, i.e., all the control parameters
+#'   are set to default. For more details about available controls, 
+#'   see \code{rpa_control_scenario()}, \code{rpa_control_newedge()},
+#'   \code{rpa_control_edgeweight()}, \code{rpa_control_preference} and
+#'   \code{rpa_control_reciprocal()}. Under the default setup, in each step, a new
 #'   edge of weight 1 is added from a new node \code{A} to an existing node
 #'   \code{B} (\code{alpha} scenario), where \code{B} is chosen with probability
 #'   proportional to its in-strength + 1.
-#' @param directed Logical, whether to generate directed networks. If
-#'   \code{FALSE}, the edge directions are omitted.
+#' @param directed Logical, whether to generate a directed network. If
+#'   \code{FALSE}, the edges are undirected.
 #' @param method Which method to use: \code{binary}, \code{linear}, \code{bagx}
 #'   or \code{bag}. For \code{bag} and \code{bagx} methods, \code{beta.loop}
 #'   must be \code{TRUE}; default preference functions must be used and
 #'   \code{sparams = c(1, 1, 0, 0, a)}, \code{tparams = c(0, 0, 1, 1, b)},
 #'   \code{param = c(1, c)}, where \code{a}, \code{b} and \code{c} are
 #'   non-negative constants; reciprocal edges and sampling without replacement
-#'   are not considered, i.e., option \code{rpa_control_reciprocal} must be set
+#'   are not considered, i.e., option \code{rpa_control_reciprocal()} must be set
 #'   as default, \code{snode.replace}, \code{tnode.replace} and
 #'   \code{node.replace} must be \code{TRUE}. In addition, \code{nodelsit}
 #'   method only works for unweighted networks and does not consider multiple
-#'   edges, i.e., \code{rpa_control_edgeweight} and \code{rpa_control_newedge}
+#'   edges, i.e., \code{rpa_control_edgeweight()} and \code{rpa_control_newedge()}
 #'   must be set as default.
 #'
 #'
 #' @return A list with the following components: \code{edgelist};
-#'   \code{edgeweight}; number of new edges in each step \code{newedge}
-#'   (reciprocal edges are not included); \code{node.attribute}, including node
+#'   \code{edgeweight}; number of new edges at each step \code{newedge}
+#'   (reciprocal edges are included); \code{node.attribute}, including node
 #'   strengths, preference scores and node group (if applicable); control list
 #'   \code{control}; edge scenario \code{scenario} (1~alpha, 2~beta, 3~gamma,
 #'   4~xi, 5~rho, 6~reciprocal). The edges from \code{initial.network} are
@@ -73,7 +73,7 @@ NULL
 #'   edges into a bag, then samples edges and find the source/target node of the
 #'   sampled edge.
 #'
-#' @references \itemize{ \item Wan P, Wang T, Davis RA, Resnick SI (2017).
+#' @references \itemize{\item Wan P, Wang T, Davis RA, Resnick SI (2017).
 #'   Fitting the Linear Preferential Attachment Model. Electronic Journal of
 #'   Statistics, 11(2), 3738–3780.}
 #'

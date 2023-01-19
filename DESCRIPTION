@@ -1,15 +1,15 @@
 Package: wdnet
 Title: Weighted and Directed Networks
 Version: 1.0.0
-Date: 2023-01-18
+Date: 2023-01-19
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
-    person("Tiandong", "Wang", email = "twang@stat.tamu.edu",
+    person("Tiandong", "Wang", email = "td_wang@fudan.edu.cn ",
            role = "aut"),
     person("Jun", "Yan", email = "jun.yan@uconn.edu",
            role = c("aut")),
-    person("Panpan", "Zhang", email = "panpan.zhang@pennmedicine.upenn.edu",
+    person("Panpan", "Zhang", email = "panpan.zhang@vumc.org",
            role = "aut"))
 Description: Implementations of network analysis including
     (1) assortativity coefficient of weighted and directed networks, 
