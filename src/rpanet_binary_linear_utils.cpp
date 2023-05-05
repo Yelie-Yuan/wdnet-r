@@ -20,14 +20,14 @@ double prefFuncD(double outs, double ins, double *params)
 /**
  * Defult preference function.
  *
- * @param strength Node strength.
+ * @param s Node strength.
  * @param params Parameters passed to the preference function.
  *
  * @return Preference of a node.
  */
-double prefFuncUnd(double strength, double *params)
+double prefFuncUnd(double s, double *params)
 {
-  return pow(strength, params[0]) + params[1];
+  return pow(s, params[0]) + params[1];
 }
 
 /**

@@ -4,11 +4,11 @@
 //'
 //' @param iteration Integer, number of iterations of nattempts rewiring attempts.
 //' @param nattempts Integer, number of rewiring attempts per iteration.
-//' @param targetNode Vector, target node sequence - 1.
-//' @param sourceOut Vector, source nodes' out-degree.
-//' @param sourceIn Vector, source nodes' in-degree.
-//' @param targetOut Vector, target nodes' out-degree.
-//' @param targetIn Vector, target nodes' in-degree.
+//' @param tnode Vector, target node sequence - 1.
+//' @param sout Vector, source nodes' out-degree.
+//' @param sin Vector, source nodes' in-degree.
+//' @param tout Vector, target nodes' out-degree.
+//' @param tin Vector, target nodes' in-degree.
 //' @param index_s Index of source nodes' out- and in-degree. 
 //'   index_s/index_t bridges the indices of source/target nodes and the 
 //'   target structure eta.
@@ -25,25 +25,25 @@
 Rcpp::List dprewire_directed_cpp(
     int iteration, 
     int nattempts,
-    arma::uvec targetNode,
-    arma::vec sourceOut,
-    arma::vec sourceIn, 
-    arma::vec targetOut, 
-    arma::vec targetIn,
+    arma::uvec tnode,
+    arma::vec sout,
+    arma::vec sin, 
+    arma::vec tout, 
+    arma::vec tin,
     arma::uvec index_s,
     arma::uvec index_t,
     arma::mat eta, 
     bool rewire_history) {
   GetRNGstate();
-  arma::vec out_out(iteration, arma::fill::zeros);
-  arma::vec out_in(iteration, arma::fill::zeros);
-  arma::vec in_out(iteration, arma::fill::zeros);
-  arma::vec in_in(iteration, arma::fill::zeros);
+  arma::vec outout(iteration, arma::fill::zeros);
+  arma::vec outin(iteration, arma::fill::zeros);
+  arma::vec inout(iteration, arma::fill::zeros);
+  arma::vec inin(iteration, arma::fill::zeros);
   // arma::vec r_out_out(iteration, arma::fill::zeros);
   // arma::vec r_out_in(iteration, arma::fill::zeros);
   // arma::vec r_in_out(iteration, arma::fill::zeros);
   // arma::vec r_in_in(iteration, arma::fill::zeros);
-  int nedge = targetNode.size();
+  int nedge = tnode.size();
   int e1, e2, count = 0;
   int s1, s2, t1, t2, hist_row;
   double u, ratio, temp;
@@ -81,15 +81,15 @@ Rcpp::List dprewire_directed_cpp(
         temp = index_t[e1];
         index_t[e1] = index_t[e2];
         index_t[e2] = temp;
-        temp = targetNode[e1];
-        targetNode[e1] = targetNode[e2];
-        targetNode[e2] = temp;
-        temp = targetOut[e1];
-        targetOut[e1] = targetOut[e2];
-        targetOut[e2] = temp;
-        temp = targetIn[e1];
-        targetIn[e1] = targetIn[e2];
-        targetIn[e2] = temp;
+        temp = tnode[e1];
+        tnode[e1] = tnode[e2];
+        tnode[e2] = temp;
+        temp = tout[e1];
+        tout[e1] = tout[e2];
+        tout[e2] = temp;
+        temp = tin[e1];
+        tin[e1] = tin[e2];
+        tin[e2] = temp;
         // temp = r_targetOut[e1];
         // r_targetOut[e1] = r_targetOut[e2];
         // r_targetOut[e2] = temp;
@@ -102,10 +102,10 @@ Rcpp::List dprewire_directed_cpp(
       }
       count++;
     }
-    out_out[n] = (arma::cor(sourceOut, targetOut)).eval()(0, 0);
-    out_in[n] = (arma::cor(sourceOut, targetIn)).eval()(0, 0);
-    in_out[n] = (arma::cor(sourceIn, targetOut)).eval()(0, 0);
-    in_in[n] = (arma::cor(sourceIn, targetIn)).eval()(0, 0);
+    outout[n] = (arma::cor(sout, tout)).eval()(0, 0);
+    outin[n] = (arma::cor(sout, tin)).eval()(0, 0);
+    inout[n] = (arma::cor(sin, tout)).eval()(0, 0);
+    inin[n] = (arma::cor(sin, tin)).eval()(0, 0);
     // r_out_out[n] = (arma::cor(r_sourceOut, r_targetOut)).eval()(0, 0);
     // r_out_in[n] = (arma::cor(r_sourceOut, r_targetIn)).eval()(0, 0);
     // r_in_out[n] = (arma::cor(r_sourceIn, r_targetOut)).eval()(0, 0);
@@ -114,14 +114,14 @@ Rcpp::List dprewire_directed_cpp(
   
   PutRNGstate();
   Rcpp::List ret;
-  ret["targetNode"] = targetNode;
+  ret["tnode"] = tnode;
   if (rewire_history) {
     ret["history"] = history;
   }
-  ret["out_out"] = out_out;
-  ret["out_in"] = out_in;
-  ret["in_out"] = in_out;
-  ret["in_in"] = in_in;
+  ret["outout"] = outout;
+  ret["outin"] = outin;
+  ret["inout"] = inout;
+  ret["inin"] = inin;
   // ret["r_out_out"] = r_out_out;
   // ret["r_out_in"] = r_out_in;
   // ret["r_in_out"] = r_in_out;

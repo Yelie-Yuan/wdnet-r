@@ -31,7 +31,7 @@ $(tar): $(objects)
 	-e "Rcpp::compileAttributes()" \
 	-e "devtools::document();";
 	@$(MAKE) updateTimestamp
-	R CMD build .
+	R CMD build --compact-vignettes=gs+qpdf .
 
 $(checkLog): $(tar) $(tinytest)
 	R CMD check $(tar)

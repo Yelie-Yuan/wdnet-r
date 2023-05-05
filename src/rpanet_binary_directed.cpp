@@ -273,8 +273,8 @@ node_d *sampleNodeD(node_d *root, char type)
 //' @param scenario Scenario of existing and new edges.
 //' @param sample_recip Logical, whether reciprocal edges will be added.
 //' @param node_group Sequence of node group.
-//' @param source_pref Sequence of node source preference.
-//' @param target_pref Sequence of node target preference.
+//' @param spref Sequence of node source preference.
+//' @param tpref Sequence of node target preference.
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
@@ -294,8 +294,8 @@ Rcpp::List rpanet_binary_directed(
     Rcpp::IntegerVector scenario,
     bool sample_recip,
     Rcpp::IntegerVector node_group,
-    Rcpp::NumericVector source_pref,
-    Rcpp::NumericVector target_pref,
+    Rcpp::NumericVector spref_vec,
+    Rcpp::NumericVector tpref_vec,
     Rcpp::List control)
 {
   Rcpp::List scenario_ctl = control["scenario"];
@@ -318,6 +318,8 @@ Rcpp::List rpanet_binary_directed(
   Rcpp::NumericVector sparams_vec(5);
   Rcpp::NumericVector tparams_vec(5);
   double *sparams, *tparams;
+  double *spref = &(spref_vec[0]);
+  double *tpref = &(tpref_vec[0]);
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type)
@@ -639,8 +641,8 @@ Rcpp::List rpanet_binary_directed(
     outs[j] = node1->outs;
     ins[j] = node1->ins;
     node_group[j] = node1->group;
-    source_pref[j] = node1->sourcep;
-    target_pref[j] = node1->targetp;
+    spref[j] = node1->sourcep;
+    tpref[j] = node1->targetp;
     // free memory (node and tree)
     delete node1;
   }
@@ -653,11 +655,11 @@ Rcpp::List rpanet_binary_directed(
   ret["nedge"] = new_edge_id;
   ret["node_vec1"] = source_node;
   ret["node_vec2"] = target_node;
-  ret["outstrength"] = outs;
-  ret["instrength"] = ins;
+  ret["outs"] = outs;
+  ret["ins"] = ins;
   ret["scenario"] = scenario;
   ret["nodegroup"] = node_group;
-  ret["source_pref"] = source_pref;
-  ret["target_pref"] = target_pref;
+  ret["spref"] = spref_vec;
+  ret["tpref"] = tpref_vec;
   return ret;
 }

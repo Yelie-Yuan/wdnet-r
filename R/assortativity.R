@@ -31,63 +31,75 @@ NULL
 #' @return a scalar of assortativity coefficient
 #'
 #' @references \itemize{ \item Foster, J.G., Foster, D.V., Grassberger, P. and
-#' Paczuski, M. (2010). Edge direction and the structure of networks.
-#' \emph{Proceedings of the National Academy of Sciences of the United States},
-#' 107(24), 10815--10820. \item Yuan, Y. Zhang, P. and Yan, J. (2021).
+#'   Paczuski, M. (2010). Edge direction and the structure of networks.
+#'   \emph{Proceedings of the National Academy of Sciences of the United
+#'   States}, 107(24), 10815--10820. \item Yuan, Y. Zhang, P. and Yan, J.
+#'   (2021).
 #' Assortativity coefficients for weighted and directed networks. \emph{Journal
 #' of Complex Networks}, 9(2), cnab017. }
 #'
 #' @note When the adjacency matrix is binary (i.e., directed but unweighted
-#' networks), \code{dw_assort} returns the assortativity coefficient proposed in
-#' Foster et al. (2010).
-#' 
+#'   networks), \code{dw_assort} returns the assortativity coefficient proposed
+#'   in Foster et al. (2010).
+#'
 #' @keywords internal
 #' 
 
-dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
+dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
   stopifnot(dim(adj)[1] == dim(adj)[2])
   ## determine the location of edges in the network
   in_str <- colSums(adj)
   out_str <- rowSums(adj)
-  vert_from <- unlist(apply(adj, 2, function(x){which(x > 0)}))
-  number_to <- apply(adj, 2, function(x){length(which(x > 0) == TRUE)})
-  temp_to <- cbind(seq(1:dim(adj)[1]),number_to)
-  vert_to <- rep(temp_to[,1],temp_to[,2])
+  vert_from <- unlist(apply(adj, 2, function(x) {
+    which(x > 0)
+  }))
+  number_to <- apply(adj, 2, function(x) {
+    length(which(x > 0) == TRUE)
+  })
+  temp_to <- cbind(seq(1:dim(adj)[1]), number_to)
+  vert_to <- rep(temp_to[, 1], temp_to[, 2])
   weight <- adj[which(adj > 0)]
-  type  <- match.arg(type)
+  type <- match.arg(type)
   .type <- unlist(strsplit(type, "-"))
-  x <- switch(.type[1], "out" = out_str, "in" = in_str)[vert_from]
-  y <- switch(.type[2], "out" = out_str, "in" = in_str)[vert_to]
+  x <- switch(.type[1],
+    "out" = out_str,
+    "in" = in_str
+  )[vert_from]
+  y <- switch(.type[2],
+    "out" = out_str,
+    "in" = in_str
+  )[vert_to]
   weighted.cor <- function(x, y, w) {
     mean_x <- stats::weighted.mean(x, w)
     mean_y <- stats::weighted.mean(y, w)
     var_x <- sum((x - mean_x)^2 * w)
     var_y <- sum((y - mean_y)^2 * w)
-    return(sum(w * (x - mean_x) * (y - mean_y)) / 
-             sqrt(var_x * var_y))
+    return(sum(w * (x - mean_x) * (y - mean_y)) /
+      sqrt(var_x * var_y))
   }
   return(weighted.cor(x, y, weight))
 }
 
-#' Assortativity coefficient
-#' 
-#' Compute the assortativity coefficient of a network.
+
+#' Compute the assortativity coefficient(s) for a network.
 #'
-#' @param edgelist A two column matrix represents edges. If \code{NULL},
-#'   \code{edgelist} and \code{edgeweight} will be extracted from the adjacency
-#'   matrix \code{adj}.
-#' @param edgeweight A vector represents the weight of edges. If \code{edgelist}
-#'   is provided and \code{edgeweight} is \code{NULL}, all the edges will be
-#'   considered have weight 1.
-#' @param adj An adjacency matrix.
-#' @param directed Logical. Whether the edges will be considered as directed.
-#' @param f1 A vector, represents the first feature of existing nodes. Number of
-#'   nodes \code{= length(f1) = length(f2)}. Defined for directed networks. If
-#'   \code{NULL}, out-strength will be used.
-#' @param f2 A vector, represents the second feature of existing nodes. Defined
+#' @param netwk A \code{wdnet} object representing the network. If \code{NULL},
+#'   the function will compute the coefficient using either \code{edgelist} and
+#'   \code{edgeweight}, or \code{adj}.
+#' @param edgelist A two-column matrix representing edges.
+#' @param edgeweight A numeric vector of edge weights with the same length as
+#'   the number of rows in edgelist. If \code{NULL}, all edges will be assigned
+#'   weight 1.
+#' @param adj The adjacency matrix of a network.
+#' @param directed Logical. Indicates whether the edges in \code{edgelist} or
+#'   \code{adj} are directed. It will be omitted if \code{netwk} is provided.
+#' @param f1 A vector representing the first feature of existing nodes. Number
+#'   of nodes \code{= length(f1) = length(f2)}. Defined for directed networks.
+#'   If \code{NULL}, out-strength will be used.
+#' @param f2 A vector representing the second feature of existing nodes. Defined
 #'   for directed networks. If \code{NULL}, in-strength will be used.
 #'
-#' @return Assortativity coefficient for undirected networks, or four
+#' @return Assortativity coefficient for undirected networks, or a list of four
 #'   assortativity coefficients for directed networks.
 #'
 #' @references \itemize{ \item Foster, J.G., Foster, D.V., Grassberger, P. and
@@ -98,89 +110,110 @@ dw_assort <- function(adj, type = c("out-in", "in-in", "out-out", "in-out")) {
 #'   \emph{Journal of Complex Networks}, 9(2), cnab017.}
 #'
 #' @note When the adjacency matrix is binary (i.e., directed but unweighted
-#'   networks), \code{assortcoef} returns the assortativity coefficient proposed 
+#'   networks), \code{assortcoef} returns the assortativity coefficient proposed
 #'   in Foster et al. (2010).
 #'
 #' @export
 #'
 #' @examples
 #' set.seed(123)
-#' control <- rpa_control_edgeweight(distribution = rgamma,
-#'     dparams = list(shape = 5, scale = 0.2), shift = 0)
+#' control <- rpa_control_edgeweight(
+#'   distribution = rgamma,
+#'   dparams = list(shape = 5, scale = 0.2), shift = 0
+#' )
 #' netwk <- rpanet(nstep = 10^4, control = control)
-#' result <- assortcoef(netwk$edgelist, edgeweight = netwk$edgeweight, directed = TRUE)
-#' 
-assortcoef <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed = TRUE, 
-                        f1 = NULL, f2 = NULL) {
-  if (is.null(edgelist)) {
-    if (is.null(adj)) {
-      stop('"edgelist" and "adj" can not both be NULL.')
+#' ret <- assortcoef(netwk)
+#' ret <- assortcoef(
+#'   edgelist = netwk$edgelist,
+#'   edgeweight = netwk$edge.attr$weight,
+#'   directed = TRUE
+#' )
+#'
+assortcoef <- function(
+    netwk,
+    edgelist,
+    edgeweight,
+    adj,
+    directed,
+    f1,
+    f2) {
+  netwk <- create_wdnet(
+    netwk = netwk,
+    edgelist = edgelist,
+    edgeweight = edgeweight,
+    directed = directed,
+    adj = adj,
+    weighted = TRUE
+  )
+
+  edgelist <- netwk$edgelist
+  edgeweight <- netwk$edge.attr$weight
+  directed <- netwk$directed
+  nnode <- max(edgelist)
+
+  if ((!missing(f1)) || (!missing(f2))) {
+    if (!directed) {
+      stop("Node feature based assortativity coefficients are defined for directed networks.")
     }
-    temp <- adj_to_edge(adj = adj, directed = directed)
-    edgelist <- temp$edgelist
-    edgeweight <- temp$edgeweight
-    rm(temp)
+    return(dw_feature_assort(
+      netwk,
+      f1 = f1, f2 = f2
+    ))
   }
-  if (is.null(edgeweight)) {
-    edgeweight <- rep(1, nrow(edgelist))
-  }
-  
-  temp <- range(c(edgelist))
-  stopifnot("Node index should start from 1." = temp[1] == 1)
-  nnode <- temp[2]
-  rm(temp)
-  
-  if ((! is.null(f1)) | (! is.null(f2))) {
-    if (! directed) {
-      stop("Node feature based assortativity coefficients are 
-           defined for DIRECTED networks.")
-    }
-    return(dw_feature_assort(edgelist = edgelist, edgeweight = edgeweight, 
-                             f1 = f1, f2 = f2))
-  }
-  
-  if (! directed) {
+
+  if (!directed) {
     edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
     edgeweight <- c(edgeweight, edgeweight)
   }
-  sourceNode <- edgelist[, 1]
-  targetNode <- edgelist[, 2]
-  temp <- node_strength_cpp(snode = sourceNode, 
-                           tnode = targetNode, 
-                           nnode = nnode, 
-                           weight = edgeweight,
-                           weighted = TRUE)
-  outs <- temp$outstrength
-  ins <- temp$instrength
+
+  snode <- edgelist[, 1]
+  tnode <- edgelist[, 2]
+  temp <- node_strength_cpp(
+    snode = snode,
+    tnode = tnode,
+    nnode = nnode,
+    weight = edgeweight,
+    weighted = TRUE
+  )
+  outs <- temp$outs
+  ins <- temp$ins
   rm(temp)
-  sourceOut <- outs[sourceNode]
-  targetIn <- ins[targetNode]
-  if (! directed) {
-    return(wdm::wdm(x = sourceOut, y = targetIn, 
-                    weights = edgeweight, method = "pearson"))
+  sout <- outs[snode]
+  tin <- ins[tnode]
+  if (!directed) {
+    return(wdm::wdm(
+      x = sout, y = tin,
+      weights = edgeweight, method = "pearson"
+    ))
   }
-  sourceIn <- ins[sourceNode]
-  targetOut <- outs[targetNode]
-  return(list("outout" = wdm::wdm(x = sourceOut, y = targetOut,
-                                   weights = edgeweight, method = "pearson"), 
-              "outin" = wdm::wdm(x = sourceOut, y = targetIn, 
-                                  weights = edgeweight, method = "pearson"), 
-              "inout" = wdm::wdm(x = sourceIn, y = targetOut,
-                                  weights = edgeweight, method = "pearson"),
-              "inin" = wdm::wdm(x = sourceIn, y = targetIn,
-                                 weights = edgeweight, method = "pearson")))
+  sin <- ins[snode]
+  tout <- outs[tnode]
+  return(list(
+    "outout" = wdm::wdm(
+      x = sout, y = tout,
+      weights = edgeweight, method = "pearson"
+    ),
+    "outin" = wdm::wdm(
+      x = sout, y = tin,
+      weights = edgeweight, method = "pearson"
+    ),
+    "inout" = wdm::wdm(
+      x = sin, y = tout,
+      weights = edgeweight, method = "pearson"
+    ),
+    "inin" = wdm::wdm(
+      x = sin, y = tin,
+      weights = edgeweight, method = "pearson"
+    )
+  ))
 }
 
 #' Feature based assortativity coefficient
-#' 
+#'
 #' Node feature based assortativity coefficients of a weighted and directed
 #' network.
 #'
-#' @param edgelist A two column matrix represents edges. If \code{NULL},
-#'   \code{edgelist} and \code{edgeweight} will be extracted from the adjacency
-#'   matrix \code{adj}.
-#' @param edgeweight A vector represents the weight of edges. If \code{NULL},
-#'   all the edges are considered have weight 1.
+#' @param netwk A \code{wdnet} object representing the network.
 #' @param f1 A vector, represents the first feature of existing nodes. Number of
 #'   nodes \code{= length(f1) = length(f2)}. Defined for directed networks. If
 #'   \code{NULL}, out-strength will be used.
@@ -196,42 +229,48 @@ assortcoef <- function(edgelist = NULL, edgeweight = NULL, adj = NULL, directed 
 #' f1 <- runif(20)
 #' f2 <- abs(rnorm(20))
 #' ret <- assortcoef(adj = adj, f1 = f1, f2 = f2)
-#' 
+#'
 #' @keywords internal
 #' 
-dw_feature_assort <- function(edgelist, edgeweight, f1, f2) {
-  nnode <- max(edgelist)
-  sourceNode <- edgelist[, 1]
-  targetNode <- edgelist[, 2]
-  if (is.null(f1) | is.null(f2)) {
-    temp <- node_strength_cpp(snode = sourceNode, 
-                             tnode = targetNode, 
-                             weight = edgeweight, 
-                             nnode = nnode, 
-                             weighted = TRUE)
-  }
+dw_feature_assort <- function(netwk, f1, f2) {
+  nnode <- max(netwk$edgelist)
+  snode <- netwk$edgelist[, 1]
+  tnode <- netwk$edgelist[, 2]
+  edgeweight <- netwk$edge.attr$weight
   if (is.null(f1)) {
-    f1 <- temp$outstrength
+    f1 <- netwk$node.attr$outs
   }
   if (is.null(f2)) {
-    f2 <- temp$instrength
+    f2 <- netwk$node.attr$ins
   }
-  stopifnot('Length of "f1" must equal number of nodes' = 
-              length(f1) == nnode)
-  stopifnot('Length of "f2" must equal number of nodes' = 
-              length(f2) == nnode)
-  sourceF1 <- f1[sourceNode]
-  sourceF2 <- f2[sourceNode]
-  targetF1 <- f1[targetNode]
-  targetF2 <- f2[targetNode]
+  stopifnot(
+    'Length of "f1" must equal number of nodes.' =
+      length(f1) == nnode
+  )
+  stopifnot(
+    'Length of "f2" must equal number of nodes.' =
+      length(f2) == nnode
+  )
+  sf1 <- f1[snode]
+  sf2 <- f2[snode]
+  tf1 <- f1[tnode]
+  tf2 <- f2[tnode]
   ret <- list()
-  ret$"f1-f1" <- wdm::wdm(x = sourceF1, y = targetF1,
-                          weights = edgeweight, method = "pearson")
-  ret$"f1-f2" <- wdm::wdm(x = sourceF1, y = targetF2,
-                          weights = edgeweight, method = "pearson")
-  ret$"f2-f1" <- wdm::wdm(x = sourceF2, y = targetF1,
-                          weights = edgeweight, method = "pearson")
-  ret$"f2-f2" <- wdm::wdm(x = sourceF2, y = targetF2,
-                          weights = edgeweight, method = "pearson")
+  ret$"f1-f1" <- wdm::wdm(
+    x = sf1, y = tf1,
+    weights = edgeweight, method = "pearson"
+  )
+  ret$"f1-f2" <- wdm::wdm(
+    x = sf1, y = tf2,
+    weights = edgeweight, method = "pearson"
+  )
+  ret$"f2-f1" <- wdm::wdm(
+    x = sf2, y = tf1,
+    weights = edgeweight, method = "pearson"
+  )
+  ret$"f2-f2" <- wdm::wdm(
+    x = sf2, y = tf2,
+    weights = edgeweight, method = "pearson"
+  )
   return(ret)
 }

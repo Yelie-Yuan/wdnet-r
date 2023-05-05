@@ -11,25 +11,25 @@ funcPtrUnd custmPrefLinear;
  * Calculate node preference.
  *
  * @param func_type Default or customized preference function.
- * @param strength Node strength.
+ * @param s Node strength.
  * @param params Parameters passed to the default preference function.
  * @param custmPrefLinear Pointer of the customized source preference function.
  *
  * @return Node preference.
  */
 double calcPrefLinearUnd(int func_type,
-                      double strength,
+                      double s,
                       double *params,
                       funcPtrUnd custmPrefLinear)
 {
   double ret;
   if (func_type == 1)
   {
-    ret = prefFuncUnd(strength, params);
+    ret = prefFuncUnd(s, params);
   }
   else
   {
-    ret = custmPrefLinear(strength);
+    ret = custmPrefLinear(s);
   }
   if (ret < 0)
   {
@@ -82,7 +82,7 @@ double calcPrefLinearUnd(int func_type,
 //' @param new_edge_id New edge ID.
 //' @param node_vec1 Sequence of nodes in the first column of edgelist.
 //' @param node_vec2 Sequence of nodes in the second column of edgelist.
-//' @param strength Sequence of node strength.
+//' @param s Sequence of node strength.
 //' @param edgeweight Weight of existing and new edges.
 //' @param scenario Scenario of existing and new edges.
 //' @param pref Sequence of node preference.
@@ -99,7 +99,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
     int new_edge_id,
     Rcpp::IntegerVector node_vec1,
     Rcpp::IntegerVector node_vec2,
-    Rcpp::NumericVector strength,
+    Rcpp::NumericVector s,
     Rcpp::NumericVector edgeweight,
     Rcpp::IntegerVector scenario,
     Rcpp::NumericVector pref_vec,
@@ -142,7 +142,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
   Rcpp::IntegerVector sorted_node_vec = Rcpp::seq(0, n_seednode - 1);
   for (i = 0; i < new_node_id; i++)
   {
-    pref[i] = calcPrefLinearUnd(func_type, strength[i], params, custmPrefLinear);
+    pref[i] = calcPrefLinearUnd(func_type, s[i], params, custmPrefLinear);
     total_pref += pref[i];
   }
   sort(sorted_node_vec.begin(), sorted_node_vec.end(),
@@ -277,8 +277,8 @@ Rcpp::List rpanet_linear_undirected_cpp(
         }
       }
       // checkDiffUnd(pref, total_pref);
-      strength[node1] += edgeweight[new_edge_id];
-      strength[node2] += edgeweight[new_edge_id];
+      s[node1] += edgeweight[new_edge_id];
+      s[node2] += edgeweight[new_edge_id];
       node_vec1[new_edge_id] = node1;
       node_vec2[new_edge_id] = node2;
       scenario[new_edge_id] = current_scenario;
@@ -296,7 +296,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
     {
       temp_node = q1.front();
       total_pref -= pref[temp_node];
-      pref[temp_node] = calcPrefLinearUnd(func_type, strength[temp_node], params, custmPrefLinear);
+      pref[temp_node] = calcPrefLinearUnd(func_type, s[temp_node], params, custmPrefLinear);
       total_pref += pref[temp_node];
       q1.pop();
     }
@@ -311,7 +311,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
   ret["node_vec1"] = node_vec1;
   ret["node_vec2"] = node_vec2;
   ret["pref"] = pref_vec;
-  ret["strength"] = strength;
+  ret["s"] = s;
   ret["scenario"] = scenario;
   return ret;
 }

@@ -24,54 +24,60 @@ NULL
 #' @param preference A list for defining the preference functions.
 #'
 #' @return Preference functions and external pointers.
-#' 
+#'
 #' @keywords internal
-#' 
+#'
 compile_pref_func <- function(preference) {
   if (inherits(preference$spref, "character")) {
     temp <- paste("double spref(double outs, double ins) { return ",
-                  preference$spref, ";}", sep = "")
+      preference$spref, ";}",
+      sep = ""
+    )
     preference$spref.pointer <- RcppXPtrUtils::cppXPtr(code = temp)
     rm(temp)
-  }
-  else if (inherits(preference$spref, "XPtr")) {
-    RcppXPtrUtils::checkXPtr(ptr = preference$spref,
-                             type = "double",
-                             args = c("double", "double"))
+  } else if (inherits(preference$spref, "XPtr")) {
+    RcppXPtrUtils::checkXPtr(
+      ptr = preference$spref,
+      type = "double",
+      args = c("double", "double")
+    )
     preference$spref.pointer <- preference$spref
-  }
-  else {
+  } else {
     stop('Class of "spref" must be "XPtr" or "character".')
   }
   if (inherits(preference$tpref, "character")) {
     temp <- paste("double tpref(double outs, double ins) { return ",
-                  preference$tpref, ";}", sep = "")
+      preference$tpref, ";}",
+      sep = ""
+    )
     preference$tpref.pointer <- RcppXPtrUtils::cppXPtr(code = temp)
     rm(temp)
-  }
-  else if (inherits(preference$tpref, "XPtr")) {
-    RcppXPtrUtils::checkXPtr(ptr = preference$tpref,
-                             type = "double",
-                             args = c("double", "double"))
+  } else if (inherits(preference$tpref, "XPtr")) {
+    RcppXPtrUtils::checkXPtr(
+      ptr = preference$tpref,
+      type = "double",
+      args = c("double", "double")
+    )
     preference$tpref.pointer <- preference$tpref
-  }
-  else {
-    stop('Class of "tpref" must be "externalptr" or "character".')
+  } else {
+    stop('Class of "tpref" must be "XPtr" or "character".')
   }
   if (inherits(preference$pref, "character")) {
     temp <- paste("double pref(double s) { return ",
-                  preference$pref, ";}", sep = "")
+      preference$pref, ";}",
+      sep = ""
+    )
     preference$pref.pointer <- RcppXPtrUtils::cppXPtr(code = temp)
     rm(temp)
-  }
-  else if (inherits(preference$pref, "XPtr")) {
-    RcppXPtrUtils::checkXPtr(ptr = preference$pref,
-                             type = "double",
-                             args = "double")
+  } else if (inherits(preference$pref, "XPtr")) {
+    RcppXPtrUtils::checkXPtr(
+      ptr = preference$pref,
+      type = "double",
+      args = "double"
+    )
     preference$pref.pointer <- preference$pref
+  } else {
+    stop('Class of "pref" must be "XPtr" or "character".')
   }
-  else {
-    stop('Class of "pref" must be "externalptr" or "character".')
-  }
-  preference
+  return(preference)
 }

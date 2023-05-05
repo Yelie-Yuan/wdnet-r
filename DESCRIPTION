@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
-Version: 1.0.0
-Date: 2023-01-19
+Version: 1.0.0.9000
+Date: 2023-05-04
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
@@ -31,6 +31,5 @@ LinkingTo: Rcpp, RcppArmadillo
 BugReports: https://gitlab.com/wdnetwork/wdnet/-/issues
 URL: https://gitlab.com/wdnetwork/wdnet
 RoxygenNote: 7.2.3
-Suggests: 
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
+Suggests: knitr, testthat (>= 3.0.0)
+VignetteBuilder: knitr

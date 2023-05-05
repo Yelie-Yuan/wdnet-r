@@ -8,7 +8,7 @@ typedef double (*funcPtrD)(double x, double y);
 
 double prefFuncD(double outs, double ins, double *params);
 
-double prefFuncUnd(double strength, double *params);
+double prefFuncUnd(double s, double *params);
 
 int sampleGroup(double *group_prob);
 

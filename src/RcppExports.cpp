@@ -12,23 +12,23 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // dprewire_directed_cpp
-Rcpp::List dprewire_directed_cpp(int iteration, int nattempts, arma::uvec targetNode, arma::vec sourceOut, arma::vec sourceIn, arma::vec targetOut, arma::vec targetIn, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewire_history);
-RcppExport SEXP _wdnet_dprewire_directed_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP targetNodeSEXP, SEXP sourceOutSEXP, SEXP sourceInSEXP, SEXP targetOutSEXP, SEXP targetInSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewire_historySEXP) {
+Rcpp::List dprewire_directed_cpp(int iteration, int nattempts, arma::uvec tnode, arma::vec sout, arma::vec sin, arma::vec tout, arma::vec tin, arma::uvec index_s, arma::uvec index_t, arma::mat eta, bool rewire_history);
+RcppExport SEXP _wdnet_dprewire_directed_cpp(SEXP iterationSEXP, SEXP nattemptsSEXP, SEXP tnodeSEXP, SEXP soutSEXP, SEXP sinSEXP, SEXP toutSEXP, SEXP tinSEXP, SEXP index_sSEXP, SEXP index_tSEXP, SEXP etaSEXP, SEXP rewire_historySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type iteration(iterationSEXP);
     Rcpp::traits::input_parameter< int >::type nattempts(nattemptsSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type targetNode(targetNodeSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type sourceOut(sourceOutSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type sourceIn(sourceInSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type targetOut(targetOutSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type targetIn(targetInSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type tnode(tnodeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sout(soutSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sin(sinSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tout(toutSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tin(tinSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type index_s(index_sSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type index_t(index_tSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type eta(etaSEXP);
     Rcpp::traits::input_parameter< bool >::type rewire_history(rewire_historySEXP);
-    rcpp_result_gen = Rcpp::wrap(dprewire_directed_cpp(iteration, nattempts, targetNode, sourceOut, sourceIn, targetOut, targetIn, index_s, index_t, eta, rewire_history));
+    rcpp_result_gen = Rcpp::wrap(dprewire_directed_cpp(iteration, nattempts, tnode, sout, sin, tout, tin, index_s, index_t, eta, rewire_history));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -71,8 +71,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rpanet_binary_directed
-Rcpp::List rpanet_binary_directed(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector source_node, Rcpp::IntegerVector target_node, Rcpp::NumericVector outs, Rcpp::NumericVector ins, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, bool sample_recip, Rcpp::IntegerVector node_group, Rcpp::NumericVector source_pref, Rcpp::NumericVector target_pref, Rcpp::List control);
-RcppExport SEXP _wdnet_rpanet_binary_directed(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP source_nodeSEXP, SEXP target_nodeSEXP, SEXP outsSEXP, SEXP insSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP sample_recipSEXP, SEXP node_groupSEXP, SEXP source_prefSEXP, SEXP target_prefSEXP, SEXP controlSEXP) {
+Rcpp::List rpanet_binary_directed(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector source_node, Rcpp::IntegerVector target_node, Rcpp::NumericVector outs, Rcpp::NumericVector ins, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, bool sample_recip, Rcpp::IntegerVector node_group, Rcpp::NumericVector spref_vec, Rcpp::NumericVector tpref_vec, Rcpp::List control);
+RcppExport SEXP _wdnet_rpanet_binary_directed(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP source_nodeSEXP, SEXP target_nodeSEXP, SEXP outsSEXP, SEXP insSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP sample_recipSEXP, SEXP node_groupSEXP, SEXP spref_vecSEXP, SEXP tpref_vecSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,16 +88,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type scenario(scenarioSEXP);
     Rcpp::traits::input_parameter< bool >::type sample_recip(sample_recipSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type node_group(node_groupSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type source_pref(source_prefSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type target_pref(target_prefSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type spref_vec(spref_vecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tpref_vec(tpref_vecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_binary_directed(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref, target_pref, control));
+    rcpp_result_gen = Rcpp::wrap(rpanet_binary_directed(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, spref_vec, tpref_vec, control));
     return rcpp_result_gen;
 END_RCPP
 }
 // rpanet_binary_undirected_cpp
-Rcpp::List rpanet_binary_undirected_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector node_vec1, Rcpp::IntegerVector node_vec2, Rcpp::NumericVector strength, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, Rcpp::NumericVector pref, Rcpp::List control);
-RcppExport SEXP _wdnet_rpanet_binary_undirected_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP node_vec1SEXP, SEXP node_vec2SEXP, SEXP strengthSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP prefSEXP, SEXP controlSEXP) {
+Rcpp::List rpanet_binary_undirected_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector node_vec1, Rcpp::IntegerVector node_vec2, Rcpp::NumericVector s, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, Rcpp::NumericVector pref, Rcpp::List control);
+RcppExport SEXP _wdnet_rpanet_binary_undirected_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP node_vec1SEXP, SEXP node_vec2SEXP, SEXP sSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP prefSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -107,18 +107,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type new_edge_id(new_edge_idSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type node_vec1(node_vec1SEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type node_vec2(node_vec2SEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type strength(strengthSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type s(sSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type edgeweight(edgeweightSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type scenario(scenarioSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pref(prefSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_binary_undirected_cpp(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref, control));
+    rcpp_result_gen = Rcpp::wrap(rpanet_binary_undirected_cpp(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, s, edgeweight, scenario, pref, control));
     return rcpp_result_gen;
 END_RCPP
 }
 // rpanet_linear_directed_cpp
-Rcpp::List rpanet_linear_directed_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector source_node, Rcpp::IntegerVector target_node, Rcpp::NumericVector outs, Rcpp::NumericVector ins, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, bool sample_recip, Rcpp::IntegerVector node_group, Rcpp::NumericVector source_pref_vec, Rcpp::NumericVector target_pref_vec, Rcpp::List control);
-RcppExport SEXP _wdnet_rpanet_linear_directed_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP source_nodeSEXP, SEXP target_nodeSEXP, SEXP outsSEXP, SEXP insSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP sample_recipSEXP, SEXP node_groupSEXP, SEXP source_pref_vecSEXP, SEXP target_pref_vecSEXP, SEXP controlSEXP) {
+Rcpp::List rpanet_linear_directed_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector source_node, Rcpp::IntegerVector target_node, Rcpp::NumericVector outs, Rcpp::NumericVector ins, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, bool sample_recip, Rcpp::IntegerVector node_group, Rcpp::NumericVector spref_vec, Rcpp::NumericVector tpref_vec, Rcpp::List control);
+RcppExport SEXP _wdnet_rpanet_linear_directed_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP source_nodeSEXP, SEXP target_nodeSEXP, SEXP outsSEXP, SEXP insSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP sample_recipSEXP, SEXP node_groupSEXP, SEXP spref_vecSEXP, SEXP tpref_vecSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -134,16 +134,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type scenario(scenarioSEXP);
     Rcpp::traits::input_parameter< bool >::type sample_recip(sample_recipSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type node_group(node_groupSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type source_pref_vec(source_pref_vecSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type target_pref_vec(target_pref_vecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type spref_vec(spref_vecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tpref_vec(tpref_vecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_linear_directed_cpp(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, source_pref_vec, target_pref_vec, control));
+    rcpp_result_gen = Rcpp::wrap(rpanet_linear_directed_cpp(nstep, m, new_node_id, new_edge_id, source_node, target_node, outs, ins, edgeweight, scenario, sample_recip, node_group, spref_vec, tpref_vec, control));
     return rcpp_result_gen;
 END_RCPP
 }
 // rpanet_linear_undirected_cpp
-Rcpp::List rpanet_linear_undirected_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector node_vec1, Rcpp::IntegerVector node_vec2, Rcpp::NumericVector strength, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, Rcpp::NumericVector pref_vec, Rcpp::List control);
-RcppExport SEXP _wdnet_rpanet_linear_undirected_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP node_vec1SEXP, SEXP node_vec2SEXP, SEXP strengthSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP pref_vecSEXP, SEXP controlSEXP) {
+Rcpp::List rpanet_linear_undirected_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector node_vec1, Rcpp::IntegerVector node_vec2, Rcpp::NumericVector s, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, Rcpp::NumericVector pref_vec, Rcpp::List control);
+RcppExport SEXP _wdnet_rpanet_linear_undirected_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP node_vec1SEXP, SEXP node_vec2SEXP, SEXP sSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP pref_vecSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -153,12 +153,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type new_edge_id(new_edge_idSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type node_vec1(node_vec1SEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type node_vec2(node_vec2SEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type strength(strengthSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type s(sSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type edgeweight(edgeweightSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type scenario(scenarioSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pref_vec(pref_vecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_linear_undirected_cpp(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, strength, edgeweight, scenario, pref_vec, control));
+    rcpp_result_gen = Rcpp::wrap(rpanet_linear_undirected_cpp(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, s, edgeweight, scenario, pref_vec, control));
     return rcpp_result_gen;
 END_RCPP
 }

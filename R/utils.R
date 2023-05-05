@@ -19,55 +19,64 @@
 #' @importFrom igraph graph_from_adjacency_matrix as_edgelist E
 NULL
 
-#' Convert adjacency matrix to edgelist and edgeweight.
+#' Convert adjacency matrix to edgelist and edgeweight through \code{igraph}.
 #'
 #' @param adj Adjacency matrix of a network.
 #' @param directed Logical, whether the network is directed. Passed to
 #'   \code{igraph::graph_from_adjacency_matrix}.
-#' @param weighted Passed to \code{igraph::graph_from_adjacency_matrix}. This
-#'   argument specifies whether to create a weighted graph from an adjacency
-#'   matrix. If it is NULL then an unweighted graph is created and the elements
-#'   of the adjacency matrix gives the number of edges between the vertices. If
-#'   it is TRUE then a weighted graph is created and the name of the edge
-#'   attribute will be weight.
+#' @param weighted Logical, whether the network is weighted.
 #'
 #' @return A list of edgelist and edgeweight.
-#' 
+#'
 #' @keywords internal
-#'   
-adj_to_edge <- function(adj, directed = TRUE, weighted = TRUE) {
-  if (! directed) {
-    stopifnot('"adj" must be symmetric if the network is undirected.' = 
-                isSymmetric(adj))
+#' 
+adj_to_edgelist <- function(adj, directed = TRUE, weighted = TRUE) {
+  if (!directed) {
+    if (! isSymmetric(adj)) {
+      directed <- TRUE
+      cat('Returned network is directed because "adj" is asymmetric.\n\n')
+    }
   }
-  mode <- ifelse(directed, "directed", "undirected")
-  g <- igraph::graph_from_adjacency_matrix(adj, mode = mode, 
-                                           weighted = weighted, diag = TRUE)
+  if (!weighted) {
+    weighted <- NULL
+  }
+  g <- igraph::graph_from_adjacency_matrix(adj,
+    mode = ifelse(directed, "directed", "undirected"),
+    weighted = weighted,
+    diag = TRUE
+  )
   edgelist <- igraph::as_edgelist(g)
   edgeweight <- igraph::E(g)$weight
-  return(list("edgelist" = edgelist, 
-              "edgeweight" = edgeweight))
+  list(
+    "edgelist" = edgelist,
+    "edgeweight" = edgeweight,
+    "directed" = directed
+  )
 }
 
 #' Convert edgelist and edgeweight to adjacency matrix.
 #'
-#' @param edgelist A two column matrix represents edges.
-#' @param edgeweight A vector represents the weight of edges. If \code{NULL},
+#' @param edgelist A two column matrix representing edges.
+#' @param edgeweight A vector representing the weight of edges. If \code{NULL},
 #'   all the edges are considered have weight 1.
 #' @param directed Logical, whether the network is directed.
 #'
 #' @return An adjacency matrix.
-#' 
-#' @keywords internal
 #'
-edge_to_adj <- function(edgelist, edgeweight = NULL, directed = TRUE) {
+#' @keywords internal
+#' 
+edgelist_to_adj <- function(edgelist, edgeweight, directed = TRUE) {
   nnode <- max(edgelist)
   adj <- matrix(0, nrow = nnode, ncol = nnode)
-  if (is.null(edgeweight)) {
+  if (missing(edgeweight)) {
     edgeweight <- rep(1, nrow(edgelist))
   }
+  if (length(edgelist) == 2) {
+    edgelist <- matrix(edgelist, ncol = 2)
+    edgeweight <- c(edgeweight, 0)
+  }
   adj <- fill_weight_cpp(adj, edgelist - 1, edgeweight)
-  if (! directed) {
+  if (!directed) {
     adj <- adj + t(adj)
     diag(adj) <- diag(adj) / 2
   }

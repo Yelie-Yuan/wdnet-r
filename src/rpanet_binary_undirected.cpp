@@ -10,7 +10,7 @@ funcPtrUnd custmPref;
 /**
  * Node structure in undirected networks.
  * id: node id
- * strength: node strength
+ * s: node strength
  * p: preference of being chosen from the existing nodes
  * totalp: sum of preference of current node and its children
  * *left, *right, *parent: pointers to its left, right and parent
@@ -18,7 +18,7 @@ funcPtrUnd custmPref;
 struct node_und
 {
   int id;
-  double strength;
+  double s;
   double p, totalp;
   node_und *left, *right, *parent;
 };
@@ -63,11 +63,11 @@ void updatePrefUnd(node_und *temp_node, int func_type,
 {
   if (func_type == 1)
   {
-    temp_node->p = prefFuncUnd(temp_node->strength, params);
+    temp_node->p = prefFuncUnd(temp_node->s, params);
   }
   else
   {
-    temp_node->p = custmPref(temp_node->strength);
+    temp_node->p = custmPref(temp_node->s);
   }
 
   if (temp_node->p < 0)
@@ -89,7 +89,7 @@ node_und *createNodeUnd(int id)
 {
   node_und *new_node = new node_und();
   new_node->id = id;
-  new_node->strength = 0;
+  new_node->s = 0;
   new_node->p = new_node->totalp = 0;
   new_node->left = new_node->right = new_node->parent = NULL;
   return new_node;
@@ -184,7 +184,7 @@ node_und *sampleNodeUnd(node_und *root)
 //' @param new_edge_id New edge ID.
 //' @param node_vec1 Sequence of nodes in the first column of edgelist.
 //' @param node_vec2 Sequence of nodes in the second column of edgelist.
-//' @param strength Sequence of node strength.
+//' @param s Sequence of node strength.
 //' @param edgeweight Weight of existing and new edges.
 //' @param scenario Scenario of existing and new edges.
 //' @param pref Sequence of node preference.
@@ -201,7 +201,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
     int new_edge_id,
     Rcpp::IntegerVector node_vec1,
     Rcpp::IntegerVector node_vec2,
-    Rcpp::NumericVector strength,
+    Rcpp::NumericVector s,
     Rcpp::NumericVector edgeweight,
     Rcpp::IntegerVector scenario,
     Rcpp::NumericVector pref,
@@ -246,14 +246,14 @@ Rcpp::List rpanet_binary_undirected_cpp(
   {
     for (i = 0; i < new_node_id; i++)
     {
-      temp_pref[i] = prefFuncUnd(strength[i], params);
+      temp_pref[i] = prefFuncUnd(s[i], params);
     }
   }
   else
   {
     for (i = 0; i < new_node_id; i++)
     {
-      temp_pref[i] = custmPref(strength[i]);
+      temp_pref[i] = custmPref(s[i]);
     }
   }
   sort(sorted_node.begin(), sorted_node.end(),
@@ -262,7 +262,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   // initialize a tree from seed graph
   j = sorted_node[0];
   node_und *root = createNodeUnd(j);
-  root->strength = strength[j];
+  root->s = s[j];
   updatePrefUnd(root, func_type, params, custmPref);
   queue<node_und *> q, q1;
   q.push(root);
@@ -270,7 +270,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   {
     j = sorted_node[i];
     node1 = insertNodeUnd(q, j);
-    node1->strength = strength[j];
+    node1->s = s[j];
     updatePrefUnd(node1, func_type, params, custmPref);
   }
   // sample edges
@@ -382,8 +382,8 @@ Rcpp::List rpanet_binary_undirected_cpp(
           updateTotalp(node2);
         }
       }
-      node1->strength += edgeweight[new_edge_id];
-      node2->strength += edgeweight[new_edge_id];
+      node1->s += edgeweight[new_edge_id];
+      node2->s += edgeweight[new_edge_id];
       node_vec1[new_edge_id] = node1->id;
       node_vec2[new_edge_id] = node2->id;
       scenario[new_edge_id] = current_scenario;
@@ -423,7 +423,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
       q.push(node1->left);
     }
     j = node1->id;
-    strength[j] = node1->strength;
+    s[j] = node1->s;
     pref[j] = node1->p;
     // free memory (node and tree)
     delete node1;
@@ -438,7 +438,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   ret["node_vec1"] = node_vec1;
   ret["node_vec2"] = node_vec2;
   ret["pref"] = pref;
-  ret["strength"] = strength;
+  ret["s"] = s;
   ret["scenario"] = scenario;
   return ret;
 }

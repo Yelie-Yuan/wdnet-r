@@ -1,4 +1,4 @@
-# wdnet 0.0.6
+# wdnet 1.0.0
 
 + Updated function `rpanet`.
   + Renamed `seednetwork` to `initial.network` and changed `seednetwork = NULL`
