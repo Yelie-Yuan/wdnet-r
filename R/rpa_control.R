@@ -51,7 +51,10 @@ NULL
 #'     shift = 1
 #'   )
 "+.rpacontrol" <- function(e1, e2) {
-  e1 <- structure(utils::modifyList(e1, e2, keep.null = TRUE), class = "rpacontrol")
+  e1 <- structure(
+    utils::modifyList(e1, e2, keep.null = TRUE),
+    class = "rpacontrol"
+  )
   if (is.list(e2$edgeweight$dparams)) {
     e1$edgeweight$dparams <- e2$edgeweight$dparams
   }
@@ -86,7 +89,7 @@ NULL
 #'
 #' @examples
 #' control <- rpa_control_scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
-#' 
+#'
 rpa_control_scenario <- function(
     alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
     beta.loop = TRUE, source.first = TRUE) {
@@ -134,7 +137,7 @@ rpa_control_scenario <- function(
 #'
 #' # Constant edge weight
 #' control <- rpa_control_edgeweight(shift = 2)
-#' 
+#'
 rpa_control_edgeweight <- function(
     distribution = NULL,
     dparams = NULL,
@@ -430,41 +433,41 @@ rpa_control_reciprocal <- function(
 }
 
 #' Default controls for \code{rpanet}
-#' 
+#'
 #' @return Returns a list of default controls.
 #' @keywords internal
-#' 
+#'
 rpa_control_default <- function() {
-    rpa_control_scenario() +
-        rpa_control_edgeweight() +
-        rpa_control_newedge() +
-        rpa_control_reciprocal() +
-        rpa_control_preference()
+  rpa_control_scenario() +
+    rpa_control_edgeweight() +
+    rpa_control_newedge() +
+    rpa_control_reciprocal() +
+    rpa_control_preference()
 }
 
 #' Names and descriptions of controls for \code{rpanet}
-#' 
+#'
 #' @return Returns a list of control names and descriptions.
 #' @keywords internal
-#' 
+#'
 rpa_control_list <- function() {
-    control_names <- c(
-        "scenario",
-        "edgeweight",
-        "newedge",
-        "preference",
-        "reciprocal"
-    )
+  control_names <- c(
+    "scenario",
+    "edgeweight",
+    "newedge",
+    "preference",
+    "reciprocal"
+  )
 
-    control_descriptions <- list(
-        scenario = "Edge scenarios",
-        edgeweight = "Edge weights",
-        newedge = "New edges in each step",
-        preference = "Preference functions",
-        reciprocal = "Reciprocal edges"
-    )
-    return(list(
-        control_names = control_names,
-        control_descriptions = control_descriptions
-    ))
+  control_descriptions <- list(
+    scenario = "Edge scenarios",
+    edgeweight = "Edge weights",
+    newedge = "New edges in each step",
+    preference = "Preference functions",
+    reciprocal = "Reciprocal edges"
+  )
+  return(list(
+    control_names = control_names,
+    control_descriptions = control_descriptions
+  ))
 }

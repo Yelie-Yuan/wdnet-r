@@ -170,6 +170,7 @@ rpanet <- function(
     )
   }
   if (control$preference$ftype == "customized") {
+    control$preference <- compile_pref_func(control$preference)
     if (directed) {
       RcppXPtrUtils::checkXPtr(
         ptr = control$preference$spref.pointer,

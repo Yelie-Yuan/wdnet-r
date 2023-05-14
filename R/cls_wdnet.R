@@ -39,6 +39,10 @@ edgelist_to_wdnet <- function(
     edgeweight,
     directed,
     ...) {
+  if (missing(directed) || is.null(directed)) {
+    # cat("Assume the network is directed.\n\n")
+    directed <- TRUE
+  }
   stopifnot(is.logical(directed))
   if (missing(edgelist) || is.null(edgelist)) {
     stop('Please provide "edgelist".')

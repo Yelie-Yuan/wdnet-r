@@ -1,3 +1,8 @@
+# wdnet 1.1.0
+
++ Updated function interfaces now accept `wdnet` objects.
++ Added `summary` and `print` methods for `wdnet` and `rpacontrol` objects.
+
 # wdnet 1.0.0
 
 + Updated function `rpanet`.

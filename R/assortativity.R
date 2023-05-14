@@ -83,7 +83,7 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 
 #' Compute the assortativity coefficient(s) for a network.
 #'
-#' @param netwk A \code{wdnet} object representing the network. If \code{NULL},
+#' @param netwk A \code{wdnet} object that represents the network. If \code{NULL},
 #'   the function will compute the coefficient using either \code{edgelist} and
 #'   \code{edgeweight}, or \code{adj}.
 #' @param edgelist A two-column matrix representing edges.
@@ -93,8 +93,10 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #' @param adj The adjacency matrix of a network.
 #' @param directed Logical. Indicates whether the edges in \code{edgelist} or
 #'   \code{adj} are directed. It will be omitted if \code{netwk} is provided.
-#' @param f1 A vector representing the first feature of existing nodes. Number
-#'   of nodes \code{= length(f1) = length(f2)}. Defined for directed networks.
+#' @param f1 A vector representing the first feature of existing nodes. 
+#'   The number of nodes 
+#'   should be equal to the length of both \code{f1} and \code{f2}. 
+#'   Defined for directed networks.
 #'   If \code{NULL}, out-strength will be used.
 #' @param f2 A vector representing the second feature of existing nodes. Defined
 #'   for directed networks. If \code{NULL}, in-strength will be used.
@@ -210,10 +212,10 @@ assortcoef <- function(
 
 #' Feature based assortativity coefficient
 #'
-#' Node feature based assortativity coefficients of a weighted and directed
-#' network.
+#' Node feature based assortativity coefficients for weighted and directed
+#' networks.
 #'
-#' @param netwk A \code{wdnet} object representing the network.
+#' @param netwk A \code{wdnet} object that represents the network.
 #' @param f1 A vector, represents the first feature of existing nodes. Number of
 #'   nodes \code{= length(f1) = length(f2)}. Defined for directed networks. If
 #'   \code{NULL}, out-strength will be used.

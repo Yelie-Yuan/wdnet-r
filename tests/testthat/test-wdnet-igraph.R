@@ -4,12 +4,12 @@ test_that("multiplication works", {
   g0 <- wdnet_to_igraph(netwk0)
   netwk1 <- igraph_to_wdnet(g0)
   g1 <- wdnet_to_igraph(netwk1)
-
-  expect_true(igraph::identical_graphs(g0, g1))
+  netwk2 <- igraph_to_wdnet(g1)
+  g2 <- wdnet_to_igraph(netwk2)
+  tmp <- c("edgelist", "node.attr", "edge.attr", "weighted", "directed")
   expect_true(all(
-    identical(netwk0$edgelist, netwk1$edgelist),
-    identical(netwk0$node.attr, netwk1$node.attr),
-    identical(netwk0$edge.attr, netwk1$edge.attr),
-    identical(netwk0$weighted, netwk1$weighted),
-    identical(netwk0$directed, netwk1$directed)))
+    igraph::identical_graphs(g0, g1),
+    igraph::identical_graphs(g0, g2),
+    identical(netwk0[tmp], netwk1[tmp]),
+    identical(netwk0[tmp], netwk2[tmp])))
 })

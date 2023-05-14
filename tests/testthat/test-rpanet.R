@@ -155,3 +155,71 @@ test_that("rpanet with customized preference functions", {
     expect_lt(ret, 1e-5)
   }
 })
+
+
+test_that("rpanet initial network", {
+  set.seed(12345)
+  ctr1 <- rpa_control_preference(
+    ftype = "customized",
+    spref = "outs + pow(ins, 0.5) + 1",
+    tpref = "pow(outs, 0.5) + ins + 1",
+    pref = "pow(s, 1.5) + 1"
+  ) + rpa_control_scenario(
+    alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1
+  ) + rpa_control_edgeweight(
+    distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
+  ) + rpa_control_newedge(
+    distribution = rpois, dparams = list(lambda = 1), shift = 1
+  )
+
+  netwk1 <- rpanet(1e3, directed = TRUE, control = ctr1)
+  netwk2 <- rpanet(1e3,
+    initial.network = netwk1,
+    directed = TRUE, control = netwk1$control
+  )
+  netwk3 <- rpanet(1e3, directed = FALSE, control = ctr1)
+  netwk4 <- rpanet(1e3,
+    initial.network = netwk3,
+    directed = FALSE, control = netwk1$control
+  )
+
+  # check initial netwk
+  check_initial_network <- function(netwk1, netwk2) {
+    n <- nrow(netwk1$edgelist)
+    netwk1$edge.attr$scenario <- 0
+    expect_true(all(
+      identical(netwk1$edgelist, netwk2$edgelist[1:n, ]),
+      netwk2$edge.attr$scenario[1:n] == 0,
+      identical(netwk1$edge.attr$weight, netwk2$edge.attr$weight[1:n]),
+      identical(netwk1$directed, netwk2$directed),
+      identical(netwk1$weighted, netwk2$weighted),
+      identical(netwk1$control, netwk2$control)
+    ))
+  }
+  check_initial_network(netwk1, netwk2)
+  check_initial_network(netwk3, netwk4)
+})
+
+
+test_that("rpanet scenarios", {
+  set.seed(12345)
+  ctr <- rpa_control_scenario(
+    alpha = 0.1, beta = 0.8, gamma = 0.1, beta.loop = FALSE
+  )
+  netwk1 <- rpanet(1e4, control = ctr, directed = TRUE)
+  netwk2 <- rpanet(1e4, control = ctr, directed = FALSE)
+
+  check_scenarios <- function(netwk) {
+    alpha <- which(netwk$edge.attr$scenario == 1)
+    beta <- which(netwk$edge.attr$scenario == 2)
+    gamma <- which(netwk$edge.attr$scenario == 3)
+    expect_true(all(
+      netwk$edgelist[alpha, 1] > netwk$edgelist[alpha, 2],
+      netwk$edgelist[beta, 1] != netwk$edgelist[beta, 2],
+      netwk$edgelist[gamma, 1] < netwk$edgelist[gamma, 2]
+    ))
+  }
+
+  check_scenarios(netwk1)
+  check_scenarios(netwk2)
+})

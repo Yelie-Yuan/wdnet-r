@@ -260,7 +260,7 @@ wpr <- function(adj, gamma = 0.85, theta = 1, prior.info) {
 #' Computes the centrality measures of the nodes in a weighted and directed
 #' network.
 #'
-#' @param netwk A \code{wdnet} object representing the network. If \code{NULL},
+#' @param netwk A \code{wdnet} object that represents the network. If \code{NULL},
 #'   the function will compute the coefficient using either \code{edgelist} and
 #'   \code{edgeweight}, or \code{adj}.
 #' @param edgelist  A two-column matrix representing edges of a directd network.

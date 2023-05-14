@@ -23,7 +23,7 @@ NULL
 #'
 #' Compute the clustering coefficient of a weighted and directed network.
 #'
-#' @param netwk A \code{wdnet} object representing the network. If \code{NULL},
+#' @param netwk A \code{wdnet} object that represents the network. If \code{NULL},
 #'   the function will compute the coefficient using either \code{edgelist},
 #'   \code{edgeweight}, or \code{adj}.
 #' @param edgelist  A two column matrix, each row represents a directed edge of
