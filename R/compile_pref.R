@@ -23,10 +23,10 @@ NULL
 #'
 #' @param preference A list for defining the preference functions.
 #'
-#' @return Preference functions and external pointers.
+#' @return Returns the input list and their corresponding external pointers.
 #'
 #' @keywords internal
-#'
+#' 
 compile_pref_func <- function(preference) {
   if (inherits(preference$spref, "character")) {
     temp <- paste("double spref(double outs, double ins) { return ",
@@ -43,7 +43,7 @@ compile_pref_func <- function(preference) {
     )
     preference$spref.pointer <- preference$spref
   } else {
-    stop('Class of "spref" must be "XPtr" or "character".')
+    stop('The class of "spref" must be either "XPtr" or "character".')
   }
   if (inherits(preference$tpref, "character")) {
     temp <- paste("double tpref(double outs, double ins) { return ",
@@ -60,7 +60,7 @@ compile_pref_func <- function(preference) {
     )
     preference$tpref.pointer <- preference$tpref
   } else {
-    stop('Class of "tpref" must be "XPtr" or "character".')
+    stop('The class of "tpref" must be either "XPtr" or "character".')
   }
   if (inherits(preference$pref, "character")) {
     temp <- paste("double pref(double s) { return ",
@@ -77,7 +77,7 @@ compile_pref_func <- function(preference) {
     )
     preference$pref.pointer <- preference$pref
   } else {
-    stop('Class of "pref" must be "XPtr" or "character".')
+    stop('The class of "pref" must be either "XPtr" or "character".')
   }
   return(preference)
 }

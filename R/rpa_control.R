@@ -89,12 +89,12 @@ NULL
 #'
 #' @examples
 #' control <- rpa_control_scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
-#'
+#' 
 rpa_control_scenario <- function(
     alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
     beta.loop = TRUE, source.first = TRUE) {
   stopifnot(
-    '"alpha + beta + gamma + xi + rho" must equal to 1.' =
+    '"alpha + beta + gamma + xi + rho" must be equal to 1.' =
       round(alpha + beta + gamma + xi + rho, 10) == 1
   )
   scenario <- list(
@@ -137,7 +137,7 @@ rpa_control_scenario <- function(
 #'
 #' # Constant edge weight
 #' control <- rpa_control_edgeweight(shift = 2)
-#'
+#' 
 rpa_control_edgeweight <- function(
     distribution = NULL,
     dparams = NULL,
@@ -211,7 +211,7 @@ rpa_control_newedge <- function(
     "tnode.replace" = tnode.replace,
     "node.replace" = node.replace
   )
-  if (!is.null(newedge$dparams) > 0) {
+  if (!is.null(newedge$dparams)) {
     stopifnot(
       '"dparams" must be a list.' = is.list(newedge$dparams)
     )
@@ -228,7 +228,7 @@ rpa_control_newedge <- function(
 #' @param ftype Preference function type. Either "default" or "customized".
 #'   "customized" preference functions require "binary" or "linear" generation
 #'   methods. If using default preference functions, \code{sparams},
-#'   \code{tparams} and \code{params} must be specified. If using costomized
+#'   \code{tparams} and \code{params} must be specified. If using customized
 #'   preference functions, \code{spref}, \code{tpref} and \code{pref} must be
 #'   specified.
 #' @param sparams A numerical vector of length 5 giving the parameters of the
@@ -257,14 +257,13 @@ rpa_control_newedge <- function(
 #'   value is \code{"s + 1"}, i.e, node strength + 1.
 #'
 #' @details If choosing customized preference functions, \code{spref},
-#'   \code{tpref} and and \code{pref} will be used and the network generation
-#'   method must be "binary" or "linear". \code{spref} (\code{tpref}) defines
-#'   the source (target) preference function, it can be a character expression
-#'   or an
+#'   \code{tpref} and \code{pref} will be used and the network generation method
+#'   must be "binary" or "linear". \code{spref} (\code{tpref}) defines the
+#'   source (target) preference function, it can be a character expression or an
 #'   object of class \code{XPtr}. \itemize{ \item{Character expression: } {it
-#'   must be an one-line \code{C++} style expression of \code{outs}
+#'   must be a one-line \code{C++} style expression of \code{outs}
 #'   (node out-strength) and
-#'   \code{ins} (node-instrength). For example, \code{"pow(outs, 2) + 1"},
+#'   \code{ins} (node in-strength). For example, \code{"pow(outs, 2) + 1"},
 #'   \code{"pow(outs, 2) + pow(ins, 2) + 1"}, etc. The expression will be used
 #'   to define an \code{XPtr} via \code{RcppXPtrUtils::cppXPtr}. The \code{XPtr}
 #'   will be passed to the network generation function. The expression must not
@@ -449,7 +448,7 @@ rpa_control_default <- function() {
 #'
 #' @return Returns a list of control names and descriptions.
 #' @keywords internal
-#'
+#' 
 rpa_control_list <- function() {
   control_names <- c(
     "scenario",

@@ -13,7 +13,7 @@ funcPtrD custmTargetPref;
  * id: node id
  * outs, ins: out- and in-strength
  * sourcep: preference of being chosen as a source node
- * targetp: preference of being chosed as a target node
+ * targetp: preference of being chosen as a target node
  * total_sourcep: sum of sourcep of current node and its children
  * total_targetp: sum of targetp of current node and its children
  * *left, *right, *parent: pointers to its left, right and parent

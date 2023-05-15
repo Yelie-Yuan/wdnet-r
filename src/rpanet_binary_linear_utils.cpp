@@ -18,7 +18,7 @@ double prefFuncD(double outs, double ins, double *params)
 }
 
 /**
- * Defult preference function.
+ * Default preference function.
  *
  * @param s Node strength.
  * @param params Parameters passed to the preference function.

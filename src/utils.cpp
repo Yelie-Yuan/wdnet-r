@@ -108,7 +108,7 @@ Rcpp::List node_strength_cpp(arma::vec snode,
 }
 
 //' Uniformly draw a node from existing nodes for each time step.
-//' Defined for \code{wdnet::rpanet}.
+//' Defined for \code{wdnet::rpanet()}.
 //'
 //' @param total_node Number of existing nodes at each time step.
 //' @return Sampled nodes.

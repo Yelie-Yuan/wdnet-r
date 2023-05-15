@@ -19,14 +19,15 @@
 #' @importFrom igraph graph_from_adjacency_matrix as_edgelist E
 NULL
 
-#' Convert adjacency matrix to edgelist and edgeweight through \code{igraph}.
+#' Converts an adjacency matrix to edgelist and edgeweight using the
+#' \code{igraph} package.
 #'
 #' @param adj Adjacency matrix of a network.
-#' @param directed Logical, whether the network is directed. Passed to
-#'   \code{igraph::graph_from_adjacency_matrix}.
+#' @param directed Logical, whether the network is directed. This value is
+#'   passed to \code{igraph::graph_from_adjacency_matrix()}.
 #' @param weighted Logical, whether the network is weighted.
 #'
-#' @return A list of edgelist and edgeweight.
+#' @return A list of edgelist, edgeweight and directed.
 #'
 #' @keywords internal
 #' 
@@ -58,10 +59,10 @@ adj_to_edgelist <- function(adj, directed = TRUE, weighted = TRUE) {
 #'
 #' @param edgelist A two column matrix representing edges.
 #' @param edgeweight A vector representing the weight of edges. If \code{NULL},
-#'   all the edges are considered have weight 1.
+#'   all edges are considered to have a weight of 1.
 #' @param directed Logical, whether the network is directed.
 #'
-#' @return An adjacency matrix.
+#' @return Returns an adjacency matrix.
 #'
 #' @keywords internal
 #' 

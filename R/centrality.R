@@ -44,11 +44,12 @@ NULL
 #' }
 #'
 #' @note Function \code{degree_c} is an extension of function \code{strength} in
-#' package \code{igraph} and an alternative of function \code{degree_w} in
-#' package \code{tnet}. Function \code{degree_c} uses adjacency matrix as input.
+#'   package \code{igraph} and an alternative of function \code{degree_w} in
+#'   package \code{tnet}. Function \code{degree_c} uses adjacency matrix as
+#'   input.
 #'
 #' @keywords internal
-#'
+#' 
 
 degree_c <- function(adj, alpha = 1, mode = "out") {
   if (alpha < 0) {
@@ -110,12 +111,12 @@ degree_c <- function(adj, alpha = 1, mode = "out") {
 #' }
 #'
 #' @note Function \code{closeness_c} is an extension of function
-#' \code{closeness} in package \code{igraph} and function \code{closeness_w} in
-#' package \code{tnet}. The method of computing distances between vertices is
-#' the \emph{Dijkstra's algorithm}.
+#'   \code{closeness} in package \code{igraph} and function \code{closeness_w}
+#'   in package \code{tnet}. The method of computing distances between vertices
+#'   is the \emph{Dijkstra's algorithm}.
 #'
 #' @keywords internal
-#'
+#' 
 
 closeness_c <- function(adj, alpha = 1, mode = "out",
                         method = "harmonic", distance = FALSE) {
@@ -188,10 +189,10 @@ closeness_c <- function(adj, alpha = 1, mode = "out",
 #' }
 #'
 #' @note Function \code{wpr} is an extension of function \code{page_rank} in
-#' package \code{igraph}.
+#'   package \code{igraph}.
 #'
 #' @keywords internal
-#'
+#' 
 
 wpr <- function(adj, gamma = 0.85, theta = 1, prior.info) {
   ## regularity conditions
@@ -260,10 +261,11 @@ wpr <- function(adj, gamma = 0.85, theta = 1, prior.info) {
 #' Computes the centrality measures of the nodes in a weighted and directed
 #' network.
 #'
-#' @param netwk A \code{wdnet} object that represents the network. If \code{NULL},
-#'   the function will compute the coefficient using either \code{edgelist} and
-#'   \code{edgeweight}, or \code{adj}.
-#' @param edgelist  A two-column matrix representing edges of a directd network.
+#' @param netwk A \code{wdnet} object that represents the network. If
+#'   \code{NULL}, the function will compute the coefficient using either
+#'   \code{edgelist} and \code{edgeweight}, or \code{adj}.
+#' @param edgelist  A two-column matrix representing edges of a directed
+#'   network.
 #' @param edgeweight A vector representing the weight of edges.
 #' @param adj An adjacency matrix of a weighted and directed network.
 #' @param directed Logical. Indicates whether the edges in \code{edgelist} or

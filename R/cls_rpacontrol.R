@@ -16,8 +16,8 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' Check if the input is a \code{rpacontrol} object
-#' 
+#' Checks if the input is a \code{rpacontrol} object
+#'
 #' @param control An \code{rpacontrol} object.
 #' @return Logical, \code{TRUE} if the input is a \code{rpacontrol} object.
 #' @keywords internal
@@ -26,7 +26,7 @@ is_rpacontrol <- function(control) {
     return(inherits(control, "rpacontrol"))
 }
 
-#' Print preference functions in terminal
+#' Prints preference functions in terminal
 #' 
 #' @param control An object of class \code{rpacontrol}.
 #' @return Returns \code{NULL} invisibly.
@@ -86,8 +86,8 @@ print_control_preference <- function(control, directed = NULL) {
     invisible(NULL)
 }
 
-#' Print \code{rpacontrol} in terminal
-#' 
+#' Prints \code{rpacontrol} in terminal
+#'
 #' @param x An object of class \code{rpacontrol}.
 #' @param control_name A string of control name.
 #' @param control_description A list of control descriptions.
@@ -117,9 +117,9 @@ print_control_details <- function(x, control_name, control_description) {
 }
 
 
-#' Print an \code{rpacontrol} object
+#' Prints \code{rpacontrol} objects
 #'
-#' These functions print an \code{rpacontrol} object in the terminal.
+#' These functions print \code{rpacontrol} objects in the terminal.
 #' \code{print.rpacontrol()} shows only the current controls, whereas
 #' \code{summary.rpacontrol()} includes both specified controls and the
 #' unspecified controls that use default values.
@@ -135,7 +135,7 @@ print_control_details <- function(x, control_name, control_description) {
 #'
 #' control <- rpa_control_scenario()
 #' print(control)
-#'
+#' 
 print.rpacontrol <- function(x, ...) {
     tmp <- rpa_control_list()
     control_names <- names(x)
@@ -153,8 +153,8 @@ print.rpacontrol <- function(x, ...) {
 #' @export
 #' 
 summary.rpacontrol <- function(object, ...) {
-    control_defalt <- rpa_control_default()
-    object <- control_defalt + object
+    control_default <- rpa_control_default()
+    object <- control_default + object
 
     tmp <- rpa_control_list()
     control_names <- tmp$control_names
@@ -165,7 +165,7 @@ summary.rpacontrol <- function(object, ...) {
     cat("Specified control(s):\n")
     cat("--------------------\n")
     for (each in control_names) {
-        if (!identical(control_defalt[[each]], object[[each]])) {
+        if (!identical(control_default[[each]], object[[each]])) {
             print_control_details(object, each, control_descriptions)
             count <- 1
         }
@@ -176,7 +176,7 @@ summary.rpacontrol <- function(object, ...) {
     cat("\nDefault (unspecified) controls:\n")
     cat("------------------------------\n")
     for (each in control_names) {
-        if (identical(control_defalt[[each]], object[[each]])) {
+        if (identical(control_default[[each]], object[[each]])) {
             print_control_details(object, each, control_descriptions)
             count <- 1
         }

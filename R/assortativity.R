@@ -83,9 +83,9 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 
 #' Compute the assortativity coefficient(s) for a network.
 #'
-#' @param netwk A \code{wdnet} object that represents the network. If \code{NULL},
-#'   the function will compute the coefficient using either \code{edgelist} and
-#'   \code{edgeweight}, or \code{adj}.
+#' @param netwk A \code{wdnet} object that represents the network. If
+#'   \code{NULL}, the function will compute the coefficient using either
+#'   \code{edgelist} and \code{edgeweight}, or \code{adj}.
 #' @param edgelist A two-column matrix representing edges.
 #' @param edgeweight A numeric vector of edge weights with the same length as
 #'   the number of rows in edgelist. If \code{NULL}, all edges will be assigned
@@ -93,11 +93,10 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #' @param adj The adjacency matrix of a network.
 #' @param directed Logical. Indicates whether the edges in \code{edgelist} or
 #'   \code{adj} are directed. It will be omitted if \code{netwk} is provided.
-#' @param f1 A vector representing the first feature of existing nodes. 
-#'   The number of nodes 
-#'   should be equal to the length of both \code{f1} and \code{f2}. 
-#'   Defined for directed networks.
-#'   If \code{NULL}, out-strength will be used.
+#' @param f1 A vector representing the first feature of existing nodes. The
+#'   number of nodes should be equal to the length of both \code{f1} and
+#'   \code{f2}. Defined for directed networks. If \code{NULL}, out-strength will
+#'   be used.
 #' @param f2 A vector representing the second feature of existing nodes. Defined
 #'   for directed networks. If \code{NULL}, in-strength will be used.
 #'
@@ -130,7 +129,7 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #'   edgeweight = netwk$edge.attr$weight,
 #'   directed = TRUE
 #' )
-#'
+#' 
 assortcoef <- function(
     netwk,
     edgelist,

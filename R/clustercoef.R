@@ -23,9 +23,9 @@ NULL
 #'
 #' Compute the clustering coefficient of a weighted and directed network.
 #'
-#' @param netwk A \code{wdnet} object that represents the network. If \code{NULL},
-#'   the function will compute the coefficient using either \code{edgelist},
-#'   \code{edgeweight}, or \code{adj}.
+#' @param netwk A \code{wdnet} object that represents the network. If
+#'   \code{NULL}, the function will compute the coefficient using either
+#'   \code{edgelist}, \code{edgeweight}, or \code{adj}.
 #' @param edgelist  A two column matrix, each row represents a directed edge of
 #'   the network.
 #' @param edgeweight A vector representing the weight of edges.
@@ -36,19 +36,19 @@ NULL
 #'   and Grassi (2018) or Fagiolo (2007).
 #' @param isolates character, defines how to treat vertices with degree zero and
 #'   one. If "zero", then their clustering coefficient is returned as 0 and are
-#'   included in the averaging. Otherwise, their clustering coefficient is NaN
+#'   included in the averaging. Otherwise, their clustering coefficient is \code{NaN}
 #'   and are excluded in the averaging. Default value is "zero".
 #'
-#' @return lists of local clustering coefficients (in terms of a vector), global
+#' @return Lists of local clustering coefficients (in terms of a vector), global
 #'   clustering coefficient (in terms of a scalar) and number of weighted
-#'   directed triangles (in terms of a vector) base on \code{total}, \code{in},
+#'   directed triangles (in terms of a vector) based on \code{total}, \code{in},
 #'   \code{out}, middleman (\code{middle}), or \code{cycle} triplets.
 #'
 #' @references
 #' \itemize{
 #'   \item Barrat, A., Barth\'{e}lemy, M., Pastor-Satorras,
 #'   R. and Vespignani, A. (2004). The architecture of complex weighted
-#'   networks. \emph{Proceddings of National Academy of Sciences of the United
+#'   networks. \emph{Proceedings of National Academy of Sciences of the United
 #'   States of America}, 101(11), 3747--3752.
 #'   \item Clemente, G.P. and Grassi,
 #'   R. (2018). Directed clustering in weighted networks: A new perspective.
@@ -73,7 +73,7 @@ NULL
 #' system.time(mycc)
 #'
 #' @export
-#'
+#' 
 
 clustcoef <- function(
     netwk,
@@ -112,7 +112,7 @@ clustcoef <- function(
   s_tot <- s_in + s_out
   s_bil <- (Matrix::colSums(Matrix::t(adj) * A) +
     Matrix::colSums(Matrix::t(A) * adj)) / 2
-  ## Compute degee vector
+  ## Compute degree vector
   d_in <- Matrix::colSums(A)
   d_out <- Matrix::rowSums(A)
   d_tot <- d_in + d_out

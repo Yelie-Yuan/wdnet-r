@@ -30,7 +30,7 @@ NULL
 #' @return A list of distributions and degree vectors.
 #'
 #' @keywords internal
-#'
+#' 
 get_dist <- function(edgelist, directed = TRUE,
                      joint_dist = FALSE) {
   if (!directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
@@ -106,7 +106,7 @@ get_dist <- function(edgelist, directed = TRUE,
 #' @return A list of updated constraints.
 #'
 #' @keywords internal
-#'
+#' 
 get_constr <- function(constrs, target.assortcoef, rho) {
   for (type in names(target.assortcoef)) {
     if (!is.null(target.assortcoef[[type]])) {
@@ -128,10 +128,10 @@ get_constr <- function(constrs, target.assortcoef, rho) {
 #' @param result A list returned from \code{CVXR::solve()}.
 #' @param mydist A list returned from \code{get_dist()}.
 #'
-#' @return Value of the object.
+#' @return Returns the value of the object.
 #'
 #' @keywords internal
-#'
+#' 
 get_values <- function(object, result, mydist) {
   outout <- result$getValue(object[["outout"]])
   outin <- result$getValue(object[["outin"]])
@@ -228,7 +228,7 @@ cvxr_control <- function(
 #'   predetermined \code{target.assortcoef} is satisfied.
 #'
 #' @keywords internal
-#'
+#' 
 get_eta_directed <- function(
     edgelist,
     target.assortcoef = list(
@@ -349,7 +349,7 @@ get_eta_directed <- function(
 #' Compute edge-level distribution for undirected networks with respect to
 #' desired assortativity level.
 #'
-#' @param edgelist A two column matrix represents the undirected edges of a
+#' @param edgelist A two column matrix representing the undirected edges of a
 #'   network.
 #' @param target.assortcoef Numeric, represents the predetermined assortativity
 #'   coefficient. If \code{NA}, the range of assortativity coefficient and
@@ -362,7 +362,7 @@ get_eta_directed <- function(
 #' @return Assortativity level and corresponding edge-level distribution.
 #'
 #' @keywords internal
-#'
+#' 
 get_eta_undirected <- function(
     edgelist, target.assortcoef = NULL,
     eta.obj = function(x) 0,

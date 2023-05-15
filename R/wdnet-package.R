@@ -28,7 +28,7 @@
 ##'
 ##' The development version of this package is available on Gitlab
 ##' (\url{https://gitlab.com/wdnetwork/wdnet}).
-##' 
+##'
 ##' @docType package
 ##' @name wdnet
 ##' @useDynLib wdnet, .registration = TRUE

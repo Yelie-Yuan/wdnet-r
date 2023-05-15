@@ -22,16 +22,16 @@ NULL
 
 #' Internal functions for generating PA networks
 #'
-#' Generating a PA network with linear (\code{rpanet_simple}) or non-linear
-#' (\code{rpanet_general}) preference functions
+#' These functions generate a PA network with linear (\code{rpanet_simple}) or
+#' non-linear (\code{rpanet_general}) preference functions
 #'
 #' @param nstep Number of steps when generating a network.
 #' @param initial.network A \code{wdnet} object or a list representing the seed
 #'   network. By default, \code{initial.network} has one edge from node 1 to
-#'   node 2 with weight 1. It may have the following components: a two column
-#'   matrix \code{edgelist} represents the edges; a vector \code{edgeweight}
-#'   represents the weight of edges; an integer vector \code{nodegroup}
-#'   represents the group of nodes. \code{nodegroup} is defined for directed
+#'   node 2 with weight 1. It may contain the following components: a two column
+#'   matrix \code{edgelist} representing the edges; a vector \code{edgeweight}
+#'   representing the weight of edges; an integer vector \code{nodegroup}
+#'   representing the group of nodes. \code{nodegroup} is defined for directed
 #'   networks, if \code{NULL}, all nodes from the seed network are considered
 #'   from group 1.
 #' @param control A list of parameters that controls the PA generation process.
@@ -54,8 +54,9 @@ NULL
 #'   of new edges in each step \code{newedge} (including reciprocal edges);
 #'   \code{node.attr}, including node strengths, preference scores and node
 #'   group (if applicable); control list \code{control}; edge scenario
-#'   \code{scenario} (1~alpha, 2~beta, 3~gamma, 4~xi, 5~rho, 6~reciprocal). The
-#'   edges from \code{initial.network} are denoted as scenario 0.
+#'   \code{scenario} (1 corresponds to alpha, 2 to beta, 3 to gamma, 4 to xi, 5
+#'   to rho, and 6 to reciprocal). The edges from the \code{initial.network} are
+#'   denoted as scenario 0.
 #'
 #' @rdname rpanet.internal
 #' @keywords internal
@@ -72,15 +73,10 @@ rpanet_general <- function(
   node_vec1[1:nedge] <- initial.network$edgelist[, 1] - 1
   node_vec2[1:nedge] <- initial.network$edgelist[, 2] - 1
   scenario[1:nedge] <- 0
-  # seed_strength <- node_strength_cpp(
-  #   initial.network$edgelist[, 1],
-  #   initial.network$edgelist[, 2],
-  #   initial.network$edge.attr$weight,
-  #   nnode,
-  #   weighted = TRUE
-  # )
-  control$preference$ftype.temp <- ifelse(control$preference$ftype == "default",
-    yes = 1, no = 2
+
+  control$preference$ftype.temp <- ifelse(
+    control$preference$ftype == "default",
+    1, 2
   )
   if (directed) {
     outs <- double(node_vec_length)
@@ -95,7 +91,6 @@ rpanet_general <- function(
     }
     nodegroup <- integer(node_vec_length)
     nodegroup[1:nnode] <- initial.network$node.attr$group - 1
-    # nodegroup <- c(initial.network$node.attr$group - 1, integer(node_vec_length))
     if (method == "binary") {
       ret_c <- rpanet_binary_directed(
         nstep,
@@ -185,7 +180,8 @@ rpanet_general <- function(
       "directed" = directed,
       "edge.attr" = data.frame(
         "weight" = edgeweight[1:nedge],
-        "scenario" = ret_c$scenario[1:nedge])
+        "scenario" = ret_c$scenario[1:nedge]
+      )
     ),
     class = "wdnet"
   )

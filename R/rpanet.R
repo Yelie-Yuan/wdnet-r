@@ -27,45 +27,44 @@ NULL
 #' preference functions.
 #'
 #' @param nstep Number of steps.
-#' @param initial.network A \code{wdnet} object or a list represents the seed
-#'   network. By default, \code{initial.network} has one edge from node 1 to
-#'   node 2 with weight 1. It may have the following components: a two column
-#'   matrix \code{edgelist} represents the edges; a vector \code{edgeweight}
-#'   represents the weight of edges; an integer vector \code{nodegroup}
-#'   represents the group of nodes. \code{nodegroup} is defined for directed
+#' @param initial.network A \code{wdnet} object or a list that represents the
+#'   seed network. By default, \code{initial.network} has one edge from node 1
+#'   to node 2 with weight 1. It may have the following components: a two-column
+#'   matrix \code{edgelist} representing the edges; a vector \code{edgeweight}
+#'   representing the weight of edges; an integer vector \code{nodegroup}
+#'   representing the group of nodes. \code{nodegroup} is defined for directed
 #'   networks, if \code{NULL}, all nodes from the seed network are considered
 #'   from group 1.
-#' @param control An \code{rpacontrol} object controlling the PA network generation
-#'   process. If not specified, all the control parameters will be
-#'   set to default. For more details, see
-#'   \code{rpa_control_scenario()}, \code{rpa_control_newedge()},
-#'   \code{rpa_control_edgeweight()}, \code{rpa_control_preference} and
-#'   \code{rpa_control_reciprocal()}. Under the default setup, at each step, a
-#'   new edge of weight 1 is added from a new node \code{A} to an existing node
-#'   \code{B} (\code{alpha} scenario), where \code{B} is chosen with probability
-#'   proportional to its in-strength + 1.
+#' @param control An \code{rpacontrol} object controlling the PA network
+#'   generation process. If not specified, all the control parameters will be
+#'   set to default. For more details, see \code{rpa_control_scenario()},
+#'   \code{rpa_control_newedge()}, \code{rpa_control_edgeweight()},
+#'   \code{rpa_control_preference} and \code{rpa_control_reciprocal()}. Under
+#'   the default setup, at each step, a new edge of weight 1 is added from a new
+#'   node \code{A} to an existing node \code{B} (\code{alpha} scenario), where
+#'   \code{B} is chosen with probability proportional to its in-strength + 1.
 #' @param directed Logical, whether to generate a directed network.
 #' @param method Which method to use: \code{binary}, \code{linear}, \code{bagx}
 #'   or \code{bag}. For \code{bag} and \code{bagx} methods, \code{beta.loop}
-#'   must be \code{TRUE}; default preference functions must be used and
-#'   \code{sparams = c(1, 1, 0, 0, a)}, \code{tparams = c(0, 0, 1, 1, b)},
-#'   \code{param = c(1, c)}, where \code{a}, \code{b} and \code{c} are
-#'   non-negative constants; reciprocal edges and sampling without replacement
-#'   are not considered, i.e., option \code{rpa_control_reciprocal()} must be
-#'   set as default, \code{snode.replace}, \code{tnode.replace} and
-#'   \code{node.replace} must be \code{TRUE}. In addition, \code{nodelsit}
-#'   method only works for unweighted networks and does not consider multiple
-#'   edges, i.e., \code{rpa_control_edgeweight()} and
-#'   \code{rpa_control_newedge()} must be set as default.
+#'   must be \code{TRUE}, default preference functions must be used, and
+#'   \code{sparams} should be set to \code{c(1, 1, 0, 0, a)}, \code{tparams} to
+#'   \code{c(0, 0, 1, 1, b)}, and \code{param} to \code{c(1, c)}, where
+#'   \code{a}, \code{b}, and \code{c} are non-negative constants; furthermore,
+#'   reciprocal edges and sampling without replacement are not considered, i.e.,
+#'   option \code{rpa_control_reciprocal()} must be set as default,
+#'   \code{snode.replace}, \code{tnode.replace} and \code{node.replace} must be
+#'   \code{TRUE}. In addition, \code{bag} method only works for unweighted
+#'   networks and does not consider multiple edges, i.e.,
+#'   \code{rpa_control_edgeweight()} and \code{rpa_control_newedge()} must be
+#'   set as default.
 #'
 #'
-#' @return A list with the following components: a \code{wdnet} object;
-#'   number of new edges at each step \code{newedge}
-#'   (including reciprocal edges); \code{node.attr}, including node
-#'   strengths, preference scores and node group (if applicable); control list
-#'   \code{control}; edge scenario \code{scenario} (0: from initial network; 1:
-#'   \code{alpha}; 2: \code{beta}; 3: \code{gamma}; 4: \code{xi}; 5; \code{rho};
-#'   6: reciprocal).
+#' @return A list with the following components: a \code{wdnet} object; number
+#'   of new edges at each step \code{newedge} (including reciprocal edges);
+#'   \code{node.attr}, including node strengths, preference scores and node
+#'   group (if applicable); control list \code{control}; edge scenario
+#'   \code{scenario} (0: from initial network; 1: \code{alpha}; 2: \code{beta};
+#'   3: \code{gamma}; 4: \code{xi}; 5; \code{rho}; 6: reciprocal).
 #'
 #' @note The \code{binary} method implements binary search algorithm;
 #'   \code{linear} represents linear search algorithm; \code{bag} method
@@ -106,7 +105,7 @@ NULL
 #'   dparams = list(lambda = 2), shift = 1
 #' )
 #' ret3 <- rpanet(nstep = 1e3, initial.network = ret2, control = control)
-#'
+#' 
 rpanet <- function(
     nstep, initial.network = list(
       edgelist = matrix(c(1, 2), nrow = 1)
@@ -120,8 +119,8 @@ rpanet <- function(
     if (initial.network$directed != directed) {
       directed <- initial.network$directed
       cat(
-        "Generate a", ifelse(directed, "directed", "undirected"),
-        "network since the initial network is",
+        "Generating a", ifelse(directed, "directed", "undirected"),
+        "network because the initial network is",
         ifelse(directed, "directed", "undirected"), ".\n"
       )
     }

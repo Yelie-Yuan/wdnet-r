@@ -21,7 +21,7 @@
 #' @importFrom utils head
 NULL
 
-#' Creates a \code{wdnet} object using edgelist.
+#' Creates a \code{wdnet} object using \code{edgelist}.
 #'
 #' @param edgelist A two-column matrix representing the edges.
 #' @param edgeweight A numeric vector of edge weights with the same length as
@@ -33,7 +33,7 @@ NULL
 #' @return A \code{wdnet} object with the specified \code{edgelist},
 #'   \code{edgeweight} and \code{directed}.
 #' @export
-#'
+#' 
 edgelist_to_wdnet <- function(
     edgelist,
     edgeweight,
@@ -116,7 +116,7 @@ edgelist_to_wdnet <- function(
   return(netwk)
 }
 
-#' Create a \code{wdnet} object from an adjacency matrix
+#' Creates a \code{wdnet} object using an adjacency matrix
 #'
 #' @param adj An adjacency matrix used to extract \code{edgelist} and
 #'   \code{edgeweight} using \code{igraph}.
@@ -130,7 +130,7 @@ edgelist_to_wdnet <- function(
 #' @examples
 #' adj <- matrix(c(0, 1, 2, 0), nrow = 2, ncol = 2)
 #' adj_to_wdnet(adj = adj, directed = TRUE, weighted = FALSE)
-#'
+#' 
 adj_to_wdnet <- function(
     adj,
     directed = TRUE,
@@ -180,9 +180,9 @@ adj_to_wdnet <- function(
 }
 
 
-#' Create a \code{wdnet} object from input data.
+#' Creates a \code{wdnet} object from input data.
 #'
-#' This function creates a \code{wdnet} objec from \code{edgelist} and
+#' This function creates a \code{wdnet} object from \code{edgelist} and
 #' \code{edgeweight} or \code{adj} or returns the existing \code{wdnet} object.
 #' For internal usage.
 #'
@@ -254,7 +254,7 @@ create_wdnet <- function(
   invisible(netwk)
 }
 
-#' Check if the input is a \code{wdnet} object
+#' Checks if the input is a \code{wdnet} object
 #'
 #' @param netwk A \code{wdnet} object.
 #' @return Logical, \code{TRUE} if argument netwk is a \code{wdnet} object.
@@ -262,7 +262,7 @@ create_wdnet <- function(
 #' @examples
 #' netwk <- rpanet(nstep = 1e3)
 #' is_wdnet(netwk)
-#'
+#' 
 is_wdnet <- function(netwk) {
   valid_attrs <- c("edgelist", "directed", "weighted", "edge.attr", "node.attr")
   valid_cols <- ifelse(netwk$directed, c("outs", "ins"), c("s"))
@@ -279,7 +279,7 @@ is_wdnet <- function(netwk) {
   )
 }
 
-#' Convert a \code{wdnet} object to an \code{igraph} object
+#' Converts a \code{wdnet} object to an \code{igraph} object
 #'
 #' @param netwk A \code{wdnet} object.
 #'
@@ -289,7 +289,7 @@ is_wdnet <- function(netwk) {
 #' @examples
 #' netwk <- rpanet(nstep = 1e3)
 #' g <- wdnet_to_igraph(netwk)
-#'
+#' 
 wdnet_to_igraph <- function(netwk) {
   stopifnot(is_wdnet(netwk))
   g <- igraph::graph_from_edgelist(netwk$edgelist,
@@ -314,7 +314,7 @@ wdnet_to_igraph <- function(netwk) {
   return(g)
 }
 
-#' Convert an \code{igraph} object to a \code{wdnet} object
+#' Converts an \code{igraph} object to a \code{wdnet} object
 #'
 #' @param g An \code{igraph} object.
 #'
@@ -324,7 +324,7 @@ wdnet_to_igraph <- function(netwk) {
 #' @examples
 #' g <- igraph::sample_pa(50)
 #' netwk <- igraph_to_wdnet(g)
-#'
+#' 
 igraph_to_wdnet <- function(g) {
   stopifnot(igraph::is.igraph(g))
   
@@ -364,23 +364,23 @@ igraph_to_wdnet <- function(g) {
   netwk
 }
 
-#' Plot networks
+#' Plots the input network
 #'
-#' Plot the input network via \code{igraph::plot.igraph()}.
+#' Plots the input network via \code{igraph::plot.igraph()}.
 #'
 #' @param x A \code{wdnet} object.
 #' @param ... Additional parameters passed to \code{igraph::plot.igraph()}.
 #' @return Returns \code{NULL}, invisibly.
 #' @method plot wdnet
 #' @export
-#'
+#' 
 plot.wdnet <- function(x, ...) {
   stopifnot(is_wdnet(x))
   igraph::plot.igraph(wdnet_to_igraph(x), ...)
   invisible(NULL)
 }
 
-#' Print networks
+#' Prints the input network
 #'
 #' These functions print a network to the terminal.
 #'

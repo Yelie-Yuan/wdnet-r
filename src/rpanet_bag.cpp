@@ -1,8 +1,8 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 
-//' Preferential attachment algorithm for simple situations, 
-//' i.e., edge weight equals to 1, number of new edges per step is 1.
+//' Preferential attachment algorithm for simple situations,
+//' i.e., edge weight equals 1, each step adds one new edge.
 //'
 //' @param snode Source nodes.
 //' @param tnode Target nodes.
@@ -12,129 +12,161 @@
 //' @param delta_out Tuning parameter.
 //' @param delta_in Tuning parameter.
 //' @param directed Whether the network is directed.
-//' @return Number of nodes, sequences of source and target nodes.
+//' @return Returns a list that includes the total number of nodes, sequences of source and target nodes.
 //'
 //' @keywords internal
-//' 
+//'
 // [[Rcpp::export]]
 Rcpp::List rpanet_bag_cpp(arma::vec snode,
-                               arma::vec tnode,
-                               arma::vec scenario,
-                               int nnode,
-                               int nedge,
-                               double delta_out,
-                               double delta_in, 
-                               bool directed) {
+                          arma::vec tnode,
+                          arma::vec scenario,
+                          int nnode,
+                          int nedge,
+                          double delta_out,
+                          double delta_in,
+                          bool directed)
+{
   GetRNGstate();
   int n = scenario.size();
   double u, v;
   int j;
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++)
+  {
     j = scenario[i];
-    switch(j) {
-      case 1: {
-        u = unif_rand() * (nedge + nnode * delta_in);
-        if (u < nedge) {
-          if (directed) {
-            tnode[nedge] = tnode[floor(u)] ;
+    switch (j)
+    {
+    case 1:
+    {
+      u = unif_rand() * (nedge + nnode * delta_in);
+      if (u < nedge)
+      {
+        if (directed)
+        {
+          tnode[nedge] = tnode[floor(u)];
+        }
+        else
+        {
+          v = unif_rand();
+          if (v <= 0.5)
+          {
+            tnode[nedge] = snode[floor(u)];
           }
-          else {
-            v = unif_rand();
-            if (v <= 0.5) {
-              tnode[nedge] = snode[floor(u)];
-            } 
-            else {
-              tnode[nedge] = tnode[floor(u)];
-            }
+          else
+          {
+            tnode[nedge] = tnode[floor(u)];
           }
         }
-        else {
-          tnode[nedge] = ceil((u - nedge) / delta_in);
+      }
+      else
+      {
+        tnode[nedge] = ceil((u - nedge) / delta_in);
+      }
+      nnode++;
+      snode[nedge] = nnode;
+      break;
+    }
+    case 2:
+    {
+      u = unif_rand() * (nedge + nnode * delta_out);
+      if (u < nedge)
+      {
+        if (directed)
+        {
+          snode[nedge] = snode[floor(u)];
         }
-        nnode++;
-        snode[nedge] = nnode;
-        break;
-      }
-      case 2: {
-        u = unif_rand() * (nedge + nnode * delta_out);
-        if (u < nedge) {
-          if (directed) {
-            snode[nedge] = snode[floor(u)] ;
+        else
+        {
+          v = unif_rand();
+          if (v <= 0.5)
+          {
+            snode[nedge] = snode[floor(u)];
           }
-          else {
-            v = unif_rand();
-            if (v <= 0.5) {
-              snode[nedge] = snode[floor(u)];
-            } 
-            else {
-              snode[nedge] = tnode[floor(u)];
-            }
+          else
+          {
+            snode[nedge] = tnode[floor(u)];
           }
-        } 
-        else {
-          snode[nedge] = ceil((u - nedge) / delta_out);
         }
-        
-        u = unif_rand() * (nedge + nnode * delta_in);
-        if (u < nedge) {
-          if (directed) {
-            tnode[nedge] = tnode[floor(u)] ;
-          }
-          else {
-            v = unif_rand();
-            if (v <= 0.5) {
-              tnode[nedge] = snode[floor(u)];
-            } 
-            else {
-              tnode[nedge] = tnode[floor(u)];
-            }
-          }
-        } 
-        else {
-          tnode[nedge] = ceil((u - nedge) / delta_in);
+      }
+      else
+      {
+        snode[nedge] = ceil((u - nedge) / delta_out);
+      }
+
+      u = unif_rand() * (nedge + nnode * delta_in);
+      if (u < nedge)
+      {
+        if (directed)
+        {
+          tnode[nedge] = tnode[floor(u)];
         }
-        break;
-      }
-      case 3: {
-        u = unif_rand() * (nedge + nnode * delta_out);
-        if (u < nedge) {
-          if (directed) {
-            snode[nedge] = snode[floor(u)] ;
+        else
+        {
+          v = unif_rand();
+          if (v <= 0.5)
+          {
+            tnode[nedge] = snode[floor(u)];
           }
-          else {
-            v = unif_rand();
-            if (v <= 0.5) {
-              snode[nedge] = snode[floor(u)];
-            } 
-            else {
-              snode[nedge] = tnode[floor(u)];
-            }
+          else
+          {
+            tnode[nedge] = tnode[floor(u)];
           }
-        } 
-        else {
-          snode[nedge] = ceil((u - nedge) / delta_out);
         }
-        nnode++;
-        tnode[nedge] = nnode;
-        break;
       }
-      case 4: {
-        nnode += 2;
-        snode[nedge] = nnode - 1;
-        tnode[nedge] = nnode;
-        break;
+      else
+      {
+        tnode[nedge] = ceil((u - nedge) / delta_in);
       }
-      case 5: {
-        nnode++;
-        snode[nedge] = nnode;
-        tnode[nedge] = nnode;
-        break;
+      break;
+    }
+    case 3:
+    {
+      u = unif_rand() * (nedge + nnode * delta_out);
+      if (u < nedge)
+      {
+        if (directed)
+        {
+          snode[nedge] = snode[floor(u)];
+        }
+        else
+        {
+          v = unif_rand();
+          if (v <= 0.5)
+          {
+            snode[nedge] = snode[floor(u)];
+          }
+          else
+          {
+            snode[nedge] = tnode[floor(u)];
+          }
+        }
       }
+      else
+      {
+        snode[nedge] = ceil((u - nedge) / delta_out);
+      }
+      nnode++;
+      tnode[nedge] = nnode;
+      break;
+    }
+    case 4:
+    {
+      nnode += 2;
+      snode[nedge] = nnode - 1;
+      tnode[nedge] = nnode;
+      break;
+    }
+    case 5:
+    {
+      nnode++;
+      snode[nedge] = nnode;
+      tnode[nedge] = nnode;
+      break;
+    }
     }
     nedge++;
   }
   PutRNGstate();
-  
+
   Rcpp::List ret;
   ret["snode"] = snode;
   ret["tnode"] = tnode;
