@@ -59,12 +59,23 @@ NULL
 #'   set as default.
 #'
 #'
-#' @return A list with the following components: a \code{wdnet} object; number
-#'   of new edges at each step \code{newedge} (including reciprocal edges);
-#'   \code{node.attr}, including node strengths, preference scores and node
-#'   group (if applicable); control list \code{control}; edge scenario
-#'   \code{scenario} (0: from initial network; 1: \code{alpha}; 2: \code{beta};
-#'   3: \code{gamma}; 4: \code{xi}; 5; \code{rho}; 6: reciprocal).
+#' @return Returns a \code{wdnet} object that includes the following components:
+#' \itemize{
+#' \item \code{directed}: Logical, whether the network is directed.
+#' \item \code{weighted}: Logical, whether the network is weighted.
+#' \item \code{edgelist}: A two-column matrix representing the edges.
+#' \item \code{edge.attr}: A data frame including edge weights and edge
+#' scenarios (0: from initial network; 1: \code{alpha}; 2: \code{beta};
+#' 3: \code{gamma}; 4: \code{xi}; 5; \code{rho}; 6: reciprocal edge).
+#' \item \code{node.attr}: A data frame including node out- and
+#' in-strength, node source and target preference scores (for directed
+#' networks), node strength and preference scores (for undirected
+#' networks), and node group (if applicable).
+#' \item \code{newedge}: The number of new edges at each step, including
+#' reciprocal edges.
+#' \item \code{control}: An \code{rpacontrol} object that is used to
+#' generate the network.
+#' }
 #'
 #' @note The \code{binary} method implements binary search algorithm;
 #'   \code{linear} represents linear search algorithm; \code{bag} method

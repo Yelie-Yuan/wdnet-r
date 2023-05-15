@@ -50,13 +50,23 @@ NULL
 #'   "linear".
 #' @param sample.recip Whether reciprocal edges will be added.
 #'
-#' @return A list with the following components: a \code{wdnet} object; number
-#'   of new edges in each step \code{newedge} (including reciprocal edges);
-#'   \code{node.attr}, including node strengths, preference scores and node
-#'   group (if applicable); control list \code{control}; edge scenario
-#'   \code{scenario} (1 corresponds to alpha, 2 to beta, 3 to gamma, 4 to xi, 5
-#'   to rho, and 6 to reciprocal). The edges from the \code{initial.network} are
-#'   denoted as scenario 0.
+#' @return Returns a \code{wdnet} object that includes the following components:
+#' \itemize{
+#' \item \code{directed}: Logical, whether the network is directed.
+#' \item \code{weighted}: Logical, whether the network is weighted.
+#' \item \code{edgelist}: A two-column matrix representing the edges.
+#' \item \code{edge.attr}: A data frame including edge weights and edge
+#' scenarios (0: from initial network; 1: \code{alpha}; 2: \code{beta};
+#' 3: \code{gamma}; 4: \code{xi}; 5; \code{rho}; 6: reciprocal edge).
+#' \item \code{node.attr}: A data frame including node out- and
+#' in-strength, node source and target preference scores (for directed
+#' networks), node strength and preference scores (for undirected
+#' networks), and node group (if applicable).
+#' \item \code{newedge}: The number of new edges at each step, including
+#' reciprocal edges.
+#' \item \code{control}: An \code{rpacontrol} object that is used to
+#' generate the network.
+#' }
 #'
 #' @rdname rpanet.internal
 #' @keywords internal

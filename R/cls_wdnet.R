@@ -32,6 +32,11 @@ NULL
 #' @param ... Additional components to be added to the \code{wdnet} object.
 #' @return A \code{wdnet} object with the specified \code{edgelist},
 #'   \code{edgeweight} and \code{directed}.
+#' @examples
+#' edgelist <- matrix(c(1, 2, 2, 3, 3, 1), ncol = 2, byrow = TRUE)
+#' edgeweight <- c(1, 2, 3)
+#' netwk <- edgelist_to_wdnet(edgelist, edgeweight)
+#' 
 #' @export
 #' 
 edgelist_to_wdnet <- function(
@@ -128,7 +133,7 @@ edgelist_to_wdnet <- function(
 #' @return A \code{wdnet} object with the specified \code{adj}.
 #' @export
 #' @examples
-#' adj <- matrix(c(0, 1, 2, 0), nrow = 2, ncol = 2)
+#' adj <- matrix(c(0, 1, 2, 0), nrow = 2, ncol = 2, byrow = TRUE)
 #' adj_to_wdnet(adj = adj, directed = TRUE, weighted = FALSE)
 #' 
 adj_to_wdnet <- function(

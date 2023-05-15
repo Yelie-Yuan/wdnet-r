@@ -20,6 +20,32 @@
 #' @importFrom Rcpp sourceCpp
 NULL
 
+
+#' rpacontrol: Controls the Preferential Attachment (PA) Network Generation
+#' Process
+#'
+#' The \code{rpacontrol} object is designed to control the Preferential
+#' Attachment (PA) network generation process within the \code{rpanet()}
+#' function. It can have the following components:
+#' \itemize{
+#' \item \code{scenario}: controls the edge scenarios
+#' at each step. For more information, please refer to
+#' \code{rpa_control_scenario()}.
+#' \item \code{edgeweight}: controls the weight of
+#' the edges; see \code{rpa_control_edgeweight()} for details.
+#' \item \code{newedge}: controls the creation of
+#' new edges at each step; see \code{rpa_control_newedge()}
+#' for details.
+#' \item \code{preference}: sets preference functions; see
+#' \code{rpa_control_preference()} for details.
+#' \item \code{reciprocal}: controls the creation of reciprocal
+#' edges; see \code{rpa_control_reciprocal()} for details.
+#' }
+#' @name rpacontrol
+#' 
+NULL
+
+
 #' Add components to the control list
 #'
 #' `+` is used to combine components to control the PA network generation
@@ -444,7 +470,7 @@ rpa_control_default <- function() {
     rpa_control_preference()
 }
 
-#' Names and descriptions of controls for \code{rpanet}
+#' Names and descriptions of controls for \code{rpanet()}
 #'
 #' @return Returns a list of control names and descriptions.
 #' @keywords internal
