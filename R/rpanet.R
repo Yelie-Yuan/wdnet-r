@@ -161,7 +161,6 @@ rpanet <- function(
   }
 
   nnode <- max(netwk$edgelist)
-  netwk <- netwk
   nedge <- nrow(netwk$edgelist)
   if (is.null(netwk$node.attr$group)) {
     netwk$node.attr$group <- rep(1, nnode)
