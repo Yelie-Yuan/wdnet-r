@@ -215,7 +215,7 @@ wpr <- function(adj, gamma = 0.85, theta = 1, prior.info) {
   if ((sum(prior.info) == 0) || any(prior.info < 0)) {
     stop("The prior information is invalid!")
   }
-  if (sum(prior.info) != 1) {
+  if (abs(sum(prior.info) - 1) > 1e-10) {
     prior.info <- prior.info / sum(prior.info)
     warning("The prior information is not normalized!")
   }
