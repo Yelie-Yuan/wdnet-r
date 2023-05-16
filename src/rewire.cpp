@@ -33,7 +33,7 @@ Rcpp::List dprewire_directed_cpp(
     arma::uvec index_t,
     arma::mat eta, 
     bool rewire_history) {
-  GetRNGstate();
+  // GetRNGstate();
   arma::vec outout(iteration, arma::fill::zeros);
   arma::vec outin(iteration, arma::fill::zeros);
   arma::vec inout(iteration, arma::fill::zeros);
@@ -111,7 +111,7 @@ Rcpp::List dprewire_directed_cpp(
     // r_in_in[n] = (arma::cor(r_sourceIn, r_targetIn)).eval()(0, 0);
   }
   
-  PutRNGstate();
+  // PutRNGstate();
   Rcpp::List ret;
   ret["tnode"] = tnode;
   if (rewire_history) {
@@ -161,7 +161,7 @@ Rcpp::List dprewire_undirected_cpp(
     arma::vec index2,
     arma::mat e, 
     bool rewire_history) {
-  GetRNGstate();
+  // GetRNGstate();
   arma::vec rho(iteration, arma::fill::zeros);
   int nedge = index1.size();
   int e1, e2, temp, count = 0;
@@ -253,7 +253,7 @@ Rcpp::List dprewire_undirected_cpp(
     }
     rho[n] = (arma::cor(degree1, degree2)).eval()(0, 0);
   }
-  PutRNGstate();
+  // PutRNGstate();
   Rcpp::List ret;
   if (rewire_history) {
     ret["history"] = history;

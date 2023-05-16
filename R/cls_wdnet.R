@@ -29,20 +29,27 @@ NULL
 #'   weight 1.
 #' @param directed Logical, whether the network is directed (TRUE) or undirected
 #'   (FALSE).
+#' @param nodegroup A numeric vector of node groups.
 #' @param ... Additional components to be added to the \code{wdnet} object.
 #' @return A \code{wdnet} object with the specified \code{edgelist},
 #'   \code{edgeweight} and \code{directed}.
 #' @examples
 #' edgelist <- matrix(c(1, 2, 2, 3, 3, 1), ncol = 2, byrow = TRUE)
 #' edgeweight <- c(1, 2, 3)
-#' netwk <- edgelist_to_wdnet(edgelist, edgeweight)
-#' 
+#' nodegroup <- c(1, 1, 2)
+#' netwk <- edgelist_to_wdnet(
+#'   edgelist = edgelist,
+#'   edgeweight = edgeweight,
+#'   directed = TRUE,
+#'   nodegroup = nodegroup)
+#'
 #' @export
 #' 
 edgelist_to_wdnet <- function(
     edgelist,
     edgeweight,
     directed,
+    nodegroup,
     ...) {
   if (missing(directed) || is.null(directed)) {
     # cat("Assume the network is directed.\n\n")
@@ -64,11 +71,21 @@ edgelist_to_wdnet <- function(
   if (ncol(edgelist) != 2) {
     stop('"edgelist" must have exactly 2 columns.')
   }
+
+  if (missing(nodegroup)) {
+    nodegroup <- NULL
+  }
   
   max_node <- max(edgelist)
   min_node <- min(edgelist)
   num_unique_edges <- length(unique(c(edgelist)))
   
+  if (!is.null(nodegroup)) {
+    if (length(nodegroup) != max_node) {
+      stop('Length of "nodegroup" must match the number of nodes in "edgelist".')
+    }
+  }
+
   if (max_node != num_unique_edges || min_node != 1) {
     stop("Node index must be consecutive integers starting from 1.")
   }
@@ -103,15 +120,12 @@ edgelist_to_wdnet <- function(
       "s" = tmp$s
     )
   }
+  netwk$node.attr$group <- nodegroup
   
   additional_components <- list(...)
   if (length(additional_components) > 0) {
     netwk <- c(netwk, additional_components)
     class(netwk) <- "wdnet"
-  }
-  if (!is.null(netwk$nodegroup)) {
-    netwk$node.attr$group <- netwk$nodegroup
-    netwk$nodegroup <- NULL
   }
   
   if (!is_wdnet(netwk)) {
@@ -129,6 +143,7 @@ edgelist_to_wdnet <- function(
 #'   (FALSE). If \code{adj} is asymmetric, the network is directed.
 #' @param weighted Logical, whether the network is weighted (TRUE) or unweighted
 #'   (FALSE).
+#' @param nodegroup A numeric vector of node groups.
 #' @param ... Additional components to be added to the \code{wdnet} object.
 #' @return A \code{wdnet} object with the specified \code{adj}.
 #' @export
@@ -140,6 +155,7 @@ adj_to_wdnet <- function(
     adj,
     directed = TRUE,
     weighted = TRUE,
+    nodegroup,
     ...) {
   if (missing(adj) || is.null(adj)) {
     stop('Please provide "adj".')
@@ -165,6 +181,16 @@ adj_to_wdnet <- function(
   
   stopifnot(is.logical(directed))
   stopifnot(is.logical(weighted))
+
+  if (missing(nodegroup)) {
+    nodegroup <- NULL
+  }
+
+  if(!is.null(nodegroup)) {
+    if (length(nodegroup) != nrow(adj)) {
+      stop('Length of "nodegroup" must match the number of nodes in "adj".')
+    }
+  }
   
   tmp <- adj_to_edgelist(
     adj = adj,
@@ -180,6 +206,7 @@ adj_to_wdnet <- function(
     edgelist = edgelist,
     edgeweight = edgeweight,
     directed = directed,
+    nodegroup = nodegroup,
     ...
   )
 }
@@ -196,6 +223,7 @@ adj_to_wdnet <- function(
 #'   create a new \code{wdnet} object.
 #' @param edgelist A two-column matrix representing edges.
 #' @param edgeweight A vector representing the weights of the edges.
+#' @param nodegroup A numeric vector of node groups.
 #' @param directed A logical value indicating whether the network is directed.
 #'   Required if \code{netwk} is \code{NULL}.
 #' @param adj An adjacency matrix.
@@ -210,6 +238,7 @@ create_wdnet <- function(
     netwk,
     edgelist,
     edgeweight,
+    nodegroup,
     directed,
     adj,
     weighted,
@@ -223,6 +252,7 @@ create_wdnet <- function(
           adj = adj,
           directed = directed,
           weighted = weighted,
+          nodegroup = nodegroup,
           ...
         )
       }
@@ -232,6 +262,7 @@ create_wdnet <- function(
         edgelist = edgelist,
         edgeweight = edgeweight,
         directed = directed,
+        nodegroup = nodegroup,
         ...
       )
     }

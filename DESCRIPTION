@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
 Version: 1.1.0
-Date: 2023-05-14
+Date: 2023-05-15
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
@@ -11,6 +11,7 @@ Authors@R: c(
            role = c("aut")),
     person("Panpan", "Zhang", email = "panpan.zhang@vumc.org",
            role = "aut"))
+Maintainer: Yelie Yuan <yelie.yuan@uconn.edu>
 Description: Implementations of network analysis including
     (1) assortativity coefficient of weighted and directed networks, 
     Yuan, Yan and Zhang (2021) <doi:10.1093/comnet/cnab017>,

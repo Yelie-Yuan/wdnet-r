@@ -37,7 +37,7 @@ Rcpp::List find_node_undirected_cpp(arma::vec node1,
                        arma::vec node2, 
                        arma::vec start_edge, 
                        arma::vec end_edge) {
-  GetRNGstate();
+  // GetRNGstate();
   int n = node1.size(), n1 = 0, n2 = 0;
   double u;
   for (int j = 0; j < n; j++) {
@@ -60,7 +60,7 @@ Rcpp::List find_node_undirected_cpp(arma::vec node1,
       n2++;
     }
   }
-  PutRNGstate();
+  // PutRNGstate();
   
   Rcpp::List ret;
   ret["node1"] = node1;
@@ -117,13 +117,13 @@ Rcpp::List node_strength_cpp(arma::vec snode,
 //'
 // [[Rcpp::export]]
 arma::vec sample_node_cpp(arma::vec total_node) {
-  GetRNGstate();
+  // GetRNGstate();
   int n = total_node.size();
   arma::vec nodes(n, arma::fill::zeros);
   for (int i = 0; i < n; i++) {
     nodes[i] = Rcpp::sample(total_node[i], 1)[0];
   }
-  PutRNGstate();
+  // PutRNGstate();
   return nodes;
 }
 

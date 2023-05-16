@@ -182,7 +182,7 @@ Rcpp::List rpanet_linear_directed_cpp(
 
   // sample edges
   queue<int> q1;
-  GetRNGstate();
+  // GetRNGstate();
   for (i = 0; i < nstep; i++)
   {
     n_reciprocal = 0;
@@ -444,7 +444,7 @@ Rcpp::List rpanet_linear_directed_cpp(
     // checkDiffD(spref, total_spref);
     // checkDiffD(tpref, total_tpref);
   }
-  PutRNGstate();
+  // PutRNGstate();
 
   Rcpp::List ret;
   ret["m"] = m;

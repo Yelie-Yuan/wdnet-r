@@ -26,7 +26,7 @@ Rcpp::List rpanet_bag_cpp(arma::vec snode,
                           double delta_in,
                           bool directed)
 {
-  GetRNGstate();
+  // GetRNGstate();
   int n = scenario.size();
   double u, v;
   int j;
@@ -165,7 +165,7 @@ Rcpp::List rpanet_bag_cpp(arma::vec snode,
     }
     nedge++;
   }
-  PutRNGstate();
+  // PutRNGstate();
 
   Rcpp::List ret;
   ret["snode"] = snode;

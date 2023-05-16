@@ -151,7 +151,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
 
   // sample edges
   queue<int> q1;
-  GetRNGstate();
+  // GetRNGstate();
   for (i = 0; i < nstep; i++)
   {
     m_error = false;
@@ -302,7 +302,7 @@ Rcpp::List rpanet_linear_undirected_cpp(
     }
     // checkDiffUnd(pref, total_pref);
   }
-  PutRNGstate();
+  // PutRNGstate();
 
   Rcpp::List ret;
   ret["m"] = m;

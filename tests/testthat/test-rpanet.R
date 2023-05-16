@@ -1,7 +1,7 @@
 test_that("rpanet with default preference functions", {
   # sample PA networks
   set.seed(1234)
-  nstep <- 1e4
+  nstep <- 1e3
   for (method in c("linear", "binary", "bag", "bagx")) {
     if (method == "linear" | method == "binary") {
       control <- rpa_control_preference(
@@ -170,6 +170,9 @@ test_that("rpanet initial network", {
     distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
   ) + rpa_control_newedge(
     distribution = rpois, dparams = list(lambda = 1), shift = 1
+  ) + rpa_control_reciprocal(
+    group.prob = c(0.2, 0.4, 0.4),
+    recip.prob = matrix(rep(0.5, 9), nrow = 3)
   )
 
   netwk1 <- rpanet(1e3, directed = TRUE, control = ctr1)
@@ -185,15 +188,17 @@ test_that("rpanet initial network", {
 
   # check initial netwk
   check_initial_network <- function(netwk1, netwk2) {
-    n <- nrow(netwk1$edgelist)
+    nedge <- nrow(netwk1$edgelist)
+    nnode <- nrow(netwk1$node.attr)
     netwk1$edge.attr$scenario <- 0
     expect_true(all(
-      identical(netwk1$edgelist, netwk2$edgelist[1:n, ]),
-      netwk2$edge.attr$scenario[1:n] == 0,
-      identical(netwk1$edge.attr$weight, netwk2$edge.attr$weight[1:n]),
+      identical(netwk1$edgelist, netwk2$edgelist[1:nedge, ]),
+      netwk2$edge.attr$scenario[1:nedge] == 0,
+      identical(netwk1$edge.attr$weight, netwk2$edge.attr$weight[1:nedge]),
       identical(netwk1$directed, netwk2$directed),
       identical(netwk1$weighted, netwk2$weighted),
-      identical(netwk1$control, netwk2$control)
+      identical(netwk1$control, netwk2$control),
+      identical(netwk1$node.attr$group, netwk2$node.attr$group[1:nnode])
     ))
   }
   check_initial_network(netwk1, netwk2)

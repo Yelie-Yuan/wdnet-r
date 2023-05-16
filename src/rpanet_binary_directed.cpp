@@ -395,7 +395,7 @@ Rcpp::List rpanet_binary_directed(
     updatePrefD(node1, func_type, sparams, tparams, custmSourcePref, custmTargetPref);
   }
   // sample edges
-  GetRNGstate();
+  // GetRNGstate();
   for (i = 0; i < nstep; i++)
   {
     n_reciprocal = 0;
@@ -618,7 +618,7 @@ Rcpp::List rpanet_binary_directed(
       q1.pop();
     }
   }
-  PutRNGstate();
+  // PutRNGstate();
   // free memory (queue)
   queue<node_d *>().swap(q);
   queue<node_d *>().swap(q1);

@@ -34,41 +34,31 @@ is_rpacontrol <- function(control) {
 #' 
 print_control_preference <- function(control, directed = NULL) {
     cat("Preference functions:\n")
-    spref <- " - spref: "
-    tpref <- " - tpref: "
-    pref <- " - pref: "
+    cat(" - ftype: ", control$preference$ftype, "\n", sep = "")
     if (control$preference$ftype == "default") {
-        tmp <- control$preference$sparams
         spref <- paste0(
-            spref,
-            tmp[1], " * outs^", tmp[2], " + ", tmp[3], " * ins^", tmp[4],
-            " + ", tmp[5],
-            sep = ""
+            " - sparams: ",
+            paste(control$preference$sparams, collapse  = " ")
         )
-        tmp <- control$preference$tparams
         tpref <- paste0(
-            tpref,
-            tmp[1], " * outs^", tmp[2], " + ", tmp[3], " * ins^", tmp[4],
-            " + ", tmp[5],
-            sep = ""
+            " - sparams: ",
+            paste(control$preference$tparams, collapse  = " ")
         )
-        tmp <- control$preference$params
         pref <- paste0(
-            pref,
-            "s^", tmp[1], " + ", tmp[2],
-            sep = ""
+            " - params: ",
+            paste(control$preference$params, collapse  = " ")
         )
     } else if (control$preference$ftype == "customized") {
         spref <- paste0(
-            spref,
+            " - spref: ",
             control$preference$spref
         )
         tpref <- paste0(
-            tpref,
+            " - tpref: ",
             control$preference$tpref
         )
         pref <- paste0(
-            pref,
+            " - pref: ",
             control$preference$pref
         )
     } else {
@@ -81,7 +71,6 @@ print_control_preference <- function(control, directed = NULL) {
     } else {
         cat(pref, "\n")
     }
-    cat("\n")
 
     invisible(NULL)
 }
@@ -97,6 +86,7 @@ print_control_preference <- function(control, directed = NULL) {
 print_control_details <- function(x, control_name, control_description) {
     if (control_name == "preference") {
         print_control_preference(control = x, directed = NULL)
+        cat("\n")
         return(invisible(NULL))
     }
     cat(control_description[[control_name]], ":\n", sep = "")

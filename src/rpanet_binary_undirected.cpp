@@ -274,7 +274,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
     updatePrefUnd(node1, func_type, params, custmPref);
   }
   // sample edges
-  GetRNGstate();
+  // GetRNGstate();
   for (i = 0; i < nstep; i++)
   {
     m_error = false;
@@ -403,7 +403,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
       q1.pop();
     }
   }
-  PutRNGstate();
+  // PutRNGstate();
   // free memory (queue)
   queue<node_und *>().swap(q);
   queue<node_und *>().swap(q1);
