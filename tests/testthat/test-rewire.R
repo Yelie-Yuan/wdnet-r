@@ -5,7 +5,9 @@ test_that("rewire", {
     edgelist <- rpanet(
       nstep = nstep,
       control = control,
-      directed = directed
+      initial.network = list(
+        edgelist = matrix(1:2, nrow = 1),
+        directed = directed)
     )$edgelist
     tmp <- which(edgelist[, 1] > edgelist[, 2])
     edgelist[tmp, ] <- edgelist[tmp, c(2, 1)]

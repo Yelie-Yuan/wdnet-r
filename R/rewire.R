@@ -267,13 +267,14 @@ dprewire_undirected <- function(
 #' plot(ret1$assortcoef$Iteration, ret1$assortcoef$"outout")
 #' plot(ret1$assortcoef$Iteration, ret1$assortcoef$"outin")
 #'
+#' ## rewire an undirected network
 #' netwk2 <- rpanet(1e4,
 #'   control = rpa_control_scenario(
 #'     alpha = 0.3, beta = 0.1, gamma = 0.3, xi = 0.3
 #'   ),
-#'   directed = FALSE
+#'   initial.network = list(
+#'     directed = FALSE)
 #' )
-#' ## rewire an undirected network
 #' ret2 <- dprewire(
 #'   netwk = netwk2,
 #'   target.assortcoef = 0.3,
@@ -310,12 +311,10 @@ dprewire <- function(
     adj = adj,
     weighted = FALSE
   )
-  edgelist <- netwk$edgelist
-  directed <- netwk$directed
+  
   if (netwk$weighted) {
     warning("Edge weights are omitted")
   }
-  stopifnot(is.logical(directed))
 
   control <- utils::modifyList(
     list(
@@ -330,9 +329,9 @@ dprewire <- function(
 
   solver.result <- NULL
   if (missing(eta)) {
-    if (directed) {
+    if (netwk$directed) {
       solver.result <- get_eta_directed(
-        edgelist = edgelist,
+        edgelist = netwk$edgelist,
         target.assortcoef = target.assortcoef,
         eta.obj = control$eta.obj,
         control = control$cvxr_control
@@ -343,7 +342,7 @@ dprewire <- function(
           target.assortcoef <= 1
       )
       solver.result <- get_eta_undirected(
-        edgelist = edgelist,
+        edgelist = netwk$edgelist,
         target.assortcoef = target.assortcoef,
         eta.obj = control$eta.obj,
         control = control$cvxr_control
@@ -355,9 +354,9 @@ dprewire <- function(
     }
     eta <- solver.result$eta
   }
-  if (directed) {
+  if (netwk$directed) {
     ret <- dprewire_directed(
-      edgelist = edgelist,
+      edgelist = netwk$edgelist,
       eta = eta,
       iteration = control$iteration,
       nattempts = control$nattempts,
@@ -365,7 +364,7 @@ dprewire <- function(
     )
   } else {
     ret <- dprewire_undirected(
-      edgelist = edgelist,
+      edgelist = netwk$edgelist,
       eta = eta,
       iteration = control$iteration,
       nattempts = control$nattempts,
@@ -448,24 +447,21 @@ dprewire.range <- function(
     adj = adj,
     weighted = FALSE
   )
-  edgelist <- netwk$edgelist
-  directed <- netwk$directed
   if (netwk$weighted) {
     warning("Edge weights are ignored.")
   }
-  stopifnot(is.logical(directed))
 
-  if (directed) {
+  if (netwk$directed) {
     which.range <- match.arg(which.range)
     result <- get_eta_directed(
-      edgelist = edgelist,
+      edgelist = netwk$edgelist,
       target.assortcoef = target.assortcoef,
       which.range = which.range,
       control = control
     )
   } else {
     result <- get_eta_undirected(
-      edgelist = edgelist,
+      edgelist = netwk$edgelist,
       control = control
     )
   }

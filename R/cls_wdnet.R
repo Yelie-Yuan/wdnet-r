@@ -161,9 +161,7 @@ adj_to_wdnet <- function(
     stop('Please provide "adj".')
   }
   if (missing(directed) || is.null(directed)) {
-    # if (isSymmetric(adj)) {
-    #   cat("Assume the network is directed.\n\n")
-    # }
+    # cat("Assume the network is directed.\n\n")
     directed <- TRUE
   } else if (!directed) {
     if (!isSymmetric(adj)) {
@@ -285,8 +283,8 @@ create_wdnet <- function(
       netwk$node.attr$group <- netwk$nodegroup
       netwk$nodegroup <- NULL
     }
-    is_wdnet(netwk)
   }
+  is_wdnet(netwk)
   invisible(netwk)
 }
 

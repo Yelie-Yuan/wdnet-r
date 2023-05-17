@@ -40,15 +40,27 @@ test_that("rpanet with default preference functions", {
           distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
         )
     }
-    initial.network1 <- rpanet(1e3, directed = TRUE, control = control)
-    initial.network2 <- rpanet(1e3, directed = FALSE, control = control)
+    initial.network1 <- rpanet(1e3,
+      initial.network = list(
+        edgelist = matrix(1:2, nrow = 1),
+        directed = TRUE
+      ),
+      control = control
+    )
+    initial.network2 <- rpanet(1e3,
+      initial.network = list(
+        edgelist = matrix(1:2, nrow = 1),
+        directed = FALSE
+      ),
+      control = control
+    )
     net1 <- rpanet(
       control = control, nstep = nstep, initial.network = initial.network1,
-      directed = TRUE, method = method
+      method = method
     )
     net2 <- rpanet(
       control = control, nstep = nstep, initial.network = initial.network2,
-      directed = FALSE, method = method
+      method = method
     )
 
     # check node preference
@@ -111,15 +123,27 @@ test_that("rpanet with customized preference functions", {
       rpa_control_edgeweight(
         distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
       )
-    initial.network1 <- rpanet(1e3, directed = TRUE, control = control)
-    initial.network2 <- rpanet(1e3, directed = FALSE, control = control)
+    initial.network1 <- rpanet(1e3,
+      initial.network = list(
+        edgelist = matrix(1:2, nrow = 1),
+        directed = TRUE
+      ),
+      control = control
+    )
+    initial.network2 <- rpanet(1e3,
+      initial.network = list(
+        edgelist = matrix(1:2, nrow = 1),
+        directed = FALSE
+      ),
+      control = control
+    )
     net1 <- rpanet(
       control = control, nstep = nstep, initial.network = initial.network1,
-      directed = TRUE, method = method
+      method = method
     )
     net2 <- rpanet(
       control = control, nstep = nstep, initial.network = initial.network2,
-      directed = FALSE, method = method
+      method = method
     )
 
     # check node preference
@@ -175,15 +199,27 @@ test_that("rpanet initial network", {
     recip.prob = matrix(rep(0.5, 9), nrow = 3)
   )
 
-  netwk1 <- rpanet(1e3, directed = TRUE, control = ctr1)
+  netwk1 <- rpanet(1e3,
+    initial.network = list(
+      edgelist = matrix(1:2, nrow = 1),
+      directed = TRUE
+    ),
+    control = ctr1
+  )
   netwk2 <- rpanet(1e3,
     initial.network = netwk1,
-    directed = TRUE, control = netwk1$control
+    control = netwk1$control
   )
-  netwk3 <- rpanet(1e3, directed = FALSE, control = ctr1)
+  netwk3 <- rpanet(1e3,
+    initial.network = list(
+      edgelist = matrix(1:2, nrow = 1),
+      directed = FALSE
+    ),
+    control = ctr1
+  )
   netwk4 <- rpanet(1e3,
     initial.network = netwk3,
-    directed = FALSE, control = netwk1$control
+    control = netwk1$control
   )
 
   # check initial netwk
@@ -211,8 +247,20 @@ test_that("rpanet scenarios", {
   ctr <- rpa_control_scenario(
     alpha = 0.1, beta = 0.8, gamma = 0.1, beta.loop = FALSE
   )
-  netwk1 <- rpanet(1e4, control = ctr, directed = TRUE)
-  netwk2 <- rpanet(1e4, control = ctr, directed = FALSE)
+  netwk1 <- rpanet(1e4,
+    control = ctr,
+    initial.network = list(
+      edgelist = matrix(1:2, nrow = 1),
+      directed = TRUE
+    )
+  )
+  netwk2 <- rpanet(1e4,
+    control = ctr,
+    initial.network = list(
+      edgelist = matrix(1:2, nrow = 1),
+      directed = FALSE
+    )
+  )
 
   check_scenarios <- function(netwk) {
     alpha <- which(netwk$edge.attr$scenario == 1)

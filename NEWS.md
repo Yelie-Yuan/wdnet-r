@@ -1,10 +1,12 @@
 # wdnet 1.1.1
 
-## Printing
-
+Printing
 + Updated `print.rpacontrol()` and `summary.wdnet()`.
 + Fixed a typo when printing the parameters of the default preference function.
 
+Interface
++ Moved the logical argument `directed` in `rpanet` into `initial.network`;
+  `rpanet(nstep = 1e4, initial.network = list(directed = TRUE))`.
 
 # wdnet 1.1.0
 
