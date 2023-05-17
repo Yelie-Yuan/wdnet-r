@@ -78,7 +78,7 @@ edgelist_to_wdnet <- function(
   
   max_node <- max(edgelist)
   min_node <- min(edgelist)
-  num_unique_edges <- length(unique(c(edgelist)))
+  num_unique_nodes <- length(unique(c(edgelist)))
   
   if (!is.null(nodegroup)) {
     if (length(nodegroup) != max_node) {
@@ -86,7 +86,7 @@ edgelist_to_wdnet <- function(
     }
   }
 
-  if (max_node != num_unique_edges || min_node != 1) {
+  if (max_node != num_unique_nodes || min_node != 1 || any(edgelist %% 1 != 0)) {
     stop("Node index must be consecutive integers starting from 1.")
   }
   
@@ -302,16 +302,26 @@ create_wdnet <- function(
 is_wdnet <- function(netwk) {
   valid_attrs <- c("edgelist", "directed", "weighted", "edge.attr", "node.attr")
   valid_cols <- ifelse(netwk$directed, c("outs", "ins"), c("s"))
-  
+  max_node <- max(netwk$edgelist)
+  min_node <- min(netwk$edgelist)
+  num_unique_nodes <- length(unique(c(netwk$edgelist)))
+
   return(
-    inherits(netwk, "wdnet") &&
-      "weight" %in% names(netwk$edge.attr) &&
-      all(valid_attrs %in% names(netwk)) &&
-      nrow(netwk$edgelist) == length(netwk$edge.attr$weight) &&
-      all(netwk$edge.attr$weight > 0) &&
-      all(valid_cols %in% colnames(netwk$node.attr)) &&
-      is.logical(netwk$directed) &&
-      netwk$weighted == any(netwk$edge.attr$weight != 1)
+    all(
+      inherits(netwk, "wdnet"),
+      "weight" %in% names(netwk$edge.attr),
+      all(valid_attrs %in% names(netwk)),
+      all(netwk$edge.attr$weight > 0),
+      all(valid_cols %in% colnames(netwk$node.attr)),
+      is.logical(netwk$directed),
+      is.logical(netwk$weighted),
+      netwk$weighted == any(netwk$edge.attr$weight != 1),
+      nrow(netwk$edgelist) == nrow(netwk$edge.attr),
+      netwk$edgelist %% 1 == 0,
+      num_unique_nodes == nrow(netwk$node.attr),
+      max_node == num_unique_nodes,
+      min_node == 1
+    )
   )
 }
 
@@ -488,10 +498,10 @@ print.wdnet <- function(
 summary.wdnet <- function(object, ...) {
   stopifnot(is_wdnet(object))
   cat(
-    "Weighted:", any(object$edge.attr$weight != 1), "\n",
-    "Directed:", object$directed, "\n",
-    "Number of edges:", nrow(object$edgelist), "\n",
-    "Number of nodes:", max(object$edgelist), "\n",
+    "Weighted: ", object$weighted, "\n",
+    "Directed: ", object$directed, "\n",
+    "Number of edges: ", nrow(object$edge.attr), "\n",
+    "Number of nodes: ", nrow(object$node.attr), "\n",
     sep = ""
   )
 
