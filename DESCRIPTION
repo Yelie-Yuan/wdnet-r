@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
 Version: 1.1.0
-Date: 2023-05-15
+Date: 2023-05-16
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),
@@ -33,4 +33,3 @@ BugReports: https://gitlab.com/wdnetwork/wdnet/-/issues
 URL: https://gitlab.com/wdnetwork/wdnet
 RoxygenNote: 7.2.3
 Suggests: knitr, testthat (>= 3.0.0)
-VignetteBuilder: knitr

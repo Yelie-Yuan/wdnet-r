@@ -136,21 +136,12 @@ rpanet <- function(
       )
     }
   }
-  if (!is.null(initial.network$edgeweight)) {
-    if (is.null(initial.network$edge.attr$weight)) {
-      initial.network$edge.attr$weight <- initial.network$edgeweight
-    }
-  }
-  if (!is.null(initial.network$nodegroup)) {
-    if (is.null(initial.network$node.attr$group)) {
-      initial.network$node.attr$group <- initial.network$nodegroup
-    }
-  }
+  
   netwk <- create_wdnet(
     netwk = initial.network,
     edgelist = initial.network$edgelist,
-    edgeweight = initial.network$edge.attr$weight,
-    nodegroup = initial.network$node.attr$group,
+    edgeweight = initial.network$edgeweight,
+    nodegroup = initial.network$nodegroup,
     directed = directed
   )
   if (missing(control) || is.null(control)) {
