@@ -494,8 +494,6 @@ summary.wdnet <- function(object, ...) {
     "Number of nodes:", max(object$edgelist), "\n",
     sep = ""
   )
-  if (!is.null(object$control$preference)) {
-    print_control_preference(object$control, directed = object$directed)
-  }
+
   invisible(object)
 }

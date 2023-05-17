@@ -186,6 +186,9 @@ rpa_control_edgeweight <- function(
         is.function(distribution)
     )
   }
+  if (is.function(distribution)) {
+    edgeweight$distname <- deparse(substitute(distribution))
+  }
   structure(list("edgeweight" = edgeweight),
     class = "rpacontrol"
   )
@@ -245,6 +248,9 @@ rpa_control_newedge <- function(
       "Please specify the names of distribution parameters" =
         all(!is.null(names(newedge$dparams)))
     )
+  }
+  if (is.function(distribution)) {
+    newedge$distname <- deparse(substitute(distribution))
   }
   structure(list("newedge" = newedge), class = "rpacontrol")
 }

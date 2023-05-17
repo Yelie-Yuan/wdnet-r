@@ -1,3 +1,11 @@
+# wdnet 1.1.1
+
+## Printing
+
++ Updated `print.rpacontrol()` and `summary.wdnet()`.
++ Fixed a typo when printing the parameters of the default preference function.
+
+
 # wdnet 1.1.0
 
 + Updated function interfaces now accept `wdnet` objects.

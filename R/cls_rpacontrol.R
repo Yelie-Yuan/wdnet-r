@@ -41,7 +41,7 @@ print_control_preference <- function(control, directed = NULL) {
             paste(control$preference$sparams, collapse  = " ")
         )
         tpref <- paste0(
-            " - sparams: ",
+            " - tparams: ",
             paste(control$preference$tparams, collapse  = " ")
         )
         pref <- paste0(
@@ -93,8 +93,10 @@ print_control_details <- function(x, control_name, control_description) {
     for (name in names(x[[control_name]])) {
         value <- x[[control_name]][[name]]
         if (is.function(value)) {
-            value <- as.character(substitute(rgamma))
-        } else if (is.list(value) && length(value) > 0) {
+            value <- x[[control_name]][["distname"]]
+        } else if (name == "distname") {
+            next
+        } else if (length(value) > 0 && is.list(value)) {
             value <- sapply(
                 seq_along(value),
                 function(i) paste0(names(value)[i], "=", value[i], " ")
