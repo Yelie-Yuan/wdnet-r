@@ -26,18 +26,18 @@ NULL
 #' @param netwk A \code{wdnet} object that represents the network. If
 #'   \code{NULL}, the function will compute the coefficient using either
 #'   \code{edgelist}, \code{edgeweight}, or \code{adj}.
-#' @param edgelist  A two column matrix, each row represents a directed edge of
+#' @param edgelist  A two-column matrix, each row represents a directed edge of
 #'   the network.
 #' @param edgeweight A vector representing the weight of edges.
 #' @param adj An adjacency matrix of a weighted and directed network.
 #' @param directed Logical. Indicates whether the edges in \code{edgelist} or
 #'   \code{adj} are directed.
-#' @param method which method used to compute clustering coefficients: Clemente
+#' @param method Which method used to compute clustering coefficients: Clemente
 #'   and Grassi (2018) or Fagiolo (2007).
-#' @param isolates character, defines how to treat vertices with degree zero and
-#'   one. If "zero", then their clustering coefficient is returned as 0 and are
+#' @param isolates Binary, defines how to treat vertices with degree zero and
+#'   one. If 0, then their clustering coefficient is returned as 0 and are
 #'   included in the averaging. Otherwise, their clustering coefficient is \code{NaN}
-#'   and are excluded in the averaging. Default value is "zero".
+#'   and are excluded in the averaging. Default value is 0.
 #'
 #' @return Lists of local clustering coefficients (in terms of a vector), global
 #'   clustering coefficient (in terms of a scalar) and number of weighted
@@ -82,7 +82,7 @@ clustcoef <- function(
     adj,
     directed = TRUE,
     method = c("Clemente", "Fagiolo"),
-    isolates = "zero") {
+    isolates = 0) {
   if (missing(adj)) {
     netwk <- create_wdnet(
       netwk = netwk,
@@ -173,6 +173,10 @@ clustcoef <- function(
     "cycle" = numTriangles$"cycle" / denomMiddle
   )
   if (isolates == "zero") {
+    cat('Argument "isolates" has been revised; use "isolates = 0" instead.\n"')
+    isolates <- 0
+  }
+  if (isolates == 0) {
     localcc <- rapply(localcc, function(i) ifelse(is.na(i), 0, i),
       how = "replace"
     )

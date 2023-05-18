@@ -352,10 +352,10 @@ get_eta_directed <- function(
 #' @param edgelist A two column matrix representing the undirected edges of a
 #'   network.
 #' @param target.assortcoef Numeric, represents the predetermined assortativity
-#'   coefficient. If \code{NA}, the range of assortativity coefficient and
+#'   coefficient. If \code{NULL}, the range of assortativity coefficient and
 #'   corresponding joint distribution are returned.
 #' @param eta.obj A convex function of \code{eta} to be minimized when
-#'   \code{target.assortcoef} is not \code{NA}. Defaults to 0.
+#'   \code{target.assortcoef} is not \code{NULL}. Defaults to 0.
 #' @param control A list of parameters passed to \code{CVXR::solve()} when
 #'   solving for \code{eta} or computing the range of assortativity coefficient.
 #'

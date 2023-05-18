@@ -92,10 +92,10 @@ dprewire_directed <- function(
   )
   rho <- data.frame(
     "Iteration" = c(0:iteration),
-    "outout" = NA,
-    "outin" = NA,
-    "inout" = NA,
-    "inin" = NA
+    "outout" = NA_real_,
+    "outin" = NA_real_,
+    "inout" = NA_real_,
+    "inin" = NA_real_
   )
   rho[1, 2:5] <- c(
     "outout" = stats::cor(sout, tout),
@@ -169,7 +169,7 @@ dprewire_undirected <- function(
     eta, rewire.history
   )
   rm(node1, node2, degree1, degree2, index1, index2)
-  rho <- data.frame("Iteration" = c(0:iteration), "Value" = NA)
+  rho <- data.frame("Iteration" = c(0:iteration), "Value" = NA_real_)
   rho[1, 2] <- assortcoef(edgelist = edgelist, directed = FALSE)
   rho[2:(iteration + 1), 2] <- ret$rho
   colnames(rho) <- c("Iteration", "Value")

@@ -5,8 +5,10 @@ Printing
 + Fixed a typo when printing the parameters of the default preference function.
 
 Interface
-+ Moved the logical argument `directed` in `rpanet` into `initial.network`;
++ Moved the logical argument `directed` in `rpanet()` into `initial.network`;
   `rpanet(nstep = 1e4, initial.network = list(directed = TRUE))`.
++ Revised argument `isolates` in `clustcoef()` to binary.
+
 
 # wdnet 1.1.0
 

@@ -61,7 +61,7 @@ degree_c <- function(adj, alpha = 1, mode = "out") {
     if (isSymmetric(adj) == TRUE) {
       warning("The analyzed network is undirected!")
     }
-    deg_c_output <- matrix(NA, nrow = dim(adj)[1], ncol = 2)
+    deg_c_output <- matrix(NA_real_, nrow = dim(adj)[1], ncol = 2)
     adj_name <- colnames(adj)
     if (is.null(adj_name) == FALSE) {
       deg_c_output <- adj_name
@@ -126,7 +126,7 @@ closeness_c <- function(adj, alpha = 1, mode = "out",
   if (dim(adj)[1] != dim(adj)[2]) {
     stop("The adjacency matrix must be a square matrix!")
   } else {
-    closeness_c_output <- matrix(NA, nrow = dim(adj)[1], ncol = 2)
+    closeness_c_output <- matrix(NA_real_, nrow = dim(adj)[1], ncol = 2)
     adj_name <- colnames(adj)
     if (is.null(adj_name) == FALSE) {
       closeness_c_output[, 1] <- adj_name
