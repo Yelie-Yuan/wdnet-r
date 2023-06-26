@@ -2,6 +2,9 @@ test_that("rpanet with default preference functions", {
   # sample PA networks
   set.seed(1234)
   nstep <- 1e3
+  my_weight_sampler <- function(n) {
+    rgamma(n, shape = 5, scale = 0.2)
+  }
   for (method in c("linear", "binary", "bag", "bagx")) {
     if (method == "linear" | method == "binary") {
       control <- rpa_control_preference(
@@ -13,9 +16,7 @@ test_that("rpanet with default preference functions", {
         rpa_control_scenario(
           alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1
         ) +
-        rpa_control_edgeweight(
-          distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
-        )
+        rpa_control_edgeweight(sampler = my_weight_sampler)
     } else if (method == "bag") {
       control <- rpa_control_preference(
         ftype = "default",
@@ -36,9 +37,7 @@ test_that("rpanet with default preference functions", {
         rpa_control_scenario(
           alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1
         ) +
-        rpa_control_edgeweight(
-          distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
-        )
+        rpa_control_edgeweight(sampler = my_weight_sampler)
     }
     initial.network1 <- rpanet(1e3,
       initial.network = list(
@@ -121,7 +120,7 @@ test_that("rpanet with customized preference functions", {
         alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1
       ) +
       rpa_control_edgeweight(
-        distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
+        sampler = function(n) rgamma(n, shape = 5, scale = 0.2)
       )
     initial.network1 <- rpanet(1e3,
       initial.network = list(
@@ -191,9 +190,9 @@ test_that("rpanet initial network", {
   ) + rpa_control_scenario(
     alpha = 0.2, beta = 0.4, gamma = 0.2, xi = 0.1, rho = 0.1
   ) + rpa_control_edgeweight(
-    distribution = rgamma, dparams = list(shape = 5, scale = 0.2)
+    sampler = function(n) rgamma(n, shape = 5, scale = 0.2)
   ) + rpa_control_newedge(
-    distribution = rpois, dparams = list(lambda = 1), shift = 1
+    sampler = function(n) rpois(n, lambda = 2) + 1
   ) + rpa_control_reciprocal(
     group.prob = c(0.2, 0.4, 0.4),
     recip.prob = matrix(rep(0.5, 9), nrow = 3)

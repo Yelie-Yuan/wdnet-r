@@ -72,9 +72,7 @@ NULL
 #'
 #' control <- rpa_control_scenario(alpha = 1) +
 #'   rpa_control_edgeweight(
-#'     distribution = rgamma,
-#'     dparams = list(shape = 5, scale = 0.2),
-#'     shift = 1
+#'     sampler = function(n) rgamma(n, shape = 5, scale = 0.2)
 #'   )
 "+.rpacontrol" <- function(e1, e2) {
   e1 <- structure(
@@ -139,56 +137,28 @@ rpa_control_scenario <- function(
 
 #' Control weight of new edges. Defined for \code{rpanet}.
 #'
-#' @param distribution Distribution for drawing edge weights. Default is
-#'   \code{NULL}. If specified, its first argument must be the number of
-#'   observations.
-#' @param dparams A list of parameters passed on to \code{distribution}. The
-#'   names of parameters must be specified.
-#' @param shift A constant added to the values sampled from \code{distribution}.
-#'   Default value is 1.
+#' @param sampler A function used for sampling edge weights. If \code{NULL}, all
+#'   new edges will default to a weight of 1. If a function is provided, it must
+#'   accept a single argument, \code{n}, and return a vector of length \code{n}
+#'   that represents the sampled edge weights.
 #'
-#' @return A list of class \code{rpacontrol} with components
-#'   \code{distribution}, \code{dparams}, and \code{shift} with meanings as
-#'   explained under 'Arguments'.
+#' @return A list of class \code{rpacontrol} containing the \code{sampler}
+#'   function.
 #'
 #' @export
 #'
 #' @examples
-#' # Edge weight follows Gamma(5, 0.2).
+#' # Sample edge weights from Gamma(5, 0.2).
+#' my_gamma <- function(n) rgamma(n, shape = 5, scale = 0.2)
 #' control <- rpa_control_edgeweight(
-#'   distribution = rgamma,
-#'   dparams = list(shape = 5, scale = 0.2),
-#'   shift = 0
+#'   sampler = my_gamma
 #' )
-#'
-#' # Constant edge weight
-#' control <- rpa_control_edgeweight(shift = 2)
 #' 
 rpa_control_edgeweight <- function(
-    distribution = NULL,
-    dparams = NULL,
-    shift = 1) {
+    sampler = NULL) {
   edgeweight <- list(
-    "distribution" = distribution,
-    "dparams" = dparams,
-    "shift" = shift
+    "sampler" = sampler
   )
-  if (!is.null(edgeweight$dparams)) {
-    stopifnot(
-      '"dparams" must be a list.' = is.list(edgeweight$dparams)
-    )
-    stopifnot(
-      "Please specify the name of distribution parameters." =
-        all(!is.null(names(edgeweight$dparams)))
-    )
-    stopifnot(
-      "Please provide the distribution function." =
-        is.function(distribution)
-    )
-  }
-  if (is.function(distribution)) {
-    edgeweight$distname <- deparse(substitute(distribution))
-  }
   structure(list("edgeweight" = edgeweight),
     class = "rpacontrol"
   )
@@ -196,13 +166,11 @@ rpa_control_edgeweight <- function(
 
 #' Control new edges in each step. Defined for \code{rpanet}.
 #'
-#' @param distribution Distribution for drawing number of new edges. Default is
-#'   \code{NULL}. If specified, its first argument must be the number of
-#'   observations.
-#' @param dparams A list of parameters passed on to \code{distribution}. The
-#'   name of parameters must be specified.
-#' @param shift A constant added to the values sampled from \code{distribution}.
-#'   Default value is 1.
+#' @param sampler A function used for sampling the number of new edges to be
+#'   added at each step. If \code{NULL}, one new edge will be added at each
+#'   step. If a function is provided, it must accept a single argument,
+#'   \code{n}, and return a vector of length \code{n} that represents the
+#'   sampled number of new edges.
 #' @param snode.replace Logical. Determines whether the source nodes in the same
 #'   step should be sampled with replacement. Defined for directed networks.
 #' @param tnode.replace Logical. Determines whether the target nodes in the same
@@ -211,47 +179,29 @@ rpa_control_edgeweight <- function(
 #'   should be sampled with replacement. Defined for undirected networks. If
 #'   FALSE, self-loops will not be allowed under beta scenario.
 #'
-#' @return A list of class \code{rpacontrol} with components
-#'   \code{distribution}, \code{dparams}, \code{shift}, \code{snode.replace},
-#'   \code{tnode.replace} and \code{node.replace} with meanings as explained
-#'   under 'Arguments'.
+#' @return A list of class \code{rpacontrol} with components \code{sampler},
+#'   \code{snode.replace}, \code{tnode.replace} and \code{node.replace} with
+#'   meanings as explained under 'Arguments'.
 #'
 #' @export
 #'
 #' @examples
+#' my_rpois <- function(n) rpois(n, lambda = 2) + 1
 #' control <- rpa_control_newedge(
-#'   distribution = rpois,
-#'   dparams = list(lambda = 2),
-#'   shift = 1,
+#'   sampler = my_rpois,
 #'   node.replace = FALSE
 #' )
 rpa_control_newedge <- function(
-    distribution = NULL,
-    dparams = NULL,
-    shift = 1,
+    sampler = NULL,
     snode.replace = TRUE,
     tnode.replace = TRUE,
     node.replace = TRUE) {
   newedge <- list(
-    "distribution" = distribution,
-    "dparams" = dparams,
-    "shift" = shift,
+    "sampler" = sampler,
     "snode.replace" = snode.replace,
     "tnode.replace" = tnode.replace,
     "node.replace" = node.replace
   )
-  if (!is.null(newedge$dparams)) {
-    stopifnot(
-      '"dparams" must be a list.' = is.list(newedge$dparams)
-    )
-    stopifnot(
-      "Please specify the names of distribution parameters" =
-        all(!is.null(names(newedge$dparams)))
-    )
-  }
-  if (is.function(distribution)) {
-    newedge$distname <- deparse(substitute(distribution))
-  }
   structure(list("newedge" = newedge), class = "rpacontrol")
 }
 
@@ -326,12 +276,12 @@ rpa_control_newedge <- function(
 #' # Set source preference as out-strength^2 + in-strength + 1,
 #' # target preference as out-strength + in-strength^2 + 1.
 #' # 1. use default preference functions
-#' control1 <- rpa_control_preference(
+#' ctr1 <- rpa_control_preference(
 #'   ftype = "default",
 #'   sparams = c(1, 2, 1, 1, 1), tparams = c(1, 1, 1, 2, 1)
 #' )
 #' # 2. use character expressions
-#' control2 <- rpa_control_preference(
+#' ctr2 <- rpa_control_preference(
 #'   ftype = "customized",
 #'   spref = "pow(outs, 2) + ins + 1", tpref = "outs + pow(ins, 2) + 1"
 #' )
@@ -344,12 +294,12 @@ rpa_control_newedge <- function(
 #'   code =
 #'     "double tpref(double outs, double ins) {return outs + pow(ins, 2) + 1;}"
 #' )
-#' control3 <- rpa_control_preference(
+#' ctr3 <- rpa_control_preference(
 #'   ftype = "customized",
 #'   spref = spref.pointer,
 #'   tpref = tpref.pointer
 #' )
-#' ret <- rpanet(1e5, control = control3)
+#' ret <- rpanet(1e5, control = ctr3)
 #' }
 rpa_control_preference <- function(
     ftype = c("default", "customized"),
@@ -474,31 +424,4 @@ rpa_control_default <- function() {
     rpa_control_newedge() +
     rpa_control_reciprocal() +
     rpa_control_preference()
-}
-
-#' Names and descriptions of controls for \code{rpanet()}
-#'
-#' @return Returns a list of control names and descriptions.
-#' @keywords internal
-#' 
-rpa_control_list <- function() {
-  control_names <- c(
-    "scenario",
-    "edgeweight",
-    "newedge",
-    "preference",
-    "reciprocal"
-  )
-
-  control_descriptions <- list(
-    scenario = "Edge scenarios",
-    edgeweight = "Edge weights",
-    newedge = "New edges in each step",
-    preference = "Preference functions",
-    reciprocal = "Reciprocal edges"
-  )
-  return(list(
-    control_names = control_names,
-    control_descriptions = control_descriptions
-  ))
 }

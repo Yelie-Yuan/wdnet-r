@@ -119,8 +119,7 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #' @examples
 #' set.seed(123)
 #' control <- rpa_control_edgeweight(
-#'   distribution = rgamma,
-#'   dparams = list(shape = 5, scale = 0.2), shift = 0
+#'   sampler = function(n) rgamma(n, shape = 5, scale = 0.2)
 #' )
 #' netwk <- rpanet(nstep = 10^4, control = control)
 #' ret <- assortcoef(netwk)

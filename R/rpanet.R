@@ -16,9 +16,7 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom utils modifyList
 #' @importFrom stats rgamma rpois
-#' @importFrom RcppXPtrUtils checkXPtr
 NULL
 
 #' Generate PA networks.
@@ -98,8 +96,7 @@ NULL
 #' set.seed(123)
 #' control <- rpa_control_scenario(alpha = 0.5, beta = 0.5) +
 #'   rpa_control_edgeweight(
-#'     distribution = rgamma,
-#'     dparams = list(shape = 5, scale = 0.2), shift = 0
+#'     sampler = function(n) rgamma(n, shape = 5, scale = 0.2)
 #'   )
 #' ret1 <- rpanet(nstep = 1e3, control = control)
 #'
@@ -113,11 +110,10 @@ NULL
 #' # Further, set the number of new edges in each step as Poisson(2) + 1 and use
 #' # ret2 as a seed network.
 #' control <- control + rpa_control_newedge(
-#'   distribution = rpois,
-#'   dparams = list(lambda = 2), shift = 1
+#'   sampler = function(n) rpois(n, lambda = 2) + 1
 #' )
 #' ret3 <- rpanet(nstep = 1e3, initial.network = ret2, control = control)
-#' 
+#'
 rpanet <- function(
     nstep, initial.network = list(
       edgelist = matrix(c(1, 2), nrow = 1),
@@ -163,40 +159,28 @@ rpanet <- function(
   }
   if (length(control$reciprocal$group.prob) > 0) {
     stopifnot(
-      'Length of "group.prob" in the control list in not valid.' =
+      'Length of "group.prob" is not valid.' =
         max(initial.network$node.attr$group) <= length(control$reciprocal$group.prob)
     )
   }
   if (control$preference$ftype == "customized") {
-    control$preference <- compile_pref_func(control$preference)
-    if (initial.network$directed) {
-      RcppXPtrUtils::checkXPtr(
-        ptr = control$preference$spref.pointer,
-        type = "double",
-        args = c("double", "double")
-      )
-      RcppXPtrUtils::checkXPtr(
-        ptr = control$preference$tpref.pointer,
-        type = "double",
-        args = c("double", "double")
-      )
-    } else {
-      RcppXPtrUtils::checkXPtr(
-        ptr = control$preference$pref.pointer,
-        type = "double",
-        args = "double"
-      )
-    }
+    control$preference <- compile_pref_func(
+      control$preference,
+      directed = initial.network$directed
+    )
   }
 
-  if (is.function(control$newedge$distribution)) {
-    m <- do.call(
-      control$newedge$distribution,
-      c(nstep, control$newedge$dparams)
-    ) + control$newedge$shift
+  if (is.null(control$newedge$sampler)) {
+    m <- rep(1, nstep)
+  } else if (is.function(control$newedge$sampler)) {
+    m <- do.call(control$newedge$sampler, list(nstep))
   } else {
-    m <- rep(control$newedge$shift, nstep)
+    stop('Invalid "sampler" for rpa_control_newedge().')
   }
+  stopifnot(
+    'Invalid "sampler" for rpa_control_newedge().' =
+      length(m) == nstep
+  )
   stopifnot(
     "Number of new edges per step must be positive integers." =
       all(m %% 1 == 0, m > 0)
@@ -204,18 +188,22 @@ rpanet <- function(
 
   sum_m <- sum(m)
   sample.recip <- TRUE
-  if (identical(control$reciprocal, rpa_control_reciprocal()$reciprocal)) {
+  if (is.null(control$reciprocal$recip.prob)) {
     sample.recip <- FALSE
   }
-  if (is.function(control$edgeweight$distribution)) {
-    w <- do.call(
-      control$edgeweight$distribution,
-      c(sum_m * (1 + sample.recip), control$edgeweight$dparams)
-    ) + control$edgeweight$shift
+
+  if (is.null(control$edgeweight$sampler)) {
+    w <- rep(1, sum_m * (1 + sample.recip))
+  } else if (is.function(control$edgeweight$sampler)) {
+    w <- do.call(control$edgeweight$sampler, list(sum_m * (1 + sample.recip)))
   } else {
-    w <- rep(control$edgeweight$shift, sum_m * (1 + sample.recip))
+    stop('Invalid "sampler" for rpa_control_edgeweight().')
   }
-  stopifnot("Edgeweight must be greater than 0." = w > 0)
+  stopifnot(
+    'Invalid "sampler" for rpa_control_edgeweight().' =
+      length(w) == sum_m * (1 + sample.recip)
+  )
+  stopifnot("Edge weights must be greater than 0." = w > 0)
 
   if ((!initial.network$directed) &&
     ((!control$newedge$snode.replace) || (!control$newedge$tnode.replace))) {
@@ -304,7 +292,7 @@ rpanet <- function(
   }
   if ((!control$newedge$node.replace) && control$scenario$beta.loop) {
     control$scenario$beta.loop <- FALSE
-    warning('"beta.loop" is set as FALSE since "node.replace" is FALSE.')
+    cat('"beta.loop" is set to FALSE since "node.replace" is FALSE.')
   }
   return(rpanet_general(
     nstep = nstep, initial.network = initial.network,
