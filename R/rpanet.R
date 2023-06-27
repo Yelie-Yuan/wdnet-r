@@ -173,19 +173,17 @@ rpanet <- function(
   }
 
   if (is.null(control$newedge$sampler)) {
-    m <- rep(1, nstep)
-  } else if (is.function(control$newedge$sampler)) {
-    m <- do.call(control$newedge$sampler, list(nstep))
+    m <- rep(1L, nstep)
   } else {
-    stop('Invalid "sampler" for rpa_control_newedge().')
+    tryCatch(do.call(control$newedge$sampler, list(5)), error = function(e) {
+      message('Invalid "sampler" for rpa_control_newedge().')
+      stop(e)
+    })
+    m <- do.call(control$newedge$sampler, list(nstep))
   }
   stopifnot(
     'Invalid "sampler" for rpa_control_newedge().' =
-      length(m) == nstep
-  )
-  stopifnot(
-    "Number of new edges per step must be positive integers." =
-      all(m %% 1 == 0, m > 0)
+      all(length(m) == nstep, m %% 1 == 0, m > 0)
   )
 
   sum_m <- sum(m)
@@ -195,17 +193,18 @@ rpanet <- function(
   }
 
   if (is.null(control$edgeweight$sampler)) {
-    w <- rep(1, sum_m * (1 + sample.recip))
-  } else if (is.function(control$edgeweight$sampler)) {
-    w <- do.call(control$edgeweight$sampler, list(sum_m * (1 + sample.recip)))
+    w <- rep(1L, sum_m * (1 + sample.recip))
   } else {
-    stop('Invalid "sampler" for rpa_control_edgeweight().')
+    tryCatch(do.call(control$edgeweight$sampler, list(5)), error = function(e) {
+      message('Invalid "sampler" for rpa_control_edgeweight().')
+      stop(e)
+    })
+    w <- do.call(control$edgeweight$sampler, list(sum_m * (1 + sample.recip)))
   }
   stopifnot(
     'Invalid "sampler" for rpa_control_edgeweight().' =
-      length(w) == sum_m * (1 + sample.recip)
+      all(length(w) == sum_m * (1 + sample.recip), w > 0)
   )
-  stopifnot("Edge weights must be greater than 0." = w > 0)
 
   if ((!initial.network$directed) &&
     ((!control$newedge$snode.replace) || (!control$newedge$tnode.replace))) {

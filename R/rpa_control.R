@@ -42,7 +42,7 @@ NULL
 #' edges; see \code{rpa_control_reciprocal()} for details.
 #' }
 #' @name rpacontrol
-#' 
+#'
 NULL
 
 
@@ -113,7 +113,7 @@ NULL
 #'
 #' @examples
 #' control <- rpa_control_scenario(alpha = 0.5, beta = 0.5, beta.loop = FALSE)
-#' 
+#'
 rpa_control_scenario <- function(
     alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0,
     beta.loop = TRUE, source.first = TRUE) {
@@ -153,9 +153,16 @@ rpa_control_scenario <- function(
 #' control <- rpa_control_edgeweight(
 #'   sampler = my_gamma
 #' )
-#' 
+#'
 rpa_control_edgeweight <- function(
     sampler = NULL) {
+  if (!is.null(sampler)) {
+    tryCatch(do.call(sampler, list(5)), error = function(e) {
+      message('Invalid "sampler" for rpa_control_edgeweight().')
+      stop(e)
+    })
+  }
+
   edgeweight <- list(
     "sampler" = sampler
   )
@@ -196,6 +203,13 @@ rpa_control_newedge <- function(
     snode.replace = TRUE,
     tnode.replace = TRUE,
     node.replace = TRUE) {
+  if (!is.null(sampler)) {
+    tryCatch(do.call(sampler, list(5)), error = function(e) {
+      message('Invalid "sampler" for rpa_control_newedge().')
+      stop(e)
+    })
+  }
+
   newedge <- list(
     "sampler" = sampler,
     "snode.replace" = snode.replace,

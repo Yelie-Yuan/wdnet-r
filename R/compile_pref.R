@@ -23,7 +23,7 @@ NULL
 #'
 #' @param preference A list for defining the preference functions.
 #' @param directed Logical, whether to compile the preference functions for
-#'   directed networks. If missing, the preference functions 
+#'   directed networks. If missing, the preference functions
 #'   for both directed and undirected networks will be compiled.
 #'
 #' @return Returns the input list and their corresponding external pointers.
@@ -48,14 +48,14 @@ compile_pref_func <- function(preference, directed) {
             args = c("double", "double")
           )
         },
-        error = function(e) {
+        error = function() {
           stop('Incorrect argument or return type for "spref"; all should be "double".')
         }
       )
       preference$spref.pointer <- preference$spref
       tmp <- utils::capture.output(preference$spref.pointer)
       if (grepl("pointer:\\ \\(nil\\)", tmp)) {
-          stop('"XPtr" for "spref" is not valid, please recompile.')
+        stop('"XPtr" for "spref" is not valid, please recompile.')
       }
       rm(tmp)
     } else {
@@ -77,14 +77,14 @@ compile_pref_func <- function(preference, directed) {
             args = c("double", "double")
           )
         },
-        error = function(e) {
+        error = function() {
           stop('Incorrect argument or return type for "tpref"; all should be "double".')
         }
       )
       preference$tpref.pointer <- preference$tpref
       tmp <- utils::capture.output(preference$tpref.pointer)
       if (grepl("pointer:\\ \\(nil\\)", tmp)) {
-          stop('"XPtr" for "tpref" is not valid, please recompile.')
+        stop('"XPtr" for "tpref" is not valid, please recompile.')
       }
       rm(tmp)
     } else {
@@ -108,14 +108,14 @@ compile_pref_func <- function(preference, directed) {
             args = "double"
           )
         },
-        error = function(e) {
+        error = function() {
           stop('Incorrect argument or return type for "pref"; all should be "double".')
         }
       )
       preference$pref.pointer <- preference$pref
       tmp <- utils::capture.output(preference$pref.pointer)
       if (grepl("pointer:\\ \\(nil\\)", tmp)) {
-          stop('"XPtr" for "pref" is not valid, please recompile.')
+        stop('"XPtr" for "pref" is not valid, please recompile.')
       }
       rm(tmp)
     } else {
