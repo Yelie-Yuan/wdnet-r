@@ -217,7 +217,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   bool node_unique = !newedge_ctl["node.replace"];
   Rcpp::List preference_ctl = control["preference"];
   Rcpp::NumericVector params_vec(2);
-  double *params;
+  double *params = nullptr;
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type)

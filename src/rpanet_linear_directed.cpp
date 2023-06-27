@@ -135,7 +135,7 @@ Rcpp::List rpanet_linear_directed_cpp(
   Rcpp::List preference_ctl = control["preference"];
   Rcpp::NumericVector sparams_vec(5);
   Rcpp::NumericVector tparams_vec(5);
-  double *sparams, *tparams;
+  double *sparams = nullptr, *tparams = nullptr;
   double *spref = &(spref_vec[0]);
   double *tpref = &(tpref_vec[0]);
   // different types of preference functions
