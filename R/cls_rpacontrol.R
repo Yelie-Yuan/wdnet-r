@@ -163,7 +163,7 @@ print_control_preference <- function(control, directed) {
                 tmp <- utils::capture.output(pref)
                 if (grepl("pointer:\\ \\(nil\\)", tmp)) {
                     pref <- paste0(" - ", type,
-                        ": XPtr; nolonger valid, please re-compile",
+                        ": XPtr; not valid, please recompile",
                         sep = ""
                     )
                 } else {

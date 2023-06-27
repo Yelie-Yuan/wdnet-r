@@ -55,7 +55,7 @@ compile_pref_func <- function(preference, directed) {
       preference$spref.pointer <- preference$spref
       tmp <- utils::capture.output(preference$spref.pointer)
       if (grepl("pointer:\\ \\(nil\\)", tmp)) {
-          stop('"XPtr" for "spref" is nolonger valid, please re-compile.')
+          stop('"XPtr" for "spref" is not valid, please recompile.')
       }
       rm(tmp)
     } else {
@@ -84,7 +84,7 @@ compile_pref_func <- function(preference, directed) {
       preference$tpref.pointer <- preference$tpref
       tmp <- utils::capture.output(preference$tpref.pointer)
       if (grepl("pointer:\\ \\(nil\\)", tmp)) {
-          stop('"XPtr" for "tpref" is nolonger valid, please re-compile.')
+          stop('"XPtr" for "tpref" is not valid, please recompile.')
       }
       rm(tmp)
     } else {
@@ -115,7 +115,7 @@ compile_pref_func <- function(preference, directed) {
       preference$pref.pointer <- preference$pref
       tmp <- utils::capture.output(preference$pref.pointer)
       if (grepl("pointer:\\ \\(nil\\)", tmp)) {
-          stop('"XPtr" for "pref" is nolonger valid, please re-compile.')
+          stop('"XPtr" for "pref" is not valid, please recompile.')
       }
       rm(tmp)
     } else {

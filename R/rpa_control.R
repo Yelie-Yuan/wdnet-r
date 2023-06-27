@@ -255,13 +255,16 @@ rpa_control_newedge <- function(
 #'   \code{C++} source code is included in Examples. For more information
 #'   about passing function pointers, see
 #'   \url{https://gallery.rcpp.org/articles/passing-cpp-function-pointers-rcppxptrutils/}.
-#'   Please note the supplied \code{C++} function takes two \code{double}
+#'   Please note the supplied \code{C++} function accepts two \code{double}
 #'   arguments and returns a \code{double}. The first and second arguments
-#'   represent node out- and in-strength, respectively.}}
+#'   represent node out- and in-strength, respectively. Note that the \code{XPtr} will
+#'   be invalid and cannot be used to control network generation
+#'   in another separate R session. Therefore, we recommend preserving the source code of your
+#'   preference function for future use.}}
 #'
 #'   \code{pref} is defined analogously. If using character expression, it must
 #'   be a one-line \code{C++} style expression of \code{s} (node strength). If
-#'   using \code{XPtr}, the supplied \code{C++} function takes only one
+#'   using \code{XPtr}, the supplied \code{C++} function accepts only one
 #'   \code{double} argument and returns a \code{double}.
 #'
 #' @return A list of class \code{rpacontrol} with components \code{ftype},

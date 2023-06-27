@@ -239,38 +239,16 @@ Rcpp::List rpanet_binary_undirected_cpp(
   int i, j, n_existing, current_scenario;
   node_und *node1, *node2;
 
-  // re-order label nodes according to source preference and target preference
-  Rcpp::NumericVector temp_pref(new_node_id);
-  Rcpp::IntegerVector sorted_node = Rcpp::seq(0, new_node_id - 1);
-  if (func_type == 1)
-  {
-    for (i = 0; i < new_node_id; i++)
-    {
-      temp_pref[i] = prefFuncUnd(s[i], params);
-    }
-  }
-  else
-  {
-    for (i = 0; i < new_node_id; i++)
-    {
-      temp_pref[i] = custmPref(s[i]);
-    }
-  }
-  sort(sorted_node.begin(), sorted_node.end(),
-       [&](int k, int l){ return temp_pref[k] > temp_pref[l]; });
-
   // initialize a tree from seed graph
-  j = sorted_node[0];
-  node_und *root = createNodeUnd(j);
-  root->s = s[j];
+  node_und *root = createNodeUnd(0);
+  root->s = s[0];
   updatePrefUnd(root, func_type, params, custmPref);
   queue<node_und *> q, q1;
   q.push(root);
   for (i = 1; i < new_node_id; i++)
   {
-    j = sorted_node[i];
-    node1 = insertNodeUnd(q, j);
-    node1->s = s[j];
+    node1 = insertNodeUnd(q, i);
+    node1->s = s[i];
     updatePrefUnd(node1, func_type, params, custmPref);
   }
   // sample edges

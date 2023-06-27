@@ -25,16 +25,17 @@ NULL
 #' preference functions.
 #'
 #' @param nstep Number of steps.
-#' @param initial.network A \code{wdnet} object or a list that represents the
-#'   initial network. By default, \code{initial.network} has one directed edge from node 1
-#'   to node 2 with weight 1. It may have the following components: a two-column
-#'   matrix \code{edgelist} representing the edges; a vector \code{edgeweight}
-#'   representing the weight of edges; a logical argument \code{directed} indicating
-#'   whether the initial network is directed;
-#'   an integer vector \code{nodegroup}
-#'   representing the group of nodes. \code{nodegroup} is defined for directed
-#'   networks, if \code{NULL}, all nodes from the seed network are considered
-#'   from group 1.
+#' @param initial.network A \code{wdnet} object or a list representing the
+#'   initial network. By default, \code{initial.network} has one directed edge
+#'   from node 1 to node 2 with weight 1. It can contain the following components:
+#'   a two-column matrix \code{edgelist} representing the edges; a vector
+#'   \code{edgeweight} representing the weight of edges; a logical argument
+#'   \code{directed} indicating whether the initial network is directed. If
+#'   \code{edgeweight} is not specified, all edges from the initial network are
+#'   assumed to have weight 1. In addition, an integer vector
+#'   \code{nodegroup} can be added to the list for specifing node groups;
+#'   \code{nodegroup} is defined for directed networks, if \code{NULL}, all
+#'   nodes from the seed network are assumed to be in group 1.
 #' @param control An \code{rpacontrol} object controlling the PA network
 #'   generation process. If not specified, all the control parameters will be
 #'   set to default. For more details, see \code{rpa_control_scenario()},
@@ -117,6 +118,7 @@ NULL
 rpanet <- function(
     nstep, initial.network = list(
       edgelist = matrix(c(1, 2), nrow = 1),
+      edgeweight = 1,
       directed = TRUE
     ),
     control,
