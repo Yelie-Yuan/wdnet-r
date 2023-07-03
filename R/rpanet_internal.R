@@ -76,7 +76,7 @@ rpanet_general <- function(
     m, sum_m, w,
     nnode, nedge, method, sample.recip) {
   edgeweight <- c(initial.network$edge.attr$weight, w)
-  node_vec_length <- (sum_m + nedge) * 2
+  node_vec_length <- sum_m * 2 + max(nedge, nnode)
   node_vec1 <- integer(node_vec_length)
   node_vec2 <- integer(node_vec_length)
   scenario <- integer(node_vec_length)

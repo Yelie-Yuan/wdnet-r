@@ -282,7 +282,7 @@ test_that("rpanet node id", {
     alpha = 0.1, beta = 0.8, gamma = 0.1, beta.loop = FALSE
   )
   initial.network <- list(
-    edgelist = matrix(c(101:150, 1001:1050), ncol = 2), directed = TRUE
+    edgelist = matrix(c(1010:1050, 3010:3050), ncol = 2), directed = TRUE
   )
   netwk1 <- rpanet(1e4,
     control = ctr,
