@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
 Version: 1.2.0
-Date: 2023-06-29
+Date: 2023-07-03
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
            role = c("aut", "cre")),

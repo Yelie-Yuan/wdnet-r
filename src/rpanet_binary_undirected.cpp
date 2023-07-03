@@ -239,6 +239,13 @@ Rcpp::List rpanet_binary_undirected_cpp(
   int i, j, n_existing, current_scenario;
   node_und *node1, *node2;
 
+  // update node id; from R to c++
+  for (i = 0; i < new_edge_id; i++)
+  {
+    node_vec1[i] = node_vec1[i] - 1;
+    node_vec2[i] = node_vec2[i] - 1;
+  }
+
   // initialize a tree from seed graph
   node_und *root = createNodeUnd(0);
   root->s = s[0];
@@ -408,6 +415,13 @@ Rcpp::List rpanet_binary_undirected_cpp(
   }
   // free memory (queue)
   queue<node_und *>().swap(q);
+
+  // update node id; from c++ to R
+  for (i = 0; i < new_edge_id; i++)
+  {
+    node_vec1[i] = node_vec1[i] + 1;
+    node_vec2[i] = node_vec2[i] + 1;
+  }
 
   Rcpp::List ret;
   ret["m"] = m;

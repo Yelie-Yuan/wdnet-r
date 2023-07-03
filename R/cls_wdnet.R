@@ -41,10 +41,11 @@ NULL
 #'   edgelist = edgelist,
 #'   edgeweight = edgeweight,
 #'   directed = TRUE,
-#'   nodegroup = nodegroup)
+#'   nodegroup = nodegroup
+#' )
 #'
 #' @export
-#' 
+#'
 edgelist_to_wdnet <- function(
     edgelist,
     edgeweight,
@@ -59,15 +60,15 @@ edgelist_to_wdnet <- function(
   if (missing(edgelist) || is.null(edgelist)) {
     stop('Please provide "edgelist".')
   }
-  
+
   if (missing(edgeweight) || is.null(edgeweight)) {
     edgeweight <- rep(1, nrow(edgelist))
   }
-  
+
   if (nrow(edgelist) != length(edgeweight)) {
     stop("Number of rows in 'edgelist' must match the length of 'edgeweight'.")
   }
-  
+
   if (ncol(edgelist) != 2) {
     stop('"edgelist" must have exactly 2 columns.')
   }
@@ -75,21 +76,16 @@ edgelist_to_wdnet <- function(
   if (missing(nodegroup)) {
     nodegroup <- NULL
   }
-  
+
   max_node <- max(edgelist)
-  min_node <- min(edgelist)
-  num_unique_nodes <- length(unique(c(edgelist)))
-  
+
   if (!is.null(nodegroup)) {
     if (length(nodegroup) != max_node) {
       stop('Length of "nodegroup" must match the number of nodes in "edgelist".')
     }
   }
+  mode(edgelist) <- "integer"
 
-  if (max_node != num_unique_nodes || min_node != 1 || any(edgelist %% 1 != 0)) {
-    stop("Node index must be consecutive integers starting from 1.")
-  }
-  
   weighted <- any(edgeweight != 1)
   netwk <- structure(
     list(
@@ -100,7 +96,7 @@ edgelist_to_wdnet <- function(
     ),
     class = "wdnet"
   )
-  
+
   tmp <- node_strength_cpp(
     snode = edgelist[, 1],
     tnode = edgelist[, 2],
@@ -108,7 +104,7 @@ edgelist_to_wdnet <- function(
     nnode = max_node,
     weighted = weighted
   )
-  
+
   if (directed) {
     netwk$node.attr <- data.frame(
       "outs" = tmp$outs,
@@ -121,17 +117,17 @@ edgelist_to_wdnet <- function(
     )
   }
   netwk$node.attr$group <- nodegroup
-  
+
   additional_components <- list(...)
   if (length(additional_components) > 0) {
     netwk <- c(netwk, additional_components)
     class(netwk) <- "wdnet"
   }
-  
+
   if (!is_wdnet(netwk)) {
     stop('Failed to create a valid "wdnet" object.')
   }
-  
+
   return(netwk)
 }
 
@@ -150,7 +146,7 @@ edgelist_to_wdnet <- function(
 #' @examples
 #' adj <- matrix(c(0, 1, 2, 0), nrow = 2, ncol = 2, byrow = TRUE)
 #' adj_to_wdnet(adj = adj, directed = TRUE, weighted = FALSE)
-#' 
+#'
 adj_to_wdnet <- function(
     adj,
     directed = TRUE,
@@ -169,14 +165,14 @@ adj_to_wdnet <- function(
       cat('Network is directed because "adj" is asymmetric.\n\n')
     }
   }
-  
+
   if (missing(weighted) || is.null(weighted)) {
     weighted <- any(adj[adj > 0] != 1)
     if (weighted) {
       cat("Assume the network is weighted.\n")
     }
   }
-  
+
   stopifnot(is.logical(directed))
   stopifnot(is.logical(weighted))
 
@@ -184,12 +180,12 @@ adj_to_wdnet <- function(
     nodegroup <- NULL
   }
 
-  if(!is.null(nodegroup)) {
+  if (!is.null(nodegroup)) {
     if (length(nodegroup) != nrow(adj)) {
       stop('Length of "nodegroup" must match the number of nodes in "adj".')
     }
   }
-  
+
   tmp <- adj_to_edgelist(
     adj = adj,
     directed = directed,
@@ -199,7 +195,7 @@ adj_to_wdnet <- function(
   edgeweight <- tmp$edgeweight
   directed <- tmp$directed
   rm(tmp)
-  
+
   edgelist_to_wdnet(
     edgelist = edgelist,
     edgeweight = edgeweight,
@@ -231,7 +227,7 @@ adj_to_wdnet <- function(
 #' @return A \code{wdnet} object.
 #'
 #' @keywords internal
-#' 
+#'
 create_wdnet <- function(
     netwk,
     edgelist,
@@ -284,7 +280,6 @@ create_wdnet <- function(
       netwk$nodegroup <- NULL
     }
   }
-  is_wdnet(netwk)
   invisible(netwk)
 }
 
@@ -296,31 +291,27 @@ create_wdnet <- function(
 #' @examples
 #' netwk <- rpanet(nstep = 1e3)
 #' is_wdnet(netwk)
-#' 
+#'
 is_wdnet <- function(netwk) {
   valid_attrs <- c("edgelist", "directed", "weighted", "edge.attr", "node.attr")
   valid_cols <- ifelse(netwk$directed, c("outs", "ins"), c("s"))
   max_node <- max(netwk$edgelist)
-  min_node <- min(netwk$edgelist)
-  num_unique_nodes <- length(unique(c(netwk$edgelist)))
-
-  return(
-    all(
-      inherits(netwk, "wdnet"),
-      "weight" %in% names(netwk$edge.attr),
-      all(valid_attrs %in% names(netwk)),
-      all(netwk$edge.attr$weight > 0),
-      all(valid_cols %in% colnames(netwk$node.attr)),
-      is.logical(netwk$directed),
-      is.logical(netwk$weighted),
-      netwk$weighted == any(netwk$edge.attr$weight != 1),
-      nrow(netwk$edgelist) == nrow(netwk$edge.attr),
-      netwk$edgelist %% 1 == 0,
-      num_unique_nodes == nrow(netwk$node.attr),
-      max_node == num_unique_nodes,
-      min_node == 1
-    )
-  )
+  return(all(
+    is.logical(netwk$directed),
+    is.logical(netwk$weighted),
+    ifelse(
+      netwk$weighted,
+      netwk$edge.attr$weight > 0,
+      all(netwk$edge.attr$weight == 1)
+    ),
+    inherits(netwk, "wdnet"),
+    "weight" %in% names(netwk$edge.attr),
+    all(valid_attrs %in% names(netwk)),
+    all(valid_cols %in% colnames(netwk$node.attr)),
+    nrow(netwk$edgelist) == nrow(netwk$edge.attr),
+    is.integer(netwk$edgelist),
+    max_node == nrow(netwk$node.attr)
+  ))
 }
 
 #' Converts a \code{wdnet} object to an \code{igraph} object
@@ -333,11 +324,11 @@ is_wdnet <- function(netwk) {
 #' @examples
 #' netwk <- rpanet(nstep = 1e3)
 #' g <- wdnet_to_igraph(netwk)
-#' 
+#'
 wdnet_to_igraph <- function(netwk) {
   stopifnot(is_wdnet(netwk))
   g <- igraph::graph_from_edgelist(netwk$edgelist,
-                                   directed = netwk$directed
+    directed = netwk$directed
   )
   if (is.data.frame(netwk$edge.attr)) {
     for (each in colnames(netwk$edge.attr)) {
@@ -368,20 +359,21 @@ wdnet_to_igraph <- function(netwk) {
 #' @examples
 #' g <- igraph::sample_pa(50)
 #' netwk <- igraph_to_wdnet(g)
-#' 
+#'
 igraph_to_wdnet <- function(g) {
   stopifnot(igraph::is.igraph(g))
-  
+
   edgelist <- igraph::as_edgelist(g, names = FALSE)
+  mode(edgelist) <- "integer"
   edgeweight <- igraph::E(g)$weight
   directed <- igraph::is.directed(g)
-  
+
   netwk <- create_wdnet(
     edgelist = edgelist,
     edgeweight = edgeweight,
     directed = directed
   )
-  
+
   nattr <- igraph::vertex.attributes(g)
   if (length(nattr) > 0) {
     nattr <- as.data.frame(nattr)
@@ -392,7 +384,7 @@ igraph_to_wdnet <- function(g) {
       netwk$node.attr[[each]] <- nattr[[each]]
     }
   }
-  
+
   eattr <- igraph::edge.attributes(g)
   if (length(eattr) > 0) {
     eattr <- as.data.frame(eattr)
@@ -403,7 +395,7 @@ igraph_to_wdnet <- function(g) {
       netwk$edge.attr[[each]] <- eattr[[each]]
     }
   }
-  
+
   is_wdnet(netwk)
   netwk
 }
@@ -417,7 +409,7 @@ igraph_to_wdnet <- function(g) {
 #' @return Returns \code{NULL}, invisibly.
 #' @method plot wdnet
 #' @export
-#' 
+#'
 plot.wdnet <- function(x, ...) {
   stopifnot(is_wdnet(x))
   igraph::plot.igraph(wdnet_to_igraph(x), ...)
@@ -444,7 +436,7 @@ plot.wdnet <- function(x, ...) {
 #' @rdname print.wdnet
 #' @method print wdnet
 #' @export
-#' 
+#'
 print.wdnet <- function(
     x,
     node.attrs = TRUE,
@@ -455,7 +447,7 @@ print.wdnet <- function(
   nedge <- nrow(x$edgelist)
   nnode <- nrow(x$node.attr)
   n <- min(max.lines, nedge)
-  
+
   cat("\nEdges:\n")
   tmp <- data.frame(x$edgelist[seq_len(n), ])
   if (x$directed) {
@@ -472,9 +464,9 @@ print.wdnet <- function(
     }
   }
   print(tmp)
-  
+
   if (n < nedge) cat("...omitted remaining edges\n")
-  
+
   n <- min(max.lines, nnode)
   cat("\nNode attributes:\n")
   if (node.attrs) {

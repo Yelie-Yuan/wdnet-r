@@ -345,6 +345,14 @@ Rcpp::List rpanet_binary_directed(
   int i, j, n_existing, current_scenario, n_reciprocal;
   node_d *node1, *node2;
 
+  // update node id and group; from R to c++
+  for (i = 0; i < new_edge_id; i++) {
+    source_node[i] = source_node[i] - 1;
+    target_node[i] = target_node[i] - 1;
+  }
+  for (i = 0; i < new_node_id; i++) {
+    node_group[i] = node_group[i] - 1;
+  }
   // initialize a tree from the seed graph
   node_d *root = createNodeD(0);
   root->outs = outs[0];
@@ -353,7 +361,7 @@ Rcpp::List rpanet_binary_directed(
   updatePrefD(root, func_type, sparams, tparams, custmSourcePref, custmTargetPref);
   queue<node_d *> q, q1;
   q.push(root);
-  for (int i = 1; i < new_node_id; i++)
+  for (i = 1; i < new_node_id; i++)
   {
     node1 = insertNodeD(q, i);
     node1->outs = outs[i];
@@ -616,6 +624,16 @@ Rcpp::List rpanet_binary_directed(
   // free memory (queue)
   queue<node_d *>().swap(q);
 
+  // update node id and group; from c++ to R
+  for (i = 0; i < new_edge_id; i++)
+  {
+    source_node[i] = source_node[i] + 1;
+    target_node[i] = target_node[i] + 1;
+  }
+  for (i = 0; i < new_node_id; i++)
+  {
+    node_group[i] = node_group[i] + 1;
+  }
   Rcpp::List ret;
   ret["m"] = m;
   ret["nnode"] = new_node_id;

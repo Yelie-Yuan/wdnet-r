@@ -275,3 +275,23 @@ test_that("rpanet scenarios", {
   check_scenarios(netwk1)
   check_scenarios(netwk2)
 })
+
+test_that("rpanet node id", {
+  set.seed(12345)
+  ctr <- rpa_control_scenario(
+    alpha = 0.1, beta = 0.8, gamma = 0.1, beta.loop = FALSE
+  )
+  initial.network <- list(
+    edgelist = matrix(c(101:150, 1001:1050), ncol = 2), directed = TRUE
+  )
+  netwk1 <- rpanet(1e4,
+    control = ctr,
+    initial.network = initial.network
+  )
+  expect_true(
+    identical(
+      netwk1$edgelist[seq_len(nrow(initial.network$edgelist)), ],
+      initial.network$edgelist
+    )
+  )
+})

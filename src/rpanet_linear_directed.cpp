@@ -163,6 +163,17 @@ Rcpp::List rpanet_linear_directed_cpp(
   int i, j, k, n_existing, current_scenario, n_reciprocal;
   int node1, node2, temp_node, n_seednode = new_node_id;
 
+  // update node id and group; from R to c++
+  for (i = 0; i < new_edge_id; i++)
+  {
+    source_node[i] = source_node[i] - 1;
+    target_node[i] = target_node[i] - 1;
+  }
+  for (i = 0; i < new_node_id; i++)
+  {
+    node_group[i] = node_group[i] - 1;
+  }
+
   // sort nodes according to node preference
   Rcpp::IntegerVector sorted_snode_vec = Rcpp::seq(0, n_seednode - 1);
   Rcpp::IntegerVector sorted_tnode_vec = Rcpp::seq(0, n_seednode - 1);
@@ -445,6 +456,17 @@ Rcpp::List rpanet_linear_directed_cpp(
     // checkDiffD(tpref, total_tpref);
   }
   // PutRNGstate();
+
+  // update node id and group; from c++ to R
+  for (i = 0; i < new_edge_id; i++)
+  {
+    source_node[i] = source_node[i] + 1;
+    target_node[i] = target_node[i] + 1;
+  }
+  for (i = 0; i < new_node_id; i++)
+  {
+    node_group[i] = node_group[i] + 1;
+  }
 
   Rcpp::List ret;
   ret["m"] = m;

@@ -80,8 +80,8 @@ rpanet_general <- function(
   node_vec1 <- integer(node_vec_length)
   node_vec2 <- integer(node_vec_length)
   scenario <- integer(node_vec_length)
-  node_vec1[1:nedge] <- initial.network$edgelist[, 1] - 1
-  node_vec2[1:nedge] <- initial.network$edgelist[, 2] - 1
+  node_vec1[1:nedge] <- initial.network$edgelist[, 1]
+  node_vec2[1:nedge] <- initial.network$edgelist[, 2]
   scenario[1:nedge] <- 0
 
   control$preference$ftype.temp <- ifelse(
@@ -100,7 +100,7 @@ rpanet_general <- function(
       control$reciprocal$recip.prob <- matrix(0)
     }
     nodegroup <- integer(node_vec_length)
-    nodegroup[1:nnode] <- initial.network$node.attr$group - 1
+    nodegroup[1:nnode] <- initial.network$node.attr$group
     if (method == "binary") {
       ret_c <- rpanet_binary_directed(
         nstep,
@@ -182,8 +182,8 @@ rpanet_general <- function(
   ret <- structure(
     list(
       "edgelist" = cbind(
-        ret_c$node_vec1[1:nedge] + 1,
-        ret_c$node_vec2[1:nedge] + 1
+        ret_c$node_vec1[1:nedge],
+        ret_c$node_vec2[1:nedge]
       ),
       "newedge" = ret_c$m,
       "control" = control,
@@ -210,7 +210,7 @@ rpanet_general <- function(
     )
   }
   if (sample.recip) {
-    ret$node.attr$group <- ret_c$nodegroup[1:nnode] + 1
+    ret$node.attr$group <- ret_c$nodegroup[1:nnode]
   } else {
     ret$control$reciprocal$group.prob <- NULL
     ret$control$reciprocal$recip.prob <- NULL
@@ -330,6 +330,6 @@ rpanet_simple <- function(
     ret$node.attr$pref <- ret$node.attr$s +
       control$preference$params[2]
   }
-  is_wdnet(ret)
+  # is_wdnet(ret)
   return(ret)
 }
