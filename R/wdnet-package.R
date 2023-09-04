@@ -31,7 +31,7 @@
 #' \itemize{
 #' \item A logical value \code{directed} indicating if the network is directed.
 #' \item A logical value \code{weighted} indicating if the network is weighted.
-#' \item A two-column matrix representing the edges.
+#' \item A two-column matrix \code{edgelist} representing the edges.
 #' \item A data frame \code{node.attr} that includes node attributes,
 #' such as node strengths.
 #' \item A data frame \code{edge.attr} that includes edge attributes,
@@ -53,10 +53,6 @@
 #' @section Further information: The development version of this package is
 #'   available on Gitlab (\url{https://gitlab.com/wdnetwork/wdnet}).
 #'
-#' @docType package
-#' @name wdnet
-#' @useDynLib wdnet, .registration = TRUE
-#' @importFrom Rcpp sourceCpp
-#' @importFrom Rcpp evalCpp
-
-NULL
+#' @useDynLib wdnet
+#' @keywords internal 
+"_PACKAGE"

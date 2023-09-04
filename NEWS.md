@@ -1,3 +1,9 @@
+# wdnet 1.2.1
+
++ Minor fixes in documentation.
++ Added citation for the package.
+
+
 # wdnet 1.2.0
 
 ## Interface

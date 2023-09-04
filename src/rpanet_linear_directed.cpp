@@ -41,43 +41,8 @@ double calcPrefLinearD(int func_type,
   return ret;
 }
 
-// /**
-//  * Calculate total preference.
-//  *
-//  * @param pref Preference vector.
-//  * @param n_exising Number of existing nodes.
-//  *
-//  * @return Total preference.
-//  *
-//  */
-// double calcTotalprefD(Rcpp::NumericVector pref, int n_existing) {
-//   int k;
-//   double temp = 0;
-//   for (k = 0; k < n_existing; k++) {
-//     temp += pref[k];
-//   }
-//   return temp;
-// }
 
-// /**
-//  * Check difference.
-//  *
-//  * @param total_pref Total preference.
-//  * @param pref Preference vector.
-//  *
-//  */
-// void checkDiffD(Rcpp::NumericVector pref, double total_pref) {
-//   int k;
-//   double temp = 0, tol = 0.00000001;
-//   for (k = 0; k < pref.size(); k++) {
-//     temp += pref[k];
-//   }
-//   if ((total_pref - temp > tol) || (temp - total_pref) > tol) {
-//     Rprintf("Total pref warning, diff = %f. \n", total_pref - temp);
-//   }
-// }
-
-//'  Preferential attachment algorithm.
+//'  Preferential attachment network generation.
 //'
 //' @param nstep Number of steps.
 //' @param m Number of new edges in each step.
@@ -91,8 +56,8 @@ double calcPrefLinearD(int func_type,
 //' @param scenario Scenario of existing and new edges.
 //' @param sample_recip Logical, whether reciprocal edges will be added.
 //' @param node_group Sequence of node group.
-//' @param spref Sequence of node source preference.
-//' @param tpref Sequence of node target preference.
+//' @param spref_vec Sequence of node source preference.
+//' @param tpref_vec Sequence of node target preference.
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
@@ -405,8 +370,6 @@ Rcpp::List rpanet_linear_directed_cpp(
         total_tpref -= tpref[node2];
         tpref[node2] = 0;
       }
-      // checkDiffD(spref, total_spref);
-      // checkDiffD(tpref, total_tpref);
       outs[node1] += edgeweight[new_edge_id];
       ins[node2] += edgeweight[new_edge_id];
       source_node[new_edge_id] = node1;
@@ -452,8 +415,6 @@ Rcpp::List rpanet_linear_directed_cpp(
       total_tpref += tpref[temp_node];
       q1.pop();
     }
-    // checkDiffD(spref, total_spref);
-    // checkDiffD(tpref, total_tpref);
   }
   // PutRNGstate();
 

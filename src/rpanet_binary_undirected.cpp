@@ -176,7 +176,7 @@ node_und *sampleNodeUnd(node_und *root)
   return findNode(root, w);
 }
 
-//' Preferential attachment algorithm.
+//' Preferential attachment network generation.
 //'
 //' @param nstep Number of steps.
 //' @param m Number of new edges in each step.
@@ -187,7 +187,7 @@ node_und *sampleNodeUnd(node_und *root)
 //' @param s Sequence of node strength.
 //' @param edgeweight Weight of existing and new edges.
 //' @param scenario Scenario of existing and new edges.
-//' @param pref Sequence of node preference.
+//' @param pref_vec Sequence of node preference.
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
@@ -204,7 +204,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
     Rcpp::NumericVector s,
     Rcpp::NumericVector edgeweight,
     Rcpp::IntegerVector scenario,
-    Rcpp::NumericVector pref,
+    Rcpp::NumericVector pref_vec,
     Rcpp::List control)
 {
   Rcpp::List scenario_ctl = control["scenario"];
@@ -218,6 +218,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   Rcpp::List preference_ctl = control["preference"];
   Rcpp::NumericVector params_vec(2);
   double *params = nullptr;
+  double *pref = &(pref_vec[0]);
   // different types of preference functions
   int func_type = preference_ctl["ftype.temp"];
   switch (func_type)
@@ -429,7 +430,7 @@ Rcpp::List rpanet_binary_undirected_cpp(
   ret["nedge"] = new_edge_id;
   ret["node_vec1"] = node_vec1;
   ret["node_vec2"] = node_vec2;
-  ret["pref"] = pref;
+  ret["pref"] = pref_vec;
   ret["s"] = s;
   ret["scenario"] = scenario;
   return ret;

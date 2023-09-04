@@ -57,8 +57,10 @@ int sampleGroup(double *group_prob)
  * Sample a node. Linear method.
  *
  * @param n_existing Number of existing nodes.
+ * @param n_seednode Number of nodes in the initial network.
  * @param pref Sequence of node source/target preference.
  * @param total_pref Total source/target preference of existing nodes.
+ * @param sorted_node Node sequence.
  *
  * @return Sampled source/target node.
  */

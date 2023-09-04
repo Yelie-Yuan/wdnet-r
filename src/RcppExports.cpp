@@ -96,8 +96,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rpanet_binary_undirected_cpp
-Rcpp::List rpanet_binary_undirected_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector node_vec1, Rcpp::IntegerVector node_vec2, Rcpp::NumericVector s, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, Rcpp::NumericVector pref, Rcpp::List control);
-RcppExport SEXP _wdnet_rpanet_binary_undirected_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP node_vec1SEXP, SEXP node_vec2SEXP, SEXP sSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP prefSEXP, SEXP controlSEXP) {
+Rcpp::List rpanet_binary_undirected_cpp(int nstep, Rcpp::IntegerVector m, int new_node_id, int new_edge_id, Rcpp::IntegerVector node_vec1, Rcpp::IntegerVector node_vec2, Rcpp::NumericVector s, Rcpp::NumericVector edgeweight, Rcpp::IntegerVector scenario, Rcpp::NumericVector pref_vec, Rcpp::List control);
+RcppExport SEXP _wdnet_rpanet_binary_undirected_cpp(SEXP nstepSEXP, SEXP mSEXP, SEXP new_node_idSEXP, SEXP new_edge_idSEXP, SEXP node_vec1SEXP, SEXP node_vec2SEXP, SEXP sSEXP, SEXP edgeweightSEXP, SEXP scenarioSEXP, SEXP pref_vecSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -110,9 +110,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type s(sSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type edgeweight(edgeweightSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type scenario(scenarioSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pref(prefSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pref_vec(pref_vecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpanet_binary_undirected_cpp(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, s, edgeweight, scenario, pref, control));
+    rcpp_result_gen = Rcpp::wrap(rpanet_binary_undirected_cpp(nstep, m, new_node_id, new_edge_id, node_vec1, node_vec2, s, edgeweight, scenario, pref_vec, control));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -19,7 +19,7 @@
 #' @importFrom RcppXPtrUtils checkXPtr cppXPtr
 NULL
 
-#' Compile preference functions via \code{Rcpp}.
+#' Compile preference functions via \code{RcppXPtrUtils}.
 #'
 #' @param preference A list for defining the preference functions.
 #' @param directed Logical, whether to compile the preference functions for

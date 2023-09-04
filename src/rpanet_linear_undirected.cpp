@@ -38,43 +38,8 @@ double calcPrefLinearUnd(int func_type,
   return ret;
 }
 
-// /**
-//  * Calculate total preference.
-//  *
-//  * @param pref Preference vector.
-//  * @param n_exising Number of existing nodes.
-//  *
-//  * @return Total preference.
-//  *
-//  */
-// double calcTotalprefUnd(Rcpp::NumericVector pref, int n_existing) {
-//   int k;
-//   double temp = 0;
-//   for (k = 0; k < n_existing; k++) {
-//     temp += pref[k];
-//   }
-//   return temp;
-// }
 
-// /**
-//  * Check difference.
-//  *
-//  * @param total_pref Total preference.
-//  * @param pref Preference vector.
-//  *
-//  */
-// void checkDiffUnd(Rcpp::NumericVector pref, double total_pref) {
-//   int k;
-//   double temp = 0, tol = 0.00000001;
-//   for (k = 0; k < pref.size(); k++) {
-//     temp += pref[k];
-//   }
-//   if ((total_pref - temp > tol) || (temp - total_pref) > tol) {
-//     Rprintf("Total pref warning, diff = %f. \n", total_pref - temp);
-//   }
-// }
-
-//' Preferential attachment algorithm.
+//' Preferential attachment network generation.
 //'
 //' @param nstep Number of steps.
 //' @param m Number of new edges in each step.
@@ -85,7 +50,7 @@ double calcPrefLinearUnd(int func_type,
 //' @param s Sequence of node strength.
 //' @param edgeweight Weight of existing and new edges.
 //' @param scenario Scenario of existing and new edges.
-//' @param pref Sequence of node preference.
+//' @param pref_vec Sequence of node preference.
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
@@ -307,7 +272,6 @@ Rcpp::List rpanet_linear_undirected_cpp(
       total_pref += pref[temp_node];
       q1.pop();
     }
-    // checkDiffUnd(pref, total_pref);
   }
   // PutRNGstate();
 

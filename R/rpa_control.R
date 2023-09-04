@@ -17,7 +17,6 @@
 ##
 
 #' @importFrom utils modifyList
-#' @importFrom Rcpp sourceCpp
 NULL
 
 

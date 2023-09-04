@@ -259,7 +259,7 @@ node_d *sampleNodeD(node_d *root, char type)
   }
 }
 
-//' Preferential attachment algorithm.
+//' Preferential attachment network generation.
 //'
 //' @param nstep Number of steps.
 //' @param m Number of new edges in each step.
@@ -273,8 +273,8 @@ node_d *sampleNodeD(node_d *root, char type)
 //' @param scenario Scenario of existing and new edges.
 //' @param sample_recip Logical, whether reciprocal edges will be added.
 //' @param node_group Sequence of node group.
-//' @param spref Sequence of node source preference.
-//' @param tpref Sequence of node target preference.
+//' @param spref_vec Sequence of node source preference.
+//' @param tpref_vec Sequence of node target preference.
 //' @param control List of controlling arguments.
 //' @return Sampled network.
 //'
@@ -346,11 +346,13 @@ Rcpp::List rpanet_binary_directed(
   node_d *node1, *node2;
 
   // update node id and group; from R to c++
-  for (i = 0; i < new_edge_id; i++) {
+  for (i = 0; i < new_edge_id; i++)
+  {
     source_node[i] = source_node[i] - 1;
     target_node[i] = target_node[i] - 1;
   }
-  for (i = 0; i < new_node_id; i++) {
+  for (i = 0; i < new_node_id; i++)
+  {
     node_group[i] = node_group[i] - 1;
   }
   // initialize a tree from the seed graph
@@ -518,30 +520,6 @@ Rcpp::List rpanet_binary_directed(
       {
         break;
       }
-      // if (node_unique) {
-      //   if (node1->id < n_existing) {
-      //     node1->sourcep = 0;
-      //     node1->targetp = 0;
-      //     updateTotalSourcep(node1);
-      //     updateTotalTargetp(node1);
-      //   }
-      //   if ((node2->id < n_existing) && (node1 != node2)) {
-      //     node2->sourcep = 0;
-      //     node2->targetp = 0;
-      //     updateTotalSourcep(node2);
-      //     updateTotalTargetp(node2);
-      //   }
-      // }
-      // else {
-      //   if (snode_unique && (node1->id < n_existing)) {
-      //     node1->sourcep = 0;
-      //     updateTotalSourcep(node1);
-      //   }
-      //   if (tnode_unique && (node2->id < n_existing)) {
-      //     node2->targetp = 0;
-      //     updateTotalTargetp(node2);
-      //   }
-      // }
       // sample without replacement
       if (snode_unique && (node1->id < n_existing))
       {
