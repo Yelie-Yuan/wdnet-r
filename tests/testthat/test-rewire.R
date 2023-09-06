@@ -22,10 +22,8 @@ test_that("rewire", {
       weighted = FALSE,
       directed = directed
     )
-    stopifnot(
-      identical(edgelist, netwk1$edgelist) &&
-      identical(netwk1$edgelist, netwk2$edgelist)
-    )
+    expect_equal(edgelist, netwk1$edgelist)
+    expect_equal(netwk1$edgelist, netwk2$edgelist)
     if (directed) {
       target.assortcoef <- list("outout" = -0.2, "outin" = 0.2)
       eta <- get_eta_directed(
@@ -60,10 +58,9 @@ test_that("rewire", {
       netwk2,
       control = list(iteration = 200), eta = eta
     )
-    ret <- identical(ret1, ret2) &&
-      identical(ret1, ret3) &&
-      identical(ret1, ret4)
-    expect_true(ret)
+    expect_equal(ret1, ret2)
+    expect_equal(ret1, ret3)
+    expect_equal(ret1, ret4)
   }
   nstep <- 1e3
   control <- rpa_control_scenario(

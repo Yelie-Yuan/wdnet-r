@@ -6,11 +6,11 @@ test_that("clustering coefficient", {
         0.0000000, 0.1926230, 0.0000000, 0.3888889,
         0.2500000, 0.2604167
       ),
+      "globalcc" = 0.2292854,
       "numtriangles" = c(
         0.0, 11.5, 8.0, 13.5, 0.0, 23.5,
         0.0, 7.0, 12.0, 12.5
-      ),
-      "globalcc" = 0.2292854
+      )
     ),
     "out" = list(
       "localcc" = c(
@@ -59,19 +59,6 @@ test_that("clustering coefficient", {
     )
   )
 
-  my_test_equal <- function(x, y) {
-    temp <- sapply(
-      seq_along(x), function(i) {
-        sapply(
-          seq_along(i), function(j) {
-            sum(abs(x[[i]][[j]] - y[[i]][[j]]))
-          }
-        )
-      }
-    )
-    temp <- sum(abs(temp))
-    expect_equal(round(temp, 5), 0)
-  }
   set.seed(1234)
   adj <- matrix(rbinom(100, 1, 0.3) * sample(3, 100, replace = TRUE),
     nrow = 10
@@ -89,20 +76,20 @@ test_that("clustering coefficient", {
     directed = TRUE
   )
   mycc <- clustcoef(netwk = netwk, method = "Clemente")
-  my_test_equal(mycc, mycc0)
+  expect_equal(mycc, mycc0, tolerance = 1e-4)
 
   netwk <- create_wdnet(
     adj = adj, directed = TRUE, weighted = TRUE
   )
   mycc <- clustcoef(netwk = netwk, method = "Clemente")
-  my_test_equal(mycc, mycc0)
+  expect_equal(mycc, mycc0, tolerance = 1e-4)
 
   mycc <- clustcoef(adj = adj, method = "Clemente")
-  my_test_equal(mycc, mycc0)
+  expect_equal(mycc, mycc0, tolerance = 1e-4)
 
   mycc <- clustcoef(
     edgelist = edgelist,
     edgeweight = edgeweight, method = "Clemente"
   )
-  my_test_equal(mycc, mycc0)
+  expect_equal(mycc, mycc0, tolerance = 1e-4)
 })

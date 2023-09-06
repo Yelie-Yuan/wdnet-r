@@ -1,6 +1,9 @@
 # wdnet 1.2.2
 
-+ Removed a `set.seed(); rpanet()` test.
++ Removed a test involving `set.seed(); rpanet()` due to potential
+  cross-platform inconsistencies.
++ Minor updates in testing scripts.
+
 
 # wdnet 1.2.1
 

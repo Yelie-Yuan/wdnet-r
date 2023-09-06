@@ -226,15 +226,14 @@ test_that("rpanet initial network", {
     nedge <- nrow(netwk1$edgelist)
     nnode <- nrow(netwk1$node.attr)
     netwk1$edge.attr$scenario <- 0
-    expect_true(all(
-      identical(netwk1$edgelist, netwk2$edgelist[1:nedge, ]),
-      netwk2$edge.attr$scenario[1:nedge] == 0,
-      identical(netwk1$edge.attr$weight, netwk2$edge.attr$weight[1:nedge]),
-      identical(netwk1$directed, netwk2$directed),
-      identical(netwk1$weighted, netwk2$weighted),
-      identical(netwk1$control, netwk2$control),
-      identical(netwk1$node.attr$group, netwk2$node.attr$group[1:nnode])
-    ))
+    expect_equal(netwk1$edgelist, netwk2$edgelist[1:nedge, ])
+    expect_true(all(netwk2$edge.attr$scenario[1:nedge] == 0))
+    expect_equal(netwk1$edge.attr$weight, netwk2$edge.attr$weight[1:nedge])
+    expect_equal(netwk1$directed, netwk2$directed)
+    expect_equal(netwk1$weighted, netwk2$weighted)
+    expect_equal(netwk1$control, netwk2$control)
+    expect_equal(netwk1$node.attr$group, netwk2$node.attr$group[1:nnode])
+    NULL
   }
   check_initial_network(netwk1, netwk2)
   check_initial_network(netwk3, netwk4)
@@ -265,11 +264,9 @@ test_that("rpanet scenarios", {
     alpha <- which(netwk$edge.attr$scenario == 1)
     beta <- which(netwk$edge.attr$scenario == 2)
     gamma <- which(netwk$edge.attr$scenario == 3)
-    expect_true(all(
-      netwk$edgelist[alpha, 1] > netwk$edgelist[alpha, 2],
-      netwk$edgelist[beta, 1] != netwk$edgelist[beta, 2],
-      netwk$edgelist[gamma, 1] < netwk$edgelist[gamma, 2]
-    ))
+    expect_true(all(netwk$edgelist[alpha, 1] > netwk$edgelist[alpha, 2]))
+    expect_true(all(netwk$edgelist[beta, 1] != netwk$edgelist[beta, 2]))
+    expect_true(all(netwk$edgelist[gamma, 1] < netwk$edgelist[gamma, 2]))
   }
 
   check_scenarios(netwk1)
@@ -288,10 +285,8 @@ test_that("rpanet node id", {
     control = ctr,
     initial.network = initial.network
   )
-  expect_true(
-    identical(
-      netwk1$edgelist[seq_len(nrow(initial.network$edgelist)), ],
-      initial.network$edgelist
-    )
+  expect_equal(
+    netwk1$edgelist[seq_len(nrow(initial.network$edgelist)), ],
+    initial.network$edgelist
   )
 })
