@@ -1,3 +1,8 @@
+# wdnet 1.2.3
+
++ Minor fixes to documentation.
++ Update citation information.
+
 # wdnet 1.2.2
 
 + Removed a test involving `set.seed(); rpanet()` due to potential

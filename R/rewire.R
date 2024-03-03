@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2023  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -222,20 +222,20 @@ dprewire_undirected <- function(
 #'   networks, it is a constant between -1 to 1. It will be ignored if
 #'   \code{eta} is provided.
 #' @param control A list of parameters for controlling the rewiring process and
-#'   the process for solving \code{eta}. \itemize{ \item{\code{iteration}} {An
+#'   the process for solving \code{eta}. \itemize{ \item `iteration` An
 #'   integer, represents the number of rewiring iterations. Each iteration
 #'   consists of \code{nattempts} rewiring attempts. The assortativity
-#'   coefficient(s) of the network will be recorded after each iteration.}
-#'   \item{\code{nattempts}} {An integer representing the number of rewiring
+#'   coefficient(s) of the network will be recorded after each iteration.
+#'   \item `nattempts` An integer representing the number of rewiring
 #'   attempts for each
-#'   iteration. Default value equals the number of rows of \code{edgelist}}.
-#'   \item{\code{history}} {Logical, whether the rewiring attempts should be
-#'   recorded and returned.} \item{\code{eta.obj}} {A convex function of
+#'   iteration. Default value equals the number of rows of \code{edgelist}.
+#'   \item `history` Logical, whether the rewiring attempts should be
+#'   recorded and returned. \item `eta.obj` A convex function of
 #'   \code{eta} to be minimized when solving for \code{eta} with given
 #'   \code{target.assortcoef}. Defaults to 0. It will be ignored if \code{eta}
-#'   is provided.} \item{\code{cvxr_control} {A list of parameters passed to
+#'   is provided. \item `cvxr_control` A list of parameters passed to
 #'   \code{CVXR::solve()} for solving \code{eta} with given
-#'   \code{target.assortcoef}. It will be ignored if \code{eta} is provided.}}}
+#'   \code{target.assortcoef}. It will be ignored if \code{eta} is provided.}
 #' @param eta A matrix represents the target network structure. If specified,
 #'   \code{target.assortcoef} will be ignored. For directed networks, the
 #'   element at row "i-j" and column "k-l" represents the proportion of directed

@@ -1,15 +1,40 @@
-bibentry(
-  bibtype = "article",
-  textVersion = "Yelie Yuan, Tiandong Wang, Jun Yan, Panpan Zhang, Generating General Preferential Attachment Networks with R Package wdnet, J. data sci. 21(2023), no. 3, 538-556, DOI 10.6339/23-JDS1110",
-  header = "To cite 'wdnet' in publications, please use",
-  author = "Yelie Yuan and Tiandong Wang and Jun Yan and Panpan Zhang",
-  title = "Generating General Preferential Attachment Networks with R Package wdnet",
-  journal = "Journal of Data Science",
-  volume = "21",
-  number = "3",
-  year = "2023",
-  pages = "538--556",
-  doi = "10.6339/23-JDS1110",
-  issn = "1680-743X",
+bibentry("Article",
+  title     = "Generating General Preferential Attachment Networks with {R} Package {wdnet}",
+  author    = c(person(family = "Yuan", given = "Yelie"), 
+              person(family = "Wang", given = "Tiandong"), 
+              person(family = "Yan", given = "Jun"), 
+              person(family = "Zhang", given="Panpan")),
+  journal   = "Journal of Data Science",
+  volume    = "21",
+  number    = "3",
+  pages     = "538--556",
+  year      = "2023",
   publisher = "School of Statistics, Renmin University of China"
+)
+
+bibentry("Article",
+  title     = "Generating Directed Networks with Predetermined Assortativity Measures",
+  author    = c(person(family = "Wang", given = "Tiandong"),
+                person(family = "Yan", given = "Jun"), 
+                person(family = "Yuan", given = "Yelie"), 
+                person(family = "Zhang", given="Panpan")),
+  journal   = "Statistics and Computing",
+  volume    = "32",
+  number    = "5",
+  pages     = "91",
+  year      = "2022",
+  publisher = "Springer"
+)
+
+bibentry("Article",
+  title     = "Assortativity Measures for Weighted and Directed Networks",
+  author    = c(person(family = "Yuan", given = "Yelie"), 
+                person(family = "Yan", given = "Jun"), 
+                person(family = "Zhang", given="Panpan")),
+  journal   = "Journal of Complex Networks",
+  volume    = "9",
+  number    = "2",
+  pages     = "cnab017",
+  year      = "2021",
+  publisher = "Oxford Academic"
 )

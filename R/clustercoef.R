@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2023  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -46,7 +46,7 @@ NULL
 #'
 #' @references
 #' \itemize{
-#'   \item Barrat, A., Barth\'{e}lemy, M., Pastor-Satorras,
+#'   \item Barrat, A., Barthelemy, M., Pastor-Satorras,
 #'   R. and Vespignani, A. (2004). The architecture of complex weighted
 #'   networks. \emph{Proceedings of National Academy of Sciences of the United
 #'   States of America}, 101(11), 3747--3752.

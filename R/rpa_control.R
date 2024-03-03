@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2023  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -255,15 +255,15 @@ rpa_control_newedge <- function(
 #'   \code{tpref} and \code{pref} will be used and the network generation method
 #'   must be "binary" or "linear". \code{spref} (\code{tpref}) defines the
 #'   source (target) preference function, it can be a character expression or an
-#'   object of class \code{XPtr}. \itemize{ \item{Character expression: } {it
+#'   object of class \code{XPtr}. \itemize{ \item Character expression; it
 #'   must be a one-line \code{C++} style expression of \code{outs}
 #'   (node out-strength) and
 #'   \code{ins} (node in-strength). For example, \code{"pow(outs, 2) + 1"},
 #'   \code{"pow(outs, 2) + pow(ins, 2) + 1"}, etc. The expression will be used
 #'   to define an \code{XPtr} via \code{RcppXPtrUtils::cppXPtr}. The \code{XPtr}
 #'   will be passed to the network generation function. The expression must not
-#'   have variables other than \code{outs} and \code{ins}.} \item{\code{XPtr}: }
-#'   {an external pointer wrapped in an object of class \code{XPtr} defined via
+#'   have variables other than \code{outs} and \code{ins}. \item `XPtr` an 
+#'   external pointer wrapped in an object of class \code{XPtr} defined via
 #'   \code{RcppXPtrUtils::cppXPtr}. An example for defining an \code{XPtr} with
 #'   \code{C++} source code is included in Examples. For more information
 #'   about passing function pointers, see
@@ -273,7 +273,7 @@ rpa_control_newedge <- function(
 #'   represent node out- and in-strength, respectively. Note that the \code{XPtr} will
 #'   be invalid and cannot be used to control network generation
 #'   in another separate R session. Therefore, we recommend preserving the source code of your
-#'   preference function for future use.}}
+#'   preference function for future use.}
 #'
 #'   \code{pref} is defined analogously. If using character expression, it must
 #'   be a one-line \code{C++} style expression of \code{s} (node strength). If
