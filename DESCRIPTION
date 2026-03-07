@@ -1,9 +1,9 @@
 Package: wdnet
 Title: Weighted and Directed Networks
-Version: 1.2.3
-Date: 2024-03-03
+Version: 1.2.4
+Date: 2026-03-07
 Authors@R: c(
-    person("Yelie", "Yuan", email = "yelie.yuan@uconn.edu",
+    person("Yelie", "Yuan", email = "yelie.yuan@gmail.com",
            role = c("aut", "cre")),
     person("Tiandong", "Wang", email = "td_wang@fudan.edu.cn ",
            role = "aut"),
@@ -11,17 +11,24 @@ Authors@R: c(
            role = c("aut")),
     person("Panpan", "Zhang", email = "panpan.zhang@vumc.org",
            role = "aut"))
-Maintainer: Yelie Yuan <yelie.yuan@uconn.edu>
+Maintainer: Yelie Yuan <yelie.yuan@gmail.com>
 Description: Assortativity coefficients, centrality measures, 
     and clustering coefficients for weighted and directed networks.
     Rewiring unweighted networks with given assortativity coefficients.
     Generating general preferential attachment networks.
-Depends: R (>= 4.1.0)
+Depends: R (>= 4.5.0)
 License: GPL (>= 3.0)
 Encoding: UTF-8
-Imports: CVXR, igraph, Matrix, rARPACK, RcppXPtrUtils, stats, wdm
+Imports: 
+    CVXR (>= 1.8.1),
+    igraph (>= 2.2.2),
+    Matrix (>= 1.7.4),
+    rARPACK (>= 0.11-0),
+    RcppXPtrUtils (>= 0.1.3),
+    stats,
+    wdm (>= 0.2.6)
 LinkingTo: Rcpp, RcppArmadillo
 BugReports: https://gitlab.com/wdnetwork/wdnet/-/issues
 URL: https://gitlab.com/wdnetwork/wdnet
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 Suggests: testthat (>= 3.0.0)

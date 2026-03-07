@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Copyright (C) 2026  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -16,8 +16,8 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom igraph graph_from_edgelist E V plot.igraph is.igraph as_edgelist
-#' @importFrom igraph is.directed vertex.attributes edge.attributes
+#' @importFrom igraph graph_from_edgelist E V plot.igraph is_igraph as_edgelist
+#' @importFrom igraph is_directed vertex.attributes edge.attributes
 #' @importFrom utils head
 NULL
 
@@ -361,12 +361,12 @@ wdnet_to_igraph <- function(netwk) {
 #' netwk <- igraph_to_wdnet(g)
 #'
 igraph_to_wdnet <- function(g) {
-  stopifnot(igraph::is.igraph(g))
+  stopifnot(igraph::is_igraph(g))
 
   edgelist <- igraph::as_edgelist(g, names = FALSE)
   mode(edgelist) <- "integer"
   edgeweight <- igraph::E(g)$weight
-  directed <- igraph::is.directed(g)
+  directed <- igraph::is_directed(g)
 
   netwk <- create_wdnet(
     edgelist = edgelist,

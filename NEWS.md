@@ -1,3 +1,13 @@
+# wdnet 1.2.4
+
++ Updated for CVXR 1.8.1 API changes.
+  + Removed the `ignore_dcp` and `parallel` arguments from
+    `cvxr_control()`; these options are no longer supported.
+  + Updated default solver name from "ECOS" to "CLARABEL".
++ Updated for `igraph` API changes.
+  + Replaced `igraph::is.directed()` with `igraph::is_directed()` and
+    `igraph::is.graph()` with `igraph::is_igraph()`.
+
 # wdnet 1.2.3
 
 + Minor fixes to documentation.

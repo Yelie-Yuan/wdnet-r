@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Copyright (C) 2026  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -122,8 +122,8 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #'   sampler = function(n) rgamma(n, shape = 5, scale = 0.2)
 #' )
 #' netwk <- rpanet(nstep = 10^4, control = control)
-#' ret <- assortcoef(netwk)
-#' ret <- assortcoef(
+#' assortcoef(netwk)
+#' assortcoef(
 #'   edgelist = netwk$edgelist,
 #'   edgeweight = netwk$edge.attr$weight,
 #'   directed = TRUE
@@ -228,7 +228,7 @@ assortcoef <- function(
 #' adj <- matrix(rbinom(400, 1, 0.2) * sample(1:3, 400, replace = TRUE), 20, 20)
 #' f1 <- runif(20)
 #' f2 <- abs(rnorm(20))
-#' ret <- assortcoef(adj = adj, f1 = f1, f2 = f2)
+#' assortcoef(adj = adj, f1 = f1, f2 = f2)
 #'
 #' @keywords internal
 #' 

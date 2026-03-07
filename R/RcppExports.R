@@ -1,7 +1,7 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
-## Yelie Yuan <yelie.yuan@uconn.edu>
+## Copyright (C) 2026  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Yelie Yuan <yelie.yuan@gmail.com>
 ##
 ## This file is part of the R package wdnet.
 ##

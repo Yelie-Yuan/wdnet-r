@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Copyright (C) 2026  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -16,7 +16,7 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##
 
-#' @importFrom CVXR Variable sum_entries Minimize Maximize Problem solve
+#' @importFrom CVXR Variable sum_entries Minimize Maximize Problem psolve solver_stats
 NULL
 
 #' Get the node-level joint distributions and some empirical distributions with
@@ -30,10 +30,12 @@ NULL
 #' @return A list of distributions and degree vectors.
 #'
 #' @keywords internal
-#' 
-get_dist <- function(edgelist, directed = TRUE,
+#'
+get_dist <- function(edgelist,
+                     directed = TRUE,
                      joint_dist = FALSE) {
-  if (!directed) edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
+  if (!directed)
+    edgelist <- rbind(edgelist, edgelist[, c(2, 1)])
   edgelist <- as.matrix(edgelist)
   temp <- node_strength_cpp(
     snode = edgelist[, 1],
@@ -42,7 +44,7 @@ get_dist <- function(edgelist, directed = TRUE,
     weight = 1,
     weighted = FALSE
   )
-
+  
   outd <- temp$outs
   ind <- temp$ins
   nedge <- nrow(edgelist)
@@ -50,7 +52,7 @@ get_dist <- function(edgelist, directed = TRUE,
   nu <- table(nu) / length(outd)
   d_out <- as.numeric(rownames(nu))
   d_in <- as.numeric(colnames(nu))
-
+  
   p_out <- as.numeric(rowSums(nu))
   p_in <- as.numeric(colSums(nu))
   t1 <- nu * d_out
@@ -88,11 +90,17 @@ get_dist <- function(edgelist, directed = TRUE,
     )) / nedge
   }
   list(
-    nu = nu, e = e, eta = eta,
-    d_out = d_out, d_in = d_in,
-    p_out = p_out, p_in = p_in,
-    q_s_out = q_s_out, q_s_in = q_s_in,
-    q_t_out = q_t_out, q_t_in = q_t_in
+    nu = nu,
+    e = e,
+    eta = eta,
+    d_out = d_out,
+    d_in = d_in,
+    p_out = p_out,
+    p_in = p_in,
+    q_s_out = q_s_out,
+    q_s_in = q_s_in,
+    q_t_out = q_t_out,
+    q_t_in = q_t_in
   )
 }
 
@@ -106,7 +114,7 @@ get_dist <- function(edgelist, directed = TRUE,
 #' @return A list of updated constraints.
 #'
 #' @keywords internal
-#' 
+#'
 get_constr <- function(constrs, target.assortcoef, rho) {
   for (type in names(target.assortcoef)) {
     if (!is.null(target.assortcoef[[type]])) {
@@ -125,48 +133,43 @@ get_constr <- function(constrs, target.assortcoef, rho) {
 #' defined for \code{get_eta_directed()}.
 #'
 #' @param object An object from the optimization problem.
-#' @param result A list returned from \code{CVXR::solve()}.
 #' @param mydist A list returned from \code{get_dist()}.
 #'
 #' @return Returns the value of the object.
 #'
 #' @keywords internal
-#' 
-get_values <- function(object, result, mydist) {
-  outout <- result$getValue(object[["outout"]])
-  outin <- result$getValue(object[["outin"]])
-  inout <- result$getValue(object[["inout"]])
-  inin <- result$getValue(object[["inin"]])
+#'
+get_values <- function(object, mydist) {
+  outout <- CVXR::value(object[["outout"]])
+  outin <- CVXR::value(object[["outin"]])
+  inout <- CVXR::value(object[["inout"]])
+  inin <- CVXR::value(object[["inin"]])
   if (deparse(substitute(object)) == "e" &&
-    !any(
-      is.na(outout), is.na(outin),
-      is.na(inout), is.na(inin)
-    )) {
+      !any(is.na(outout), is.na(outin), is.na(inout), is.na(inin))) {
     rownames(outout) <- rownames(outin) <- mydist$d_out
     colnames(inout) <- colnames(outout) <- mydist$d_out
     rownames(inout) <- rownames(inin) <- mydist$d_in
     colnames(outin) <- colnames(inin) <- mydist$d_in
   }
   list(
-    "outout" = outout, "outin" = outin,
-    "inout" = inout, "inin" = inin
+    "outout" = outout,
+    "outin" = outin,
+    "inout" = inout,
+    "inin" = inin
   )
 }
 
-#' Parameters passed to CVXR::solve().
+#' Parameters passed to CVXR::psolve().
 #'
 #' Defined for the convex optimization problems for solving \code{eta}.
 #'
 #' @param solver (Optional) A string indicating the solver to use. Defaults to
-#'   "ECOS".
-#' @param ignore_dcp (Optional) A logical value indicating whether to override
+#'   "CLARABEL".
 #'   the DCP check for a problem.
 #' @param warm_start (Optional) A logical value indicating whether the previous
 #'   solver result should be used to warm start.
 #' @param verbose (Optional) A logical value indicating whether to print
 #'   additional solver output.
-#' @param parallel (Optional) A logical value indicating whether to solve in
-#'   parallel if the problem is separable.
 #' @param gp (Optional) A logical value indicating whether the problem is a
 #'   geometric program. Defaults to FALSE.
 #' @param feastol The feasible tolerance on the primal and dual residual.
@@ -182,31 +185,28 @@ get_values <- function(object, result, mydist) {
 #'
 #' @examples
 #' control <- cvxr_control(solver = "OSQP", abstol = 1e-5)
-cvxr_control <- function(
-    solver = "ECOS",
-    ignore_dcp = FALSE,
-    warm_start = FALSE,
-    verbose = FALSE,
-    parallel = FALSE,
-    gp = FALSE,
-    feastol = 1e-5,
-    reltol = 1e-5,
-    abstol = 1e-5,
-    num_iter = NULL,
-    ...) {
-  return(list(
-    solver = solver,
-    ignore_dcp = ignore_dcp,
-    warm_start = warm_start,
-    verbose = verbose,
-    parallel = parallel,
-    gp = gp,
-    feastol = feastol,
-    reltol = reltol,
-    abstol = abstol,
-    num_iter = num_iter,
-    ...
-  ))
+cvxr_control <- function(solver = "CLARABEL",
+                         warm_start = FALSE,
+                         verbose = FALSE,
+                         gp = FALSE,
+                         feastol = 1e-5,
+                         reltol = 1e-5,
+                         abstol = 1e-5,
+                         num_iter = NULL,
+                         ...) {
+  return(
+    list(
+      solver = solver,
+      warm_start = warm_start,
+      verbose = verbose,
+      gp = gp,
+      feastol = feastol,
+      reltol = reltol,
+      abstol = abstol,
+      num_iter = num_iter,
+      ...
+    )
+  )
 }
 
 #' Compute edge-level distributions for directed networks with respect to
@@ -220,7 +220,7 @@ cvxr_control <- function(
 #'   \code{which.range} is \code{NULL}. Defaults to 0.
 #' @param which.range Character, "outout", "outin", "inout" or "inin"s,
 #'   represents the interested degree based assortativity coefficient.
-#' @param control A list of parameters passed to \code{CVXR::solve()} when
+#' @param control A list of parameters passed to \code{CVXR::psolve()} when
 #'   solving for \code{eta} or computing the range of assortativity coefficient.
 #' @return Assortativity coefficients and joint distributions. If
 #'   \code{which.range} is specified, the range of the interested coefficient
@@ -228,36 +228,37 @@ cvxr_control <- function(
 #'   predetermined \code{target.assortcoef} is satisfied.
 #'
 #' @keywords internal
-#' 
-get_eta_directed <- function(
-    edgelist,
-    target.assortcoef = list(
-      "outout" = NULL, "outin" = NULL,
-      "inout" = NULL, "inin" = NULL
-    ),
-    eta.obj = function(x) 0, which.range,
-    control = cvxr_control()) {
-  stopifnot(all(names(target.assortcoef) %in% c(
-    "outout", "outin",
-    "inout", "inin"
-  )))
+#'
+get_eta_directed <- function(edgelist,
+                             target.assortcoef = list(
+                               "outout" = NULL,
+                               "outin" = NULL,
+                               "inout" = NULL,
+                               "inin" = NULL
+                             ),
+                             eta.obj = function(x) 0,
+                             which.range,
+                             control = cvxr_control()) {
+  stopifnot(all(
+    names(target.assortcoef) %in% c("outout", "outin", "inout", "inin")
+  ))
   mydist <- get_dist(edgelist = edgelist, directed = TRUE)
   m <- length(mydist$d_out)
   n <- length(mydist$d_in)
-
+  
   s_outin <- c(t(mydist$nu * mydist$d_out))
   s_outin <- s_outin / sum(s_outin)
   t_outin <- c(t(mydist$nu) * mydist$d_in)
   t_outin <- t_outin / sum(t_outin)
   index_s <- s_outin != 0
   index_t <- t_outin != 0
-  eMat <- CVXR::Variable(sum(index_s), sum(index_t), nonneg = TRUE)
+  eMat <- CVXR::Variable(shape = c(sum(index_s), sum(index_t)), nonneg = TRUE)
   constrs <- list(
     "rowSum" = CVXR::sum_entries(eMat, 1) == s_outin[index_s],
-    "colSum" = CVXR::sum_entries(eMat, 2) == t_outin[index_t]
+    "colSum" = CVXR::sum_entries(eMat, 2) == t(t_outin[index_t])
   )
   rm(s_outin, t_outin)
-
+  
   mat1 <- kronecker(diag(rep(1, m)), t(rep(1, n)))
   mat2 <- kronecker(rep(1, m), diag(rep(1, n)))
   e <- list(
@@ -267,7 +268,7 @@ get_eta_directed <- function(
     "inin" = t(mat2[index_s, ]) %*% eMat %*% mat2[index_t, ]
   )
   rm(mat1, mat2, m, n)
-
+  
   my_sigma <- function(j, q) {
     (sum(j^2 * q) - sum(j * q)^2)^0.5
   }
@@ -277,71 +278,69 @@ get_eta_directed <- function(
     t_out = my_sigma(mydist$d_out, mydist$q_t_out),
     t_in = my_sigma(mydist$d_in, mydist$q_t_in)
   )
-
+  
   rho <- list(
     "outout" = t(mydist$d_out) %*%
-      (e$"outout" - mydist$q_s_out %*% t(mydist$q_t_out)) %*%
+      (e$"outout"-mydist$q_s_out %*% t(mydist$q_t_out)) %*%
       mydist$d_out / sig$s_out / sig$t_out,
     "outin" = t(mydist$d_out) %*%
-      (e$"outin" - mydist$q_s_out %*% t(mydist$q_t_in)) %*%
+      (e$"outin"-mydist$q_s_out %*% t(mydist$q_t_in)) %*%
       mydist$d_in / sig$s_out / sig$t_in,
     "inout" = t(mydist$d_in) %*%
-      (e$"inout" - mydist$q_s_in %*% t(mydist$q_t_out)) %*%
+      (e$"inout"-mydist$q_s_in %*% t(mydist$q_t_out)) %*%
       mydist$d_out / sig$s_in / sig$t_out,
     "inin" = t(mydist$d_in) %*%
-      (e$"inin" - mydist$q_s_in %*% t(mydist$q_t_in)) %*%
+      (e$"inin"-mydist$q_s_in %*% t(mydist$q_t_in)) %*%
       mydist$d_in / sig$s_in / sig$t_in
   )
-
-  name_eMat <- function(eMat, a = mydist$d_out, b = mydist$d_in,
-                        index_a = index_s, index_b = index_t) {
-    temp <- paste0(rep(a, each = length(b)), "-",
-      rep(b, length(a)),
-      split = ""
-    )
+  
+  name_eMat <- function(eMat,
+                        a = mydist$d_out,
+                        b = mydist$d_in,
+                        index_a = index_s,
+                        index_b = index_t) {
+    temp <- paste0(rep(a, each = length(b)), "-", rep(b, length(a)), split = "")
     colnames(eMat) <- temp[index_b]
     rownames(eMat) <- temp[index_a]
     names(attributes(eMat)$dimnames) <- c("source", "target")
     eMat
   }
   constrs <- get_constr(constrs, target.assortcoef, rho)
-  retitems <- c(
-    "value", "status", "solver",
-    "solve_time", "setup_time", "num_iters"
-  )
   if (missing(which.range)) {
     problem <- CVXR::Problem(CVXR::Minimize(do.call(eta.obj, list(eMat))), constrs)
-    result <- do.call(CVXR::solve, c(list(problem), control))
-    ret <- result[retitems]
-    if (result$status == "solver_error" || result$status == "infeasible") {
-      warning(paste0("Solver status: ", result$status))
+    opt_val <- do.call(CVXR::psolve, c(list(problem), control))
+    ret <- collect_solver_results(opt_val, problem)
+    if (ret$status == "solver_error" ||
+        ret$status == "infeasible") {
+      warning(paste0("Solver status: ", ret$status))
       return(ret)
     }
-    ret$assortcoef <- get_values(rho, result, mydist)
-    # ret$e <- get_values(e, result, mydist)
-    ret$eta <- name_eMat(result$getValue(eMat))
+    ret$assortcoef <- get_values(rho, mydist)
+    ret$eta <- name_eMat(CVXR::value(eMat))
     return(ret)
   } else {
-    tempRho <- rho
-    stopifnot("'which.range' is not valid." = which.range %in% names(tempRho))
-    problem1 <- CVXR::Problem(CVXR::Minimize(tempRho[[which.range]]), constrs)
-    result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    if (result1$status == "solver_error" || result1$status == "infeasible") {
-      warning(paste0("Lower bound solver status: ", result1$status))
+    stopifnot("'which.range' is not valid." = which.range %in% names(rho))
+    problem1 <- CVXR::Problem(CVXR::Minimize(rho[[which.range]]), constrs)
+    opt1 <- do.call(CVXR::psolve, c(list(problem1), control))
+    lower_bound <- CVXR::value(rho[[which.range]])
+    ret1 <- collect_solver_results(opt1, problem1)
+    if (ret1$status == "solver_error" ||
+        ret1$status == "infeasible") {
+      warning(paste0("Lower bound solver status: ", ret1$status))
     }
 
-    problem2 <- CVXR::Problem(CVXR::Maximize(tempRho[[which.range]]), constrs)
-    result2 <- do.call(CVXR::solve, c(list(problem2), control))
-    if (result2$status == "solver_error" || result2$status == "infeasible") {
-      warning(paste0("Upper bound solver status: ", result2$status))
+    problem2 <- CVXR::Problem(CVXR::Maximize(rho[[which.range]]), constrs)
+    opt2 <- do.call(CVXR::psolve, c(list(problem2), control))
+    upper_bound <- CVXR::value(rho[[which.range]])
+    ret2 <- collect_solver_results(opt2, problem2)
+    if (ret2$status == "solver_error" ||
+        ret2$status == "infeasible") {
+      warning(paste0("Upper bound solver status: ", ret2$status))
     }
     return(list(
-      "range" = c(
-        result1$getValue(tempRho[[which.range]]),
-        result2$getValue(tempRho[[which.range]])
-      ),
-      "lbound.solver.result" = result1[retitems],
-      "ubound.solver.result" = result2[retitems]
+      "range" = c(lower_bound, upper_bound),
+      "lbound.solver.result" = ret1,
+      "ubound.solver.result" = ret2
     ))
   }
 }
@@ -356,19 +355,20 @@ get_eta_directed <- function(
 #'   corresponding joint distribution are returned.
 #' @param eta.obj A convex function of \code{eta} to be minimized when
 #'   \code{target.assortcoef} is not \code{NULL}. Defaults to 0.
-#' @param control A list of parameters passed to \code{CVXR::solve()} when
+#' @param control A list of parameters passed to \code{CVXR::psolve()} when
 #'   solving for \code{eta} or computing the range of assortativity coefficient.
 #'
 #' @return Assortativity level and corresponding edge-level distribution.
 #'
 #' @keywords internal
-#' 
-get_eta_undirected <- function(
-    edgelist, target.assortcoef = NULL,
-    eta.obj = function(x) 0,
-    control = cvxr_control()) {
+#'
+get_eta_undirected <- function(edgelist,
+                               target.assortcoef = NULL,
+                               eta.obj = function(x)
+                                 0,
+                               control = cvxr_control()) {
   stopifnot((target.assortcoef <= 1 & target.assortcoef >= -1) ||
-    is.null(target.assortcoef))
+              is.null(target.assortcoef))
   mydist <- get_dist(edgelist = edgelist, directed = FALSE)
   k <- mydist$d_out
   q_k <- mydist$q_s_out
@@ -379,55 +379,69 @@ get_eta_undirected <- function(
   }
   if (!is.null(target.assortcoef)) {
     if (target.assortcoef == 0) {
-      return(list(
-        "assortcoef" = 0,
-        "eta" = name_eMat(q_k %*% t(q_k), k)
-      ))
+      return(list("assortcoef" = 0, "eta" = name_eMat(q_k %*% t(q_k), k)))
     }
   }
   n <- length(k)
   sig2 <- sum(k^2 * q_k) - (sum(k * q_k))^2
-  eMat <- CVXR::Variable(n, n, nonneg = TRUE)
+  eMat <- CVXR::Variable(shape = c(n, n), nonneg = TRUE)
   rho <- t(k) %*% (eMat - q_k %*% t(q_k)) %*% k / sig2
-  constrs <- list(
-    CVXR::sum_entries(eMat, 1) == q_k,
-    eMat == t(eMat)
-  )
-  retitems <- c(
-    "value", "status", "solver",
-    "solve_time", "setup_time", "num_iters"
-  )
+  constrs <- list(CVXR::sum_entries(eMat, 1) == q_k, eMat == t(eMat))
   if (!is.null(target.assortcoef)) {
     constrs$"rho" <- rho == target.assortcoef
-    problem <- CVXR::Problem(
-      CVXR::Minimize(do.call(eta.obj, list(eMat))),
-      constrs
-    )
-    result <- do.call(CVXR::solve, c(list(problem), control))
-    ret <- result[retitems]
-    if (result$status == "solver_error" | result$status == "infeasible") {
-      warning(paste0("Solver status: ", result$status))
+    problem <- CVXR::Problem(CVXR::Minimize(do.call(eta.obj, list(eMat))), constrs)
+    opt_val <- do.call(CVXR::psolve, c(list(problem), control))
+    ret <- collect_solver_results(opt_val, problem)
+    if (ret$status == "solver_error" | ret$status == "infeasible") {
+      warning(paste0("Solver status: ", ret$status))
       return(ret)
     }
-    ret$assortcoef <- result$getValue(rho)
-    ret$eta <- name_eMat(result$getValue(eMat), k)
+    ret$assortcoef <- CVXR::value(rho)
+    ret$eta <- name_eMat(CVXR::value(eMat), k)
     return(ret)
   } else {
-    # constrs$"rho" <- rho <= 1
     problem1 <- CVXR::Problem(CVXR::Minimize(rho), constrs)
-    result1 <- do.call(CVXR::solve, c(list(problem1), control))
-    if (result1$status == "solver_error" | result1$status == "infeasible") {
-      warning(paste0("Lower bound solver status: ", result1$status))
+    opt1 <- do.call(CVXR::psolve, c(list(problem1), control))
+    lower_bound <- CVXR::value(rho)
+    ret1 <- collect_solver_results(opt1, problem1)
+    if (ret1$status == "solver_error" |
+        ret1$status == "infeasible") {
+      warning(paste0("Lower bound solver status: ", ret1$status))
     }
+
     problem2 <- CVXR::Problem(CVXR::Maximize(rho), constrs)
-    result2 <- do.call(CVXR::solve, c(list(problem2), control))
-    if (result2$status == "solver_error" | result2$status == "infeasible") {
-      warning(paste0("Upper bound solver status: ", result2$status))
+    opt2 <- do.call(CVXR::psolve, c(list(problem2), control))
+    upper_bound <- CVXR::value(rho)
+    ret2 <- collect_solver_results(opt2, problem2)
+    if (ret2$status == "solver_error" |
+        ret2$status == "infeasible") {
+      warning(paste0("Upper bound solver status: ", ret2$status))
     }
     return(list(
-      "range" = c(result1$getValue(rho), result2$getValue(rho)),
-      "lbound.solver.result" = result1[retitems],
-      "ubound.solver.result" = result2[retitems]
+      "range" = c(lower_bound, upper_bound),
+      "lbound.solver.result" = ret1,
+      "ubound.solver.result" = ret2
     ))
   }
+}
+
+#' Collect solver results into a list. This function is defined for both
+#' \code{get_eta_directed()} and
+#' \code{get_eta_undirected()}.
+#' @param opt The optimal value returned by the solver.
+#' @param problem The CVXR problem object.
+#' @return A list containing the optimal value, solver status, solver name, 
+#' solve time, setup time, and number of iterations.
+#'
+#' @keywords internal
+collect_solver_results <- function(opt, problem) {
+  solver_stats <- CVXR::solver_stats(problem)
+  list(
+    value = opt,
+    status = CVXR::status(problem),
+    solver = solver_stats@solver_name,
+    solve_time = solver_stats@solve_time,
+    setup_time = solver_stats@setup_time,
+    num_iters = solver_stats@num_iters
+  )
 }

@@ -30,12 +30,49 @@ test_that("rewire", {
         edgelist = edgelist,
         target.assortcoef = target.assortcoef
       )$eta
+      
+      set.seed(123)
+      inin.range1 <- dprewire.range(
+        edgelist = edgelist, which.range = 'inin',
+        target.assortcoef = target.assortcoef
+      )$range
+      expect_lt(inin.range1[1], -0.6)
+      expect_gt(inin.range1[2], 0.8)
+      # print(inin.range1)
+      inin.range2 <- dprewire.range(
+        edgelist = edgelist, which.range = 'inin'
+      )$range
+      expect_lt(inin.range2[1], -0.7)
+      expect_gt(inin.range2[2], 0.9)
+      # print(inin.range2)
+      expect_lte(inin.range2[1], inin.range1[1])
+      expect_gte(inin.range2[2], inin.range1[2])
+
+      inin.range3 <- dprewire.range(
+        edgelist = edgelist, which.range = 'inin',
+        target.assortcoef = list("outout" = -0.2, "outin" = c(0.15, 0.25))
+      )$range
+      # print(inin.range3)
+      expect_lt(inin.range3[1], -0.6)
+      expect_gt(inin.range3[2], 0.8)
+      expect_lte(inin.range3[1], inin.range1[1])
+      expect_gte(inin.range3[2], inin.range1[2])
+      expect_gte(inin.range3[1], inin.range2[1])
+      expect_lte(inin.range3[2], inin.range2[2])
     } else {
       target.assortcoef <- 0.2
       eta <- get_eta_undirected(
         edgelist = edgelist,
         target.assortcoef = target.assortcoef
       )$eta
+      
+      set.seed(123)
+      myrange <- dprewire.range(
+        edgelist = edgelist
+      )$range
+      # print(myrange)
+      expect_lt(myrange[1], -0.2)
+      expect_gt(myrange[2], 0.5)
     }
 
     set.seed(123)

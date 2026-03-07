@@ -1,6 +1,6 @@
 ##
 ## wdnet: Weighted directed network
-## Copyright (C) 2024  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
+## Copyright (C) 2026  Yelie Yuan, Tiandong Wang, Jun Yan and Panpan Zhang
 ## Jun Yan <jun.yan@uconn.edu>
 ##
 ## This file is part of the R package wdnet.
@@ -234,7 +234,7 @@ dprewire_undirected <- function(
 #'   \code{eta} to be minimized when solving for \code{eta} with given
 #'   \code{target.assortcoef}. Defaults to 0. It will be ignored if \code{eta}
 #'   is provided. \item `cvxr_control` A list of parameters passed to
-#'   \code{CVXR::solve()} for solving \code{eta} with given
+#'   \code{CVXR::psolve()} for solving \code{eta} with given
 #'   \code{target.assortcoef}. It will be ignored if \code{eta} is provided.}
 #' @param eta A matrix represents the target network structure. If specified,
 #'   \code{target.assortcoef} will be ignored. For directed networks, the
@@ -268,6 +268,7 @@ dprewire_undirected <- function(
 #' plot(ret1$assortcoef$Iteration, ret1$assortcoef$"outin")
 #'
 #' ## rewire an undirected network
+#' set.seed(123)
 #' netwk2 <- rpanet(1e4,
 #'   control = rpa_control_scenario(
 #'     alpha = 0.3, beta = 0.1, gamma = 0.3, xi = 0.3
@@ -279,7 +280,7 @@ dprewire_undirected <- function(
 #'   netwk = netwk2,
 #'   target.assortcoef = 0.3,
 #'   control = list(
-#'     iteration = 300, eta.obj = CVXR::norm2,
+#'     iteration = 500, eta.obj = CVXR::norm2,
 #'     history = TRUE
 #'   )
 #' )
@@ -403,7 +404,7 @@ dprewire <- function(
 #' @param target.assortcoef A list of constraints, it contains the predetermined
 #'   value or range imposed on assortativity coefficients other than
 #'   \code{which.range}. It will be ignored if the network is undirected.
-#' @param control A list of parameters passed to \code{CVXR::solve()} for
+#' @param control A list of parameters passed to \code{CVXR::psolve()} for
 #'   solving an appropriate \code{eta}, given the constraints
 #'   \code{target.assortcoef}.
 #'
