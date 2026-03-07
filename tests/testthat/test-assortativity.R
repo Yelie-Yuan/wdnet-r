@@ -49,7 +49,7 @@ test_that("assortativity coefficient", {
   )
   tmp <- abs(
     assortcoef(adj = adj, directed = TRUE)$outin - 
-    igraph::assortativity.degree(
+    igraph::assortativity_degree(
       igraph::graph_from_adjacency_matrix(adj, mode = "directed")
     )
   )
@@ -88,7 +88,7 @@ test_that("assortativity coefficient", {
   )
   tmp <- abs(
     assortcoef(adj = adj, directed = FALSE) - 
-    igraph::assortativity.degree(
+    igraph::assortativity_degree(
       igraph::graph_from_adjacency_matrix(adj, mode = "undirected")
     )
   )
