@@ -1,7 +1,7 @@
 Package: wdnet
 Title: Weighted and Directed Networks
 Version: 1.2.4
-Date: 2026-03-07
+Date: 2026-03-09
 Authors@R: c(
     person("Yelie", "Yuan", email = "yelie.yuan@gmail.com",
            role = c("aut", "cre")),
@@ -16,7 +16,7 @@ Description: Assortativity coefficients, centrality measures,
     and clustering coefficients for weighted and directed networks.
     Rewiring unweighted networks with given assortativity coefficients.
     Generating general preferential attachment networks.
-Depends: R (>= 4.5.0)
+Depends: R (>= 4.4.0)
 License: GPL (>= 3.0)
 Encoding: UTF-8
 Imports: 
