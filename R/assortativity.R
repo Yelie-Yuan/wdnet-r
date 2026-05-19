@@ -315,13 +315,6 @@ dw_feature_assort <- function(netwk, f1, f2) {
 #'
 #' @return A numeric vector of weighted ranks.
 #'
-#' @examples
-#' x <- c(1, 2, 2, 4)
-#' weighted_rank(x)
-#'
-#' w <- c(1, 2, 3, 1)
-#' weighted_rank(x, w)
-#'
 #' @keywords internal
 
 weighted_rank <- function(x, weight = x) {
