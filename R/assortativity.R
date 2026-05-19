@@ -99,6 +99,9 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #'   be used.
 #' @param f2 A vector representing the second feature of existing nodes. Defined
 #'   for directed networks. If \code{NULL}, in-strength will be used.
+#' @param weighted.rank Logical. If supplied, assortativity is computed using
+#'   ranked node strengths; \code{TRUE} uses weighted midranks,
+#'   \code{FALSE} uses average ranks.
 #'
 #' @return Assortativity coefficient for undirected networks, or a list of four
 #'   assortativity coefficients for directed networks.
@@ -108,7 +111,10 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #'   \emph{Proceedings of the National Academy of Sciences of the United
 #'   States}, 107(24), 10815--10820. \item Yuan, Y. Zhang, P. and Yan, J.
 #'   (2021). Assortativity coefficients for weighted and directed networks.
-#'   \emph{Journal of Complex Networks}, 9(2), cnab017.}
+#'   \emph{Journal of Complex Networks}, 9(2), cnab017.
+#'   \item Shen, A., Feng, Q., Yan, J. and Zhang, P. (2025).
+#'   Rank-based assortativity for weighted, directed networks.
+#'   \emph{Journal of Complex Networks}, 13(2), cnaf002.}
 #'
 #' @note When the adjacency matrix is binary (i.e., directed but unweighted
 #'   networks), \code{assortcoef} returns the assortativity coefficient proposed
@@ -136,7 +142,8 @@ assortcoef <- function(
     adj,
     directed,
     f1,
-    f2) {
+    f2,
+    weighted.rank) {
   netwk <- create_wdnet(
     netwk = netwk,
     edgelist = edgelist,
@@ -178,6 +185,26 @@ assortcoef <- function(
   outs <- temp$outs
   ins <- temp$ins
   rm(temp)
+
+  if (!missing(weighted.rank)) {
+    if (!directed) {
+      stop("Rank-based assortativity coefficients are defined for directed networks.")
+    }
+    if (weighted.rank) {
+      f1 <- weighted_rank(outs, outs)
+      f2 <- weighted_rank(ins, ins)
+    } else {
+      f1 <- rank(outs, ties.method = "average")
+      f2 <- rank(ins, ties.method = "average")
+    }
+    # if (!directed) {
+    #   return(dw_feature_assort(netwk, f1 = f1, f2 = f2)$"f1-f2")
+    # }
+    result <- dw_feature_assort(netwk, f1 = f1, f2 = f2)
+    names(result) <- c("outout", "outin", "inout", "inin")
+    return(result)
+  }
+
   sout <- outs[snode]
   tin <- ins[tnode]
   if (!directed) {
