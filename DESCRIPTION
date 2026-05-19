@@ -30,5 +30,5 @@ Imports:
 LinkingTo: Rcpp, RcppArmadillo
 BugReports: https://gitlab.com/wdnetwork/wdnet/-/issues
 URL: https://gitlab.com/wdnetwork/wdnet
-RoxygenNote: 7.3.3
 Suggests: testthat (>= 3.0.0)
+Config/roxygen2/version: 8.0.0
