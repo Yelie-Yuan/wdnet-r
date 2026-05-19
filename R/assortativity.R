@@ -43,7 +43,7 @@ NULL
 #'   in Foster et al. (2010).
 #'
 #' @keywords internal
-#' 
+#'
 
 dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
   stopifnot(dim(adj)[1] == dim(adj)[2])
@@ -128,7 +128,7 @@ dw_assort <- function(adj, type = c("outin", "inin", "outout", "inout")) {
 #'   edgeweight = netwk$edge.attr$weight,
 #'   directed = TRUE
 #' )
-#' 
+#'
 assortcoef <- function(
     netwk,
     edgelist,
@@ -231,7 +231,7 @@ assortcoef <- function(
 #' assortcoef(adj = adj, f1 = f1, f2 = f2)
 #'
 #' @keywords internal
-#' 
+#'
 dw_feature_assort <- function(netwk, f1, f2) {
   nnode <- max(netwk$edgelist)
   snode <- netwk$edgelist[, 1]
@@ -273,4 +273,74 @@ dw_feature_assort <- function(netwk, f1, f2) {
     weights = edgeweight, method = "pearson"
   )
   return(ret)
+}
+
+#' Weighted rank
+#'
+#' Computes weighted ranks for a numeric vector using weighted midranks for
+#' tied observations. Missing values in either \code{x} or \code{weight} are
+#' excluded from the calculation and returned as \code{NA} in the output.
+#'
+#' @param x A numeric vector to be ranked.
+#'
+#' @param weight A numeric vector of nonnegative weights with the same length as
+#' \code{x}. Defaults to \code{x} (i.e. self-weighted ranks).
+#'
+#' @return A numeric vector of weighted ranks.
+#'
+#' @examples
+#' x <- c(1, 2, 2, 4)
+#' weighted_rank(x)
+#'
+#' w <- c(1, 2, 3, 1)
+#' weighted_rank(x, w)
+#'
+#' @keywords internal
+
+weighted_rank <- function(x, weight = x) {
+  stopifnot(length(x) == length(weight))
+  n <- length(x)
+  ## identify valid observations (exclude NA in x or weight)
+  ok <- !(is.na(x) | is.na(weight))
+  ## initialize output vector with NA
+  result <- rep(NA_real_, n)
+  ## if all values are NA return NA vector
+  if (!any(ok)) {
+    return(result)
+  }
+  ## keep only valid observations
+  x.valid <- x[ok]
+  w.valid <- weight[ok]
+  ## order observations by x (ascending rank order)
+  ord <- order(x.valid)
+  x.sorted <- x.valid[ord]
+  w.sorted <- w.valid[ord]
+  ## identify tie groups of identical x values
+  rl <- rle(x.sorted)
+  ## number of elements in each tie group
+  g.size <- rl$lengths
+  ## value of x for each tie group
+  g.val <- rl$values
+  ## group id for each observation in sorted order
+  g.id <- rep.int(seq_along(g.size), g.size)
+  ## sum of weights within each tie group, corresponds to sum_{k: s_k = s_i} w_k
+  if (identical(w.valid, x.valid)) {
+    g.sum <- g.val * g.size
+  } else {
+    g.sum <- rowsum(as.numeric(w.sorted), g.id, reorder = FALSE)[,1]
+  }
+  ## cumulative weight of strictly lower groups, corresponds to sum_{k: s_k < s_i} w_k
+  before <- c(0, cumsum(g.sum))[seq_along(g.sum)]
+  ## weighted midrank for tied observations, analogous to (t_i + 2)/2 * s_i in Eq. (2.2)
+  mid <- (g.size + 1) / (2 * g.size) * g.sum
+  ## weighted rank value for each group
+  g.rank <- before + mid
+  ## expand group ranks back to individual observations
+  rank.sorted <- rep.int(g.rank, g.size)
+  ## restore original order
+  rank.ok <- numeric(sum(ok))
+  rank.ok[ord] <- rank.sorted
+  ## place results into full output vector
+  result[ok] <- rank.ok
+  return(result)
 }
